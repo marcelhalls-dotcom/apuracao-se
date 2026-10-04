@@ -284,7 +284,7 @@ function normalizar(j) {
     pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
     dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
     totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands, partidos, todos,
-    eleitoresFaltando: num((j.e || {}).esnt), votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
+    eleitoresFaltando: num((j.e || {}).esnt), comparecimento: num((j.e || {}).est) > 0 ? num((j.e || {}).c) / num((j.e || {}).est) : 1, votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
     vagas: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].nv) : 0,
   };
 }
@@ -313,7 +313,8 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 function matematicamenteEleitos(cargo, d) {
   const res = new Set();
   if (!cargo.matematico || !d || d.pst === 0 || d.totalFinal) return res;
-  const falta = d.eleitoresFaltando;
+  // Projeção: eleitores que faltam × comparecimento observado até agora (em vez de 100%).
+  const falta = Math.round(d.eleitoresFaltando * Math.min(1, d.comparecimento || 1));
   if (cargo.matematico === 'maioria') {
     const maxValidos = d.votosValidosCalc + falta;
     for (const k of d.todos) if (k.vap > maxValidos / 2) res.add(k.n);
@@ -340,8 +341,8 @@ function renderCard(cargo) {
   } else meta.textContent = 'Urnas apuradas: —';
   card.appendChild(meta);
   if (cargo.matematico) card.appendChild(el('div', 'meta', cargo.matematico === 'maioria'
-    ? 'Matematicamente eleito = já tem mais da metade dos votos válidos possíveis, mesmo que todos os eleitores que faltam votem contra.'
-    : 'Matematicamente eleito = nem com todos os eleitores que faltam votando nos outros, ele sai das vagas.'));
+    ? 'Matematicamente eleito (projeção) = já tem mais da metade dos votos válidos possíveis, mesmo que todos os votos que faltam (eleitores restantes × comparecimento atual) sejam contra ele.'
+    : 'Matematicamente eleito (projeção) = nem com todos os votos que faltam (eleitores restantes × comparecimento atual) indo para os outros, ele sai das vagas.'));
 
   if (st.erro) {
     const quando = st.recebidoEm ? ` Mostrando os últimos dados recebidos às ${st.recebidoEm.toLocaleTimeString('pt-BR')}.` : '';
@@ -370,7 +371,7 @@ function renderCard(cargo) {
     }
     if (r && matEleitos.has(String(c.numero)) && !row.classList.contains('eleito')) {
       row.classList.add('eleito', 'mat');
-      nome.appendChild(el('span', 'badge eleito', '\u2713 MATEMATICAMENTE ELEITO'));
+      nome.appendChild(el('span', 'badge eleito', '\u2713 MATEMATICAMENTE ELEITO (PROJEÇÃO)'));
     }
     l1.appendChild(nome);
     l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));

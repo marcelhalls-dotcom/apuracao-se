@@ -69,6 +69,11 @@
   .cand.turno2 { border-left: 4px solid #f59e0b; padding-left: 10px; background: rgba(245,158,11,0.08); border-radius: 6px; }
   .cand.turno2 .barra > div { background: #f59e0b !important; }
   .naoencontrado { color: #fca5a5; font-size: 0.82rem; }
+  .qe2022 { display: inline-block; margin-top: 14px; padding: 10px 16px; border: 2px dashed #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.10); }
+  .qe2022 .aviso { display: inline-block; background: #f59e0b; color: #1c1917; font-weight: 800; font-size: 0.78rem; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; margin-bottom: 6px; }
+  .qe2022 .valores { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; font-size: 0.95rem; }
+  .qe2022 .valores strong { color: #fcd34d; font-size: 1.1rem; }
+  .qe2022 .nota { font-size: 0.75rem; color: var(--subtext); margin-top: 4px; }
   footer { text-align: center; color: var(--subtext); font-size: 0.8rem; margin-top: 28px; }
   footer a { color: var(--subtext); }
 </style>
@@ -80,6 +85,14 @@
   <div id="status" class="status"><span class="dot"></span><span id="status-texto">Conectando ao TSE…</span></div>
   <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
   <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
+  <div class="qe2022">
+    <div class="aviso">⚠ REFERÊNCIA: ELEIÇÃO PASSADA (2022), NÃO É O QUOCIENTE DE 2026</div>
+    <div class="valores">
+      <span>Quociente eleitoral Dep. Federal 2022: <strong>148.884</strong> votos</span>
+      <span>Quociente eleitoral Dep. Estadual 2022: <strong>50.684</strong> votos</span>
+    </div>
+    <div class="nota">Sergipe 2022 (TSE): Federal 1.191.074 votos válidos ÷ 8 vagas. Estadual 1.216.425 votos válidos ÷ 24 vagas. O quociente de 2026 só é definido no fim da apuração.</div>
+  </div>
 </header>
 
 <main class="grid" id="grid"></main>

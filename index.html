@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apuração Sergipe - Destaques</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #38bdf8;
+    --text: #f8fafc;
+    --subtext: #94a3b8;
+    --ok: #22c55e;
+    --erro: #ef4444;
+    --aviso: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px 40px;
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  h1 { margin: 0 0 14px; font-size: 1.8rem; }
+  .status {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4);
+    color: var(--accent); padding: 8px 18px; border-radius: 999px; font-size: 0.95rem;
+  }
+  .status.erro { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); animation: pulse 1.6s infinite; flex: none; }
+  .status.erro .dot { background: var(--erro); }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+  .resumo { margin-top: 12px; color: var(--subtext); font-size: 1rem; }
+  .resumo strong { color: var(--text); }
+  .atualizado { margin-top: 4px; color: var(--subtext); font-size: 0.85rem; }
+  .grid {
+    display: grid; gap: 20px; max-width: 1200px; margin: 0 auto;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start;
+  }
+  .card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+  .card h2 { margin: 0; font-size: 1.15rem; color: var(--accent); }
+  .card .meta { color: var(--subtext); font-size: 0.82rem; margin: 4px 0 14px; }
+  .aviso-card { font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 12px; }
+  .aviso-card.espera { background: rgba(148, 163, 184, 0.12); color: var(--subtext); }
+  .aviso-card.erro { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+  .cand { margin-bottom: 16px; }
+  .cand:last-child { margin-bottom: 0; }
+  .linha { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .nome { font-weight: 600; }
+  .pct { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .barra { height: 8px; background: #334155; border-radius: 999px; overflow: hidden; margin: 6px 0 4px; }
+  .barra > div { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 0.8s ease; }
+  .info { display: flex; justify-content: space-between; gap: 8px; color: var(--subtext); font-size: 0.82rem; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; margin-left: 6px; }
+  .badge.eleito { background: rgba(34, 197, 94, 0.18); color: #86efac; }
+  .badge.outro { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+  .badge.nao { background: rgba(148, 163, 184, 0.18); color: var(--subtext); }
+  .naoencontrado { color: #fca5a5; font-size: 0.82rem; }
+  footer { text-align: center; color: var(--subtext); font-size: 0.8rem; margin-top: 28px; }
+  footer a { color: var(--subtext); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Apuração Sergipe - Destaques</h1>
+  <div id="status" class="status"><span class="dot"></span><span id="status-texto">Conectando ao TSE…</span></div>
+  <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
+  <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>
+  Fonte: TSE — <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a>
+  (dados oficiais de divulgação). Percentuais sobre votos válidos.
+</footer>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO — edite aqui.
+   Cada cargo tem uma lista de candidatos { nome, numero }.
+   O "numero" é o número de urna do candidato no TSE (é ele que vale;
+   o "nome" é só o texto exibido na tela).
+   Códigos de cargo do TSE: 3 = Governador, 5 = Senador,
+   6 = Deputado Federal, 7 = Deputado Estadual.
+   ===================================================================== */
+const CONFIG = {
+  uf: 'se',
+  ciclo: 'ele2026',
+  // Código da "Eleição Ordinária Estadual - 2026 1º Turno" no TSE.
+  // A página tenta descobrir esse código sozinha no arquivo de configuração
+  // do TSE; este valor é usado só se a descoberta falhar.
+  codigoEleicaoPadrao: '6259',
+  intervaloSegundos: 45, // entre 30 e 60 para não sobrecarregar o TSE
+  cargos: [
+    { codigo: 3, titulo: 'Governador', candidatos: [
+      { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
+      { nome: 'Valmir de Francisquinho', numero: 10 },  // REPUBLICANOS (pedido como "Valmir de Franciscatto")
+    ]},
+    { codigo: 5, titulo: 'Senador', candidatos: [
+      { nome: 'Alessandro Vieira', numero: 155 },       // MDB — na urna: "DELEGADO ALESSANDRO"
+      { nome: 'Delegado André David', numero: 101 },    // REPUBLICANOS
+      { nome: 'Rogério Carvalho', numero: 131 },        // PT — é candidato a SENADOR (não a governador)
+      { nome: 'André Moura', numero: 444 },             // UNIÃO — é candidato a SENADOR (não a dep. federal)
+    ]},
+    { codigo: 6, titulo: 'Deputado Federal', candidatos: [
+      { nome: 'Anderson de Zé das Canas', numero: 5515 }, // PSD
+    ]},
+    { codigo: 7, titulo: 'Deputado Estadual', candidatos: [
+      { nome: 'Luciano Pimentel', numero: 22123 },      // PL
+      { nome: 'Fernandinho Franco', numero: 22200 },    // PL
+    ]},
+  ],
+};
+/* ===================================================================== */
+
+const BASE = 'https://resultados.tse.jus.br/oficial';
+const fmtInt = new Intl.NumberFormat('pt-BR');
+const pad = (n, w) => String(n).padStart(w, '0');
+const num = s => { const v = parseFloat(String(s ?? '').replace(/\./g, '').replace(',', '.')); return isNaN(v) ? 0 : v; };
+const pctNum = s => { const v = parseFloat(String(s ?? '').replace(',', '.')); return isNaN(v) ? 0 : v; };
+const fmtPct = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+
+let codigoEleicao = null;
+const estado = {};      // por cargo: { dados, erro, recebidoEm }
+let segundos = CONFIG.intervaloSegundos;
+let buscando = false;
+
+async function getJSON(url) {
+  const r = await fetch(url, { cache: 'no-cache' });
+  if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
+  return r.json();
+}
+
+// Descobre o código da eleição estadual (1º turno) no config do TSE.
+async function descobrirEleicao() {
+  try {
+    const cfg = await getJSON(`${BASE}/comum/config/ele-c.json`);
+    for (const pl of cfg.pl || []) {
+      if (pl.c !== CONFIG.ciclo) continue;
+      for (const e of pl.e || []) {
+        const temGov = (e.abr || []).some(a => (a.cp || []).some(c => String(c.cd) === '3'));
+        if (String(e.t) === '1' && temGov) return String(e.cd);
+      }
+    }
+  } catch (e) { console.warn('Falha ao ler config do TSE, usando código padrão', e); }
+  return CONFIG.codigoEleicaoPadrao;
+}
+
+// Lê o arquivo do cargo. Usa o arquivo completo "dados/...-u.json";
+// se ele não existir, tenta o "dados-simplificados/...-r.json".
+async function buscarCargo(cargo) {
+  const c = pad(cargo.codigo, 4), e = pad(codigoEleicao, 6), uf = CONFIG.uf;
+  const urls = [
+    `${BASE}/${CONFIG.ciclo}/${codigoEleicao}/dados/${uf}/${uf}-c${c}-e${e}-u.json`,
+    `${BASE}/${CONFIG.ciclo}/${codigoEleicao}/dados-simplificados/${uf}/${uf}-c${c}-e${e}-r.json`,
+  ];
+  let ultimoErro;
+  for (const url of urls) {
+    try { return normalizar(await getJSON(url)); }
+    catch (err) { ultimoErro = err; if (err.status !== 404 && err.status !== 403) break; }
+  }
+  throw ultimoErro;
+}
+
+// Converte os dois formatos do TSE em um formato único.
+function normalizar(j) {
+  const cands = new Map();
+  const add = (k, partido) => cands.set(String(k.n), {
+    vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
+    nomeUrna: k.nmu || k.nm || '', partido: partido || '',
+  });
+  if (Array.isArray(j.carg)) {                       // formato "-u.json"
+    for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || [])
+      for (const k of p.cand || []) add(k, p.sg);
+  } else if (Array.isArray(j.cand)) {                // formato "-r.json"
+    for (const k of j.cand) add(k, (k.cc || '').split(' - ')[0]);
+  }
+  const s = j.s || j;
+  return {
+    pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
+    dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
+    totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands,
+  };
+}
+
+function horaTSE(d) {
+  if (d.ht) return `${d.dt} às ${d.ht}`;
+  return '';
+}
+
+function badgeStatus(st, eleito) {
+  if (!st) return null;
+  const b = document.createElement('span');
+  const s = st.toLowerCase();
+  b.className = 'badge ' + (eleito || (s.startsWith('eleito')) ? 'eleito' : (s.includes('não eleito') ? 'nao' : 'outro'));
+  b.textContent = st;
+  return b;
+}
+
+function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; }
+
+function renderCard(cargo) {
+  const st = estado[cargo.codigo] || {};
+  const d = st.dados;
+  const card = el('section', 'card');
+  card.appendChild(el('h2', null, cargo.titulo));
+
+  const meta = el('div', 'meta');
+  if (d) {
+    const h = horaTSE(d);
+    meta.textContent = `Urnas apuradas: ${fmtPct(d.pst)}` + (h ? ` • Atualizado pelo TSE em ${h}` : '');
+  } else meta.textContent = 'Urnas apuradas: —';
+  card.appendChild(meta);
+
+  if (st.erro) {
+    const quando = st.recebidoEm ? ` Mostrando os últimos dados recebidos às ${st.recebidoEm.toLocaleTimeString('pt-BR')}.` : '';
+    card.appendChild(el('div', 'aviso-card erro', `Erro ao consultar o TSE (${st.erro}).${quando}`));
+  } else if (d && d.pst === 0 && !d.ht) {
+    card.appendChild(el('div', 'aviso-card espera', 'Aguardando divulgação do TSE'));
+  }
+
+  // monta as linhas; ordena por votos quando já houver apuração
+  const linhas = cargo.candidatos.map(c => ({ c, r: d ? d.cands.get(String(c.numero)) : null }));
+  if (d && d.pst > 0) linhas.sort((a, b) => (b.r?.vap ?? -1) - (a.r?.vap ?? -1));
+
+  for (const { c, r } of linhas) {
+    const row = el('div', 'cand');
+    const l1 = el('div', 'linha');
+    const nome = el('span', 'nome', c.nome);
+    if (r) { const b = badgeStatus(r.st, r.eleito); if (b) nome.appendChild(b); }
+    l1.appendChild(nome);
+    l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));
+    row.appendChild(l1);
+    const barra = el('div', 'barra'); const fill = el('div');
+    fill.style.width = r ? Math.min(100, r.pvap) + '%' : '0';
+    barra.appendChild(fill); row.appendChild(barra);
+    const info = el('div', 'info');
+    if (d && !r) {
+      info.appendChild(el('span', 'naoencontrado', `Nº ${c.numero} não encontrado no TSE para ${cargo.titulo}`));
+    } else {
+      info.appendChild(el('span', null, `${c.numero}${r && r.partido ? ' · ' + r.partido : ''}`));
+      info.appendChild(el('span', null, r ? `${fmtInt.format(r.vap)} votos` : '— votos'));
+    }
+    row.appendChild(info);
+    card.appendChild(row);
+  }
+  return card;
+}
+
+function renderTudo() {
+  const grid = document.getElementById('grid');
+  grid.replaceChildren(...CONFIG.cargos.map(renderCard));
+
+  // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
+  const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);
+  document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';
+  const h = ref ? horaTSE(ref) : '';
+  document.getElementById('atualizado-geral').textContent =
+    h ? `Atualizado pelo TSE em ${h} (horário de Brasília)` : 'Aguardando divulgação do TSE';
+}
+
+function renderStatus() {
+  const algumErro = CONFIG.cargos.some(c => estado[c.codigo]?.erro);
+  const box = document.getElementById('status');
+  box.classList.toggle('erro', algumErro);
+  document.getElementById('status-texto').textContent = buscando
+    ? 'Atualizando…'
+    : algumErro
+      ? `Falha ao consultar o TSE • Nova tentativa em ${segundos}s`
+      : `Ao Vivo • Próxima atualização em ${segundos}s`;
+}
+
+async function atualizar() {
+  if (buscando) return;
+  buscando = true; renderStatus();
+  try {
+    if (!codigoEleicao) codigoEleicao = await descobrirEleicao();
+    await Promise.all(CONFIG.cargos.map(async cargo => {
+      const st = estado[cargo.codigo] || (estado[cargo.codigo] = {});
+      try {
+        st.dados = await buscarCargo(cargo);
+        st.erro = null; st.recebidoEm = new Date();
+      } catch (err) {
+        st.erro = err.status ? `arquivo indisponível, ${err.message}` : 'sem conexão ou acesso bloqueado';
+        console.error('Cargo', cargo.codigo, err);
+      }
+    }));
+  } finally {
+    buscando = false;
+    segundos = CONFIG.intervaloSegundos;
+    renderTudo(); renderStatus();
+  }
+}
+
+renderTudo();
+atualizar();
+setInterval(() => {
+  if (buscando) return;
+  segundos--;
+  if (segundos <= 0) atualizar(); else renderStatus();
+}, 1000);
+</script>
+</body>
+</html>

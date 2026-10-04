@@ -45,6 +45,8 @@
   }
   .card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
   .card h2 { margin: 0; font-size: 1.15rem; color: var(--accent); }
+  .card.partido { border-top: 3px solid #facc15; }
+  .card.partido h2 { color: #facc15; }
   .card .meta { color: var(--subtext); font-size: 0.82rem; margin: 4px 0 14px; }
   .aviso-card { font-size: 0.85rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 12px; }
   .aviso-card.espera { background: rgba(148, 163, 184, 0.12); color: var(--subtext); }
@@ -124,8 +126,13 @@ const CONFIG = {
       { nome: 'Fernandinho Franco', numero: 22200 },    // PL
       { nome: 'Marcell de Maim', numero: 55111 },       // PSD
       { nome: 'Marcelo Sobral', numero: 44111 },        // UNIÃO
+      { nome: 'Flávio da Direita Sergipana', numero: 22100 }, // PL
+      { nome: 'Cecília Marques', numero: 22222 },       // PL
+      { nome: 'Josivaldo da Equoterapia', numero: 22789 }, // PL
     ]},
   ],
+  // Card com a votação geral do partido (nominal + legenda) nos cargos proporcionais.
+  partidoDestaque: { numero: '22', sigla: 'PL', titulo: 'PL (22) - Votação do partido', cargos: [6, 7] },
 };
 /* ===================================================================== */
 
@@ -181,13 +188,16 @@ async function buscarCargo(cargo) {
 // Converte os dois formatos do TSE em um formato único.
 function normalizar(j) {
   const cands = new Map();
+  const partidos = new Map();
   const add = (k, partido) => cands.set(String(k.n), {
     vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
     nomeUrna: k.nmu || k.nm || '', partido: partido || '',
   });
   if (Array.isArray(j.carg)) {                       // formato "-u.json"
-    for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || [])
+    for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || []) {
+      partidos.set(String(p.n), { sigla: p.sg, nominais: num(p.tvtn), legenda: num(p.tvtl), vagas: num(a.vag) });
       for (const k of p.cand || []) add(k, p.sg);
+    }
   } else if (Array.isArray(j.cand)) {                // formato "-r.json"
     for (const k of j.cand) add(k, (k.cc || '').split(' - ')[0]);
   }
@@ -195,7 +205,7 @@ function normalizar(j) {
   return {
     pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
     dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
-    totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands,
+    totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands, partidos,
   };
 }
 
@@ -268,9 +278,42 @@ function renderCard(cargo) {
   return card;
 }
 
+function renderPartido() {
+  const pd = CONFIG.partidoDestaque;
+  const card = el('section', 'card partido');
+  card.appendChild(el('h2', null, pd.titulo));
+  card.appendChild(el('div', 'meta', 'Soma de votos nominais dos candidatos + votos na legenda, em Sergipe.'));
+  for (const cod of pd.cargos) {
+    const cargo = CONFIG.cargos.find(c => c.codigo === cod);
+    const d = estado[cod]?.dados;
+    const p = d ? d.partidos.get(pd.numero) : null;
+    const total = p ? p.nominais + p.legenda : 0;
+    const pct = d && d.votosValidos > 0 ? (total / d.votosValidos) * 100 : 0;
+    const row = el('div', 'cand');
+    const l1 = el('div', 'linha');
+    l1.appendChild(el('span', 'nome', cargo ? cargo.titulo : `Cargo ${cod}`));
+    l1.appendChild(el('span', 'pct', p ? fmtPct(pct) : '—'));
+    row.appendChild(l1);
+    const barra = el('div', 'barra'); const fill = el('div');
+    fill.style.width = Math.min(100, pct) + '%'; barra.appendChild(fill); row.appendChild(barra);
+    const info = el('div', 'info');
+    info.appendChild(el('span', null, p ? `Nominais ${fmtInt.format(p.nominais)} · Legenda ${fmtInt.format(p.legenda)}` : (d ? `${pd.sigla} não encontrado no TSE` : 'Aguardando TSE')));
+    info.appendChild(el('span', null, p ? `${fmtInt.format(total)} votos` : '— votos'));
+    row.appendChild(info);
+    if (p) {
+      const v = el('div', 'info');
+      v.appendChild(el('span', null, `Urnas apuradas: ${fmtPct(d.pst)}`));
+      v.appendChild(el('span', null, `Vagas (QP): ${fmtInt.format(p.vagas)}`));
+      row.appendChild(v);
+    }
+    card.appendChild(row);
+  }
+  return card;
+}
+
 function renderTudo() {
   const grid = document.getElementById('grid');
-  grid.replaceChildren(...CONFIG.cargos.map(renderCard));
+  grid.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidoDestaque ? [renderPartido()] : []));
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);

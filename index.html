@@ -164,14 +164,14 @@ const CONFIG = {
   codigoEleicaoPadrao: '6259',
   intervaloSegundos: 10, // pedido do Marcel: atualizar a cada 10s
   cargos: [
-    { codigo: 3, titulo: 'Governador', candidatos: [
+    { codigo: 3, titulo: 'Governador', matematico: 'maioria', candidatos: [
       { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
       { nome: 'Valmir de Francisquinho', numero: 10 },  // REPUBLICANOS (pedido como "Valmir de Franciscatto")
     ]},
     // Presidente vem da "Eleição Ordinária Federal" (6257); todos os candidatos, ordenados por votos.
-    { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', todosCandidatos: true, candidatos: [] },
+    { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', matematico: 'maioria', todosCandidatos: true, candidatos: [] },
     { chave: 'pres-se', codigo: 1, eleicao: '6257', uf: 'se', titulo: 'Presidente - Sergipe', todosCandidatos: true, candidatos: [] },
-    { codigo: 5, titulo: 'Senador', candidatos: [
+    { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', candidatos: [
       { nome: 'Alessandro Vieira', numero: 155 },       // MDB — na urna: "DELEGADO ALESSANDRO"
       { nome: 'Delegado André David', numero: 101 },    // REPUBLICANOS
       { nome: 'Rogério Carvalho', numero: 131 },        // PT — é candidato a SENADOR (não a governador)
@@ -284,6 +284,8 @@ function normalizar(j) {
     pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
     dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
     totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands, partidos, todos,
+    eleitoresFaltando: num((j.e || {}).esnt), votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
+    vagas: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].nv) : 0,
   };
 }
 
@@ -304,6 +306,27 @@ function badgeStatus(st, eleito) {
 const chaveDe = cargo => cargo.chave || cargo.codigo;
 function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; }
 
+// "Matematicamente eleito": nem que TODOS os eleitores que faltam votem e todos contra ele, o resultado muda.
+// maioria (Governador/Presidente): votos > metade do máximo possível de votos válidos (válidos atuais + eleitores que faltam).
+// mais-votados (Senador): menos de N outros candidatos (N = vagas) ainda conseguem alcançá-lo, mesmo cada um recebendo
+// o voto de todos os eleitores que faltam.
+function matematicamenteEleitos(cargo, d) {
+  const res = new Set();
+  if (!cargo.matematico || !d || d.pst === 0 || d.totalFinal) return res;
+  const falta = d.eleitoresFaltando;
+  if (cargo.matematico === 'maioria') {
+    const maxValidos = d.votosValidosCalc + falta;
+    for (const k of d.todos) if (k.vap > maxValidos / 2) res.add(k.n);
+  } else if (cargo.matematico === 'mais-votados') {
+    const vagas = d.vagas || 1;
+    for (const k of d.todos) {
+      const alcancam = d.todos.filter(o => o.n !== k.n && o.vap + falta >= k.vap).length;
+      if (alcancam < vagas) res.add(k.n);
+    }
+  }
+  return res;
+}
+
 function renderCard(cargo) {
   const st = estado[chaveDe(cargo)] || {};
   const d = st.dados;
@@ -316,6 +339,9 @@ function renderCard(cargo) {
     meta.textContent = `Urnas apuradas: ${fmtPct(d.pst)}` + (h ? ` • Atualizado pelo TSE em ${h}` : '');
   } else meta.textContent = 'Urnas apuradas: —';
   card.appendChild(meta);
+  if (cargo.matematico) card.appendChild(el('div', 'meta', cargo.matematico === 'maioria'
+    ? 'Matematicamente eleito = já tem mais da metade dos votos válidos possíveis, mesmo que todos os eleitores que faltam votem contra.'
+    : 'Matematicamente eleito = nem com todos os eleitores que faltam votando nos outros, ele sai das vagas.'));
 
   if (st.erro) {
     const quando = st.recebidoEm ? ` Mostrando os últimos dados recebidos às ${st.recebidoEm.toLocaleTimeString('pt-BR')}.` : '';
@@ -329,6 +355,7 @@ function renderCard(cargo) {
     ? (d ? [...d.todos].sort((a, b) => b.vap - a.vap || a.nome.localeCompare(b.nome)).map(k => ({ nome: k.nome, numero: k.n })) : [])
     : cargo.candidatos;
   const linhas = lista.map(c => ({ c, r: d ? d.cands.get(String(c.numero)) : null }));
+  const matEleitos = matematicamenteEleitos(cargo, d);
   if (d && d.pst > 0) linhas.sort((a, b) => (b.r?.vap ?? -1) - (a.r?.vap ?? -1));
 
   for (const { c, r } of linhas) {
@@ -340,6 +367,10 @@ function renderCard(cargo) {
       if (r.eleito || stl.startsWith('eleito')) { row.classList.add('eleito'); if (!r.st) { const b0 = el('span', 'badge eleito', 'ELEITO'); nome.appendChild(b0); } }
       else if (stl.includes('2º turno') || stl.includes('2o turno') || stl.includes('segundo turno')) row.classList.add('turno2');
       const b = badgeStatus(r.st ? (row.classList.contains('eleito') ? '\u2713 ' + r.st.toUpperCase() : r.st) : '', r.eleito); if (b) nome.appendChild(b);
+    }
+    if (r && matEleitos.has(String(c.numero)) && !row.classList.contains('eleito')) {
+      row.classList.add('eleito', 'mat');
+      nome.appendChild(el('span', 'badge eleito', '\u2713 MATEMATICAMENTE ELEITO'));
     }
     l1.appendChild(nome);
     l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));

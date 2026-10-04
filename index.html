@@ -417,16 +417,16 @@ function renderRanking(rk) {
 }
 
 
-function renderTopPartidos() {
+function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Brasil e PL', partidos = CONFIG.topPorPartido) {
   const card = el('section', 'card toppart');
-  card.appendChild(el('h2', null, '7 mais votados por partido - PSD, União Brasil e PL'));
+  card.appendChild(el('h2', null, titulo));
   const algum = [6, 7].map(c => estado[c]?.dados).find(Boolean);
   card.appendChild(el('div', 'meta', algum ? `Urnas apuradas: ${fmtPct(algum.pst)} • Votação nominal de cada candidato dentro do próprio partido. Verde = eleito, amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
   const g = el('div', 'toppart-grid');
-  for (const pd of (CONFIG.topPorPartido || [])) {
+  for (const pd of (partidos || [])) {
     const col = el('div', 'toppart-col');
-    const h = el('h3', null, `${pd.sigla} (${pd.numero})`); h.style.color = pd.cor; col.appendChild(h);
-    for (const cod of [6, 7]) {
+    const h = el('h3', null, pd.rotulo || `${pd.sigla} (${pd.numero})`); h.style.color = pd.cor; col.appendChild(h);
+    for (const cod of (pd.cargos || [6, 7])) {
       const cargo = CONFIG.cargos.find(c => c.codigo === cod);
       col.appendChild(el('h4', null, cargo ? cargo.titulo : `Cargo ${cod}`));
       const d = estado[cod]?.dados;
@@ -520,7 +520,7 @@ function renderTudo() {
   const grid = document.getElementById('grid');
   const mason = el('div', 'masonry');
   mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos(), renderCusto(), renderMetaSenado());
+  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos('5 mais votados do PL (22)', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }, { numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]), renderTopPartidos(), renderCusto(), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.filter(c => !c.uf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);

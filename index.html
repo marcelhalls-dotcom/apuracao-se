@@ -70,6 +70,15 @@
   .ms-regs th:first-child, .ms-regs td:first-child { text-align: left; }
   .ms-regs td { text-align: right; padding: 3px 4px; border-top: 1px solid rgba(255,255,255,0.05); }
   .pos-var { color: #86efac; } .neg-var { color: #fca5a5; }
+  .card.custo { grid-column: 1 / -1; border-top: 3px solid #f59e0b; }
+  .card.custo h2 { color: #fcd34d; }
+  .custo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; margin-top: 10px; }
+  .custo-grid h3 { margin: 4px 0 6px; font-size: 0.98rem; }
+  .custo-grid table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-bottom: 8px; }
+  .custo-grid th { color: var(--subtext); font-weight: 500; text-align: right; padding: 3px 5px; }
+  .custo-grid td { text-align: right; padding: 3px 5px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .custo-grid th:first-child, .custo-grid td:first-child { text-align: left; }
+  .custo-grid td.hl { color: #fcd34d; font-weight: 700; }
   .card.partido { border-top: 3px solid #facc15; }
   .card.partido h2 { color: #facc15; }
   .card .meta { color: var(--subtext); font-size: 0.82rem; margin: 4px 0 14px; }
@@ -113,14 +122,15 @@
   <div class="qe2022">
     <div class="aviso">⚠ REFERÊNCIA: ELEIÇÃO PASSADA (2022), NÃO É O QUOCIENTE DE 2026</div>
     <div class="valores">
-      <span>Dep. Federal 2022: <strong>148.884</strong> = 1 cadeira · <strong>297.768</strong> = 2 direto · <strong>446.652</strong> = 3 direto</span>
+      <span>Dep. Federal 2022: <strong>148.952</strong> = 1 cadeira · <strong>297.904</strong> = 2 direto · <strong>446.856</strong> = 3 direto</span>
       <span>Dep. Estadual 2022: <strong>50.684</strong> = 1 cadeira · <strong>101.368</strong> = 2 direto · <strong>152.052</strong> = 3 direto</span>
     </div>
     <div class="valores" style="margin-top:6px">
-      <span>2ª cadeira estadual pela SOBRA: <strong>≈ 84.000 a 86.000</strong> votos <em>(estimativa)</em></span>
+      <span>Com sobra (real 2022): Estadual 1ª ≈ <strong>40.548</strong> · 2ª ≈ <strong>79.794</strong> · 3ª ≈ <strong>119.691</strong></span>
+      <span>Federal 1ª ≈ <strong>119.162</strong> · 2ª ≈ <strong>199.934</strong></span>
     </div>
-    <div class="nota">Cada quociente completo = 1 cadeira direta. Na prática a 2ª cadeira costuma sair na sobra com menos votos, porque partidos que não atingem o quociente não levam vaga direta e as sobras são divididas pelas maiores médias. Sobras (cadeiras que restam): partido precisa de ≥ 80% do QE (≈ 119.108 federal / ≈ 40.548 estadual) e o candidato ≥ 20% do QE (≈ 29.777 federal / ≈ 10.137 estadual).</div>
-    <div class="nota"><b>Quociente eleitoral = votos que o PARTIDO/FEDERAÇÃO precisa somar (nominais + legenda) para conquistar 1 cadeira. Não é a votação exigida de cada candidato.</b><br>Sergipe 2022 (TSE): Federal 1.191.074 votos válidos ÷ 8 vagas. Estadual 1.216.425 votos válidos ÷ 24 vagas. O quociente de 2026 só é definido no fim da apuração.</div>
+    <div class="nota">Cada quociente completo = 1 cadeira direta. Na prática a 2ª cadeira costuma sair na sobra com menos votos, porque partidos que não atingem o quociente não levam vaga direta e as sobras são divididas pelas maiores médias. Sobras (cadeiras que restam): partido precisa de ≥ 80% do QE (≈ 119.162 federal / ≈ 40.548 estadual) e o candidato ≥ 20% do QE (≈ 29.790 federal / ≈ 10.137 estadual).</div>
+    <div class="nota"><b>Quociente eleitoral = votos que o PARTIDO/FEDERAÇÃO precisa somar (nominais + legenda) para conquistar 1 cadeira. Não é a votação exigida de cada candidato.</b><br>Sergipe 2022 (TSE, dados abertos atuais): Federal 1.191.617 votos válidos ÷ 8 vagas. Estadual 1.216.425 votos válidos ÷ 24 vagas. O quociente de 2026 só é definido no fim da apuração.</div>
   </div>
 </header>
 
@@ -387,6 +397,36 @@ function renderRanking(rk) {
   return card;
 }
 
+
+function renderCusto() {
+  if (custoCard) return custoCard;
+  const card = el('section', 'card custo');
+  card.appendChild(el('h2', null, 'Quanto custou cada cadeira em 2022 (simulação com dados oficiais do TSE)'));
+  card.appendChild(el('div', 'meta', 'Referência da ELEIÇÃO PASSADA. Simulação da distribuição de vagas de 2022 (quociente + sobras por maiores médias) que reproduz exatamente os eleitos reais. "Com sobra" = maior valor entre N × média de corte e 80% do QE. É estimativa para 2026: muda conforme a votação dos outros partidos.'));
+  const g = el('div', 'custo-grid');
+  const tabela = (titulo, cab, linhas, hlCol) => {
+    const box = el('div'); box.appendChild(el('h3', null, titulo));
+    const t = el('table'); const hr = el('tr'); cab.forEach(c => hr.appendChild(el('th', null, c))); t.appendChild(hr);
+    linhas.forEach(l => { const tr = el('tr'); l.forEach((v, i) => tr.appendChild(el('td', i === hlCol ? 'hl' : null, v))); t.appendChild(tr); });
+    box.appendChild(t); return box;
+  };
+  const est = el('div');
+  est.appendChild(tabela('Deputado Estadual (24 vagas) - votos por nº de cadeiras', ['Cadeiras', 'Direto (N × QE)', 'Com sobra (2022)'],
+    [['1','50.684','≈ 40.548'],['2','101.368','≈ 79.794'],['3','152.052','≈ 119.691'],['4','202.736','≈ 159.588'],['5','253.420','≈ 199.484'],['6','304.104','≈ 239.381']], 2));
+  est.appendChild(tabela('Estadual 2022 - resultado por partido/federação', ['Lista', 'Votos', 'Direto', 'Sobra', 'Total'],
+    [['PSD','202.210','3','2','5'],['UNIÃO','159.587','3','1','4'],['REPUBLICANOS','153.040','3','0','3'],['PL','147.920','2','1','3'],['PT/PCdoB/PV','133.373','2','1','3'],['PP','108.616','2','0','2'],['PSDB/Cidadania','92.802','1','1','2'],['PSOL/REDE','59.887','1','0','1'],['PDT','52.642','1','0','1'],['PSB','34.801','0','0','0']], 4));
+  est.appendChild(el('div', 'meta', 'Média de corte da última sobra: 39.896 (UNIÃO). Primeiro a ficar de fora: REPUBLICANOS (38.260). PSB ficou abaixo de 80% do QE.'));
+  const fed = el('div');
+  fed.appendChild(tabela('Deputado Federal (8 vagas) - votos por nº de cadeiras', ['Cadeiras', 'Direto (N × QE)', 'Com sobra (2022)'],
+    [['1','148.952','≈ 119.162'],['2','297.904','≈ 199.934'],['3','446.856','≈ 299.900'],['4','595.808','≈ 399.867']], 2));
+  fed.appendChild(tabela('Federal 2022 - resultado por partido/federação', ['Lista', 'Votos', 'Direto', 'Sobra', 'Total'],
+    [['UNIÃO','239.275','1','1','2'],['PSD','199.933','1','1','2'],['REPUBLICANOS','163.758','1','0','1'],['PT/PCdoB/PV','155.309','1','0','1'],['PL','143.510','0','1','1'],['PP','136.000','0','1','1'],['PDT','57.467','0','0','0']], 4));
+  fed.appendChild(el('div', 'meta', 'Média de corte da última sobra: 99.966 (PSD). PL e PP elegeram sem atingir o QE, só pela sobra.'));
+  g.appendChild(est); g.appendChild(fed); card.appendChild(g);
+  card.appendChild(el('div', 'meta', 'Requisitos: candidato precisa de ≥ 10% do QE para vaga direta e ≥ 20% do QE para sobra; partido precisa de ≥ 80% do QE para disputar sobra. Fonte: TSE dados abertos 2022 (votacao_partido_munzona, votacao_candidato_munzona).'));
+  custoCard = card; return card;
+}
+let custoCard = null;
 let metaSenadoCard = null;
 function renderMetaSenado() {
   if (metaSenadoCard) return metaSenadoCard;   // conteúdo fixo: monta uma vez (preserva regiões abertas)
@@ -427,7 +467,7 @@ function renderTudo() {
   const grid = document.getElementById('grid');
   const mason = el('div', 'masonry');
   mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderMetaSenado());
+  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderCusto(), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);

@@ -164,6 +164,9 @@ const CONFIG = {
   codigoEleicaoPadrao: '6259',
   intervaloSegundos: 10, // pedido do Marcel: atualizar a cada 10s
   cargos: [
+    // Presidente vem da "Eleição Ordinária Federal" (6257); todos os candidatos, ordenados por votos.
+    { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', todosCandidatos: true, candidatos: [] },
+    { chave: 'pres-se', codigo: 1, eleicao: '6257', uf: 'se', titulo: 'Presidente - Sergipe', todosCandidatos: true, candidatos: [] },
     { codigo: 3, titulo: 'Governador', candidatos: [
       { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
       { nome: 'Valmir de Francisquinho', numero: 10 },  // REPUBLICANOS (pedido como "Valmir de Franciscatto")
@@ -244,10 +247,11 @@ async function descobrirEleicao() {
 // Lê o arquivo do cargo. Usa o arquivo completo "dados/...-u.json";
 // se ele não existir, tenta o "dados-simplificados/...-r.json".
 async function buscarCargo(cargo) {
-  const c = pad(cargo.codigo, 4), e = pad(codigoEleicao, 6), uf = CONFIG.uf;
+  const ele = cargo.eleicao || codigoEleicao;
+  const c = pad(cargo.codigo, 4), e = pad(ele, 6), uf = cargo.uf || CONFIG.uf;
   const urls = [
-    `${BASE}/${CONFIG.ciclo}/${codigoEleicao}/dados/${uf}/${uf}-c${c}-e${e}-u.json`,
-    `${BASE}/${CONFIG.ciclo}/${codigoEleicao}/dados-simplificados/${uf}/${uf}-c${c}-e${e}-r.json`,
+    `${BASE}/${CONFIG.ciclo}/${ele}/dados/${uf}/${uf}-c${c}-e${e}-u.json`,
+    `${BASE}/${CONFIG.ciclo}/${ele}/dados-simplificados/${uf}/${uf}-c${c}-e${e}-r.json`,
   ];
   let ultimoErro;
   for (const url of urls) {
@@ -297,10 +301,11 @@ function badgeStatus(st, eleito) {
   return b;
 }
 
+const chaveDe = cargo => cargo.chave || cargo.codigo;
 function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; }
 
 function renderCard(cargo) {
-  const st = estado[cargo.codigo] || {};
+  const st = estado[chaveDe(cargo)] || {};
   const d = st.dados;
   const card = el('section', 'card');
   card.appendChild(el('h2', null, cargo.titulo));
@@ -320,7 +325,10 @@ function renderCard(cargo) {
   }
 
   // monta as linhas; ordena por votos quando já houver apuração
-  const linhas = cargo.candidatos.map(c => ({ c, r: d ? d.cands.get(String(c.numero)) : null }));
+  const lista = cargo.todosCandidatos
+    ? (d ? [...d.todos].sort((a, b) => b.vap - a.vap || a.nome.localeCompare(b.nome)).map(k => ({ nome: k.nome, numero: k.n })) : [])
+    : cargo.candidatos;
+  const linhas = lista.map(c => ({ c, r: d ? d.cands.get(String(c.numero)) : null }));
   if (d && d.pst > 0) linhas.sort((a, b) => (b.r?.vap ?? -1) - (a.r?.vap ?? -1));
 
   for (const { c, r } of linhas) {
@@ -515,7 +523,7 @@ function renderTudo() {
   grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos(), renderCusto(), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
-  const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);
+  const ref = CONFIG.cargos.filter(c => !c.uf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);
   document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';
   const h = ref ? horaTSE(ref) : '';
   document.getElementById('atualizado-geral').textContent =
@@ -523,7 +531,7 @@ function renderTudo() {
 }
 
 function renderStatus() {
-  const algumErro = CONFIG.cargos.some(c => estado[c.codigo]?.erro);
+  const algumErro = CONFIG.cargos.some(c => estado[chaveDe(c)]?.erro);
   const box = document.getElementById('status');
   box.classList.toggle('erro', algumErro);
   document.getElementById('status-texto').textContent = buscando
@@ -539,7 +547,7 @@ async function atualizar() {
   try {
     if (!codigoEleicao) codigoEleicao = await descobrirEleicao();
     await Promise.all(CONFIG.cargos.map(async cargo => {
-      const st = estado[cargo.codigo] || (estado[cargo.codigo] = {});
+      const st = estado[chaveDe(cargo)] || (estado[chaveDe(cargo)] = {});
       try {
         st.dados = await buscarCargo(cargo);
         st.erro = null; st.recebidoEm = new Date();

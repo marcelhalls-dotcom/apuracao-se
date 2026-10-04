@@ -164,13 +164,13 @@ const CONFIG = {
   codigoEleicaoPadrao: '6259',
   intervaloSegundos: 10, // pedido do Marcel: atualizar a cada 10s
   cargos: [
-    // Presidente vem da "Eleição Ordinária Federal" (6257); todos os candidatos, ordenados por votos.
-    { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', todosCandidatos: true, candidatos: [] },
-    { chave: 'pres-se', codigo: 1, eleicao: '6257', uf: 'se', titulo: 'Presidente - Sergipe', todosCandidatos: true, candidatos: [] },
     { codigo: 3, titulo: 'Governador', candidatos: [
       { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
       { nome: 'Valmir de Francisquinho', numero: 10 },  // REPUBLICANOS (pedido como "Valmir de Franciscatto")
     ]},
+    // Presidente vem da "Eleição Ordinária Federal" (6257); todos os candidatos, ordenados por votos.
+    { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', todosCandidatos: true, candidatos: [] },
+    { chave: 'pres-se', codigo: 1, eleicao: '6257', uf: 'se', titulo: 'Presidente - Sergipe', todosCandidatos: true, candidatos: [] },
     { codigo: 5, titulo: 'Senador', candidatos: [
       { nome: 'Alessandro Vieira', numero: 155 },       // MDB — na urna: "DELEGADO ALESSANDRO"
       { nome: 'Delegado André David', numero: 101 },    // REPUBLICANOS

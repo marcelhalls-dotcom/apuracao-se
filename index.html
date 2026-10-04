@@ -70,6 +70,11 @@
   .ms-regs th:first-child, .ms-regs td:first-child { text-align: left; }
   .ms-regs td { text-align: right; padding: 3px 4px; border-top: 1px solid rgba(255,255,255,0.05); }
   .pos-var { color: #86efac; } .neg-var { color: #fca5a5; }
+  .card.toppart { grid-column: 1 / -1; border-top: 3px solid #a78bfa; }
+  .toppart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; margin-top: 10px; }
+  .toppart-col h3 { margin: 2px 0 4px; font-size: 1rem; }
+  .toppart-col h4 { margin: 8px 0 2px; font-size: 0.82rem; color: var(--subtext); font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
+  .toppart-col .rank-list { grid-template-columns: 1fr; margin-top: 2px; }
   .card.custo { grid-column: 1 / -1; border-top: 3px solid #f59e0b; }
   .card.custo h2 { color: #fcd34d; }
   .custo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; margin-top: 10px; }
@@ -187,6 +192,11 @@ const CONFIG = {
   // Rankings dos mais votados (todos os candidatos do TSE).
   rankings: [ { codigo: 6, titulo: '8 mais votados - Deputado Federal', top: 8 },
               { codigo: 7, titulo: '24 mais votados - Deputado Estadual', top: 24 } ],
+  topPorPartido: [
+    { numero: '55', sigla: 'PSD', cor: '#22c55e', top: 7 },
+    { numero: '44', sigla: 'UNIÃO', cor: '#3b82f6', top: 7 },
+    { numero: '22', sigla: 'PL', cor: '#facc15', top: 7 },
+  ],
   partidosDestaque: [
     { numero: '22', sigla: 'PL', titulo: 'PL (22) - Votação do partido', cargos: [6, 7], cor: '#facc15' },
     { numero: '44', sigla: 'UNIÃO', titulo: 'União Brasil (44) - Votação do partido', cargos: [6, 7], cor: '#3b82f6' },
@@ -399,6 +409,40 @@ function renderRanking(rk) {
 }
 
 
+function renderTopPartidos() {
+  const card = el('section', 'card toppart');
+  card.appendChild(el('h2', null, '7 mais votados por partido - PSD, União Brasil e PL'));
+  const algum = [6, 7].map(c => estado[c]?.dados).find(Boolean);
+  card.appendChild(el('div', 'meta', algum ? `Urnas apuradas: ${fmtPct(algum.pst)} • Votação nominal de cada candidato dentro do próprio partido. Verde = eleito, amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
+  const g = el('div', 'toppart-grid');
+  for (const pd of (CONFIG.topPorPartido || [])) {
+    const col = el('div', 'toppart-col');
+    const h = el('h3', null, `${pd.sigla} (${pd.numero})`); h.style.color = pd.cor; col.appendChild(h);
+    for (const cod of [6, 7]) {
+      const cargo = CONFIG.cargos.find(c => c.codigo === cod);
+      col.appendChild(el('h4', null, cargo ? cargo.titulo : `Cargo ${cod}`));
+      const d = estado[cod]?.dados;
+      if (!d || d.pst === 0) { col.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE começar a divulgar votos')); continue; }
+      const meus = new Set((cargo?.candidatos || []).map(c => String(c.numero)));
+      const lista = d.todos.filter(c => c.n.startsWith(pd.numero) && c.n.length > 2).sort((a, b) => b.vap - a.vap).slice(0, pd.top || 7);
+      const wrap = el('div', 'rank-list');
+      lista.forEach((c, i) => {
+        const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+        it.appendChild(el('span', 'pos', `${i + 1}º`));
+        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); nm.appendChild(el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`));
+        it.appendChild(nm);
+        const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
+        it.appendChild(v); wrap.appendChild(it);
+      });
+      if (!lista.length) wrap.appendChild(el('div', 'aviso-card espera', 'Nenhum candidato com votos ainda'));
+      col.appendChild(wrap);
+    }
+    g.appendChild(col);
+  }
+  card.appendChild(g);
+  return card;
+}
+
 function renderCusto() {
   if (custoCard) return custoCard;
   const card = el('section', 'card custo');
@@ -468,7 +512,7 @@ function renderTudo() {
   const grid = document.getElementById('grid');
   const mason = el('div', 'masonry');
   mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderCusto(), renderMetaSenado());
+  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos(), renderCusto(), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);

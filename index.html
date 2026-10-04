@@ -54,7 +54,9 @@
   .rank-item .pos { color: var(--accent); font-weight: 700; }
   .rank-item .sub { color: var(--subtext); font-size: 0.75rem; }
   .rank-item .v { text-align: right; }
-  .rank-item.eleito { border-left: 3px solid #22c55e; }
+  .rank-item.eleito { border-left: 3px solid #22c55e; background: rgba(34,197,94,0.22) !important; }
+  .rank-item.eleito.meu { background: rgba(34,197,94,0.30) !important; }
+  .rank-item .tag-proj { color: #86efac; font-weight: 700; }
   .rank-item.meu { background: rgba(250,204,21,0.10) !important; }
   .card.meta-senado { grid-column: 1 / -1; border-top: 3px solid #a78bfa; }
   .card.meta-senado h2 { color: #c4b5fd; }
@@ -270,6 +272,17 @@ function normalizar(j) {
     vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
     nomeUrna: k.nmu || k.nm || '', partido: partido || '',
   });
+  const projetados = new Set();  // deputados: vagas de cada partido/federação calculadas pelo TSE com os votos atuais (agr.vag)
+  if (Array.isArray(j.carg) && j.carg[0] && num(j.carg[0].qe) > 0) {
+    const qe = num(j.carg[0].qe);
+    for (const a of j.carg[0].agr || []) {
+      const vag = num(a.vag); if (!vag) continue;
+      const cs = [];
+      for (const p of a.par || []) for (const k of p.cand || []) if (!k.dvt || k.dvt === 'Válido') cs.push(k);
+      cs.sort((x, y) => num(y.vap) - num(x.vap));
+      cs.filter(k => num(k.vap) >= 0.1 * qe).slice(0, vag).forEach(k => projetados.add(String(k.n)));
+    }
+  }
   if (Array.isArray(j.carg)) {                       // formato "-u.json"
     for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || []) {
       partidos.set(String(p.n), { sigla: p.sg, nominais: num(p.tvtn), legenda: num(p.tvtl), vagas: num(a.vag), agrupamento: (a.par || []).length > 1 ? (a.com || a.nm || '') : '' });
@@ -284,7 +297,7 @@ function normalizar(j) {
     pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
     dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
     totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands, partidos, todos,
-    eleitoresFaltando: num((j.e || {}).esnt), comparecimento: num((j.e || {}).est) > 0 ? num((j.e || {}).c) / num((j.e || {}).est) : 1, votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
+    projetados, qe: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].qe) : 0, eleitoresFaltando: num((j.e || {}).esnt), comparecimento: num((j.e || {}).est) > 0 ? num((j.e || {}).c) / num((j.e || {}).est) : 1, votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
     vagas: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].nv) : 0,
   };
 }
@@ -369,6 +382,10 @@ function renderCard(cargo) {
       else if (stl.includes('2º turno') || stl.includes('2o turno') || stl.includes('segundo turno')) row.classList.add('turno2');
       const b = badgeStatus(r.st ? (row.classList.contains('eleito') ? '\u2713 ' + r.st.toUpperCase() : r.st) : '', r.eleito); if (b) nome.appendChild(b);
     }
+    if (r && d && !d.totalFinal && d.projetados && d.projetados.has(String(c.numero)) && !row.classList.contains('eleito')) {
+      row.classList.add('eleito', 'mat');
+      nome.appendChild(el('span', 'badge eleito', '\u2713 ELEITO (PROJEÇÃO)'));
+    }
     if (r && matEleitos.has(String(c.numero)) && !row.classList.contains('eleito')) {
       row.classList.add('eleito', 'mat');
       nome.appendChild(el('span', 'badge eleito', '\u2713 MATEMATICAMENTE ELEITO (PROJEÇÃO)'));
@@ -430,15 +447,16 @@ function renderRanking(rk) {
   const d = estado[rk.codigo]?.dados;
   const card = el('section', 'card ranking');
   card.appendChild(el('h2', null, rk.titulo));
-  card.appendChild(el('div', 'meta', d ? `Urnas apuradas: ${fmtPct(d.pst)} • Ranking por votação nominal (não considera quociente partidário). Destaque amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
+  card.appendChild(el('div', 'meta', d ? `Urnas apuradas: ${fmtPct(d.pst)} • Ranking por votação nominal. Verde = eleito (projeção pelas vagas que o TSE calcula agora para cada partido/federação, quociente + sobras). Amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
   if (!d || d.pst === 0) { card.appendChild(el('div', 'aviso-card espera', 'Ranking aparece quando o TSE começar a divulgar votos')); return card; }
   const meus = new Set((CONFIG.cargos.find(c => c.codigo === rk.codigo)?.candidatos || []).map(c => String(c.numero)));
   const lista = [...d.todos].sort((a, b) => b.vap - a.vap).slice(0, rk.top);
   const wrap = el('div', 'rank-list');
   lista.forEach((c, i) => {
-    const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+    const proj = !c.eleito && !c.st.toLowerCase().startsWith('eleito') && d.projetados && d.projetados.has(c.n) && !d.totalFinal;
+        const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
     it.appendChild(el('span', 'pos', `${i + 1}º`));
-    const nm = el('div'); nm.appendChild(el('div', null, c.nome)); nm.appendChild(el('div', 'sub', `${c.n} · ${c.partido}${c.st ? ' · ' + c.st : ''}`));
+    const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n} · ${c.partido}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
     it.appendChild(nm);
     const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
     it.appendChild(v);
@@ -467,9 +485,10 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
       const lista = d.todos.filter(c => c.n.startsWith(pd.numero) && c.n.length > 2).sort((a, b) => b.vap - a.vap).slice(0, pd.top || 7);
       const wrap = el('div', 'rank-list');
       lista.forEach((c, i) => {
-        const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+        const proj = !c.eleito && !c.st.toLowerCase().startsWith('eleito') && d.projetados && d.projetados.has(c.n) && !d.totalFinal;
+        const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
         it.appendChild(el('span', 'pos', `${i + 1}º`));
-        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); nm.appendChild(el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`));
+        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
         it.appendChild(nm);
         const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
         it.appendChild(v); wrap.appendChild(it);

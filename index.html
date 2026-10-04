@@ -61,6 +61,11 @@
   .badge.eleito { background: rgba(34, 197, 94, 0.18); color: #86efac; }
   .badge.outro { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
   .badge.nao { background: rgba(148, 163, 184, 0.18); color: var(--subtext); }
+  .cand.eleito { border-left: 4px solid #22c55e; padding-left: 10px; background: rgba(34,197,94,0.08); border-radius: 6px; }
+  .cand.eleito .barra > div { background: #22c55e !important; }
+  .cand.eleito .badge.eleito { background: #22c55e; color: #052e16; font-size: 0.8rem; }
+  .cand.turno2 { border-left: 4px solid #f59e0b; padding-left: 10px; background: rgba(245,158,11,0.08); border-radius: 6px; }
+  .cand.turno2 .barra > div { background: #f59e0b !important; }
   .naoencontrado { color: #fca5a5; font-size: 0.82rem; }
   footer { text-align: center; color: var(--subtext); font-size: 0.8rem; margin-top: 28px; }
   footer a { color: var(--subtext); }
@@ -237,7 +242,12 @@ function renderCard(cargo) {
     const row = el('div', 'cand');
     const l1 = el('div', 'linha');
     const nome = el('span', 'nome', c.nome);
-    if (r) { const b = badgeStatus(r.st, r.eleito); if (b) nome.appendChild(b); }
+    if (r) {
+      const stl = (r.st || '').toLowerCase();
+      if (r.eleito || stl.startsWith('eleito')) { row.classList.add('eleito'); if (!r.st) { const b0 = el('span', 'badge eleito', 'ELEITO'); nome.appendChild(b0); } }
+      else if (stl.includes('2º turno') || stl.includes('2o turno') || stl.includes('segundo turno')) row.classList.add('turno2');
+      const b = badgeStatus(r.st ? (row.classList.contains('eleito') ? '\u2713 ' + r.st.toUpperCase() : r.st) : '', r.eleito); if (b) nome.appendChild(b);
+    }
     l1.appendChild(nome);
     l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));
     row.appendChild(l1);

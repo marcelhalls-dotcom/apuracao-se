@@ -45,6 +45,8 @@
   }
   .card { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
   .card h2 { margin: 0; font-size: 1.15rem; color: var(--accent); }
+  .masonry { grid-column: 1 / -1; column-width: 320px; column-gap: 16px; }
+  .masonry > .card { break-inside: avoid; display: inline-block; width: 100%; margin: 0 0 16px; box-sizing: border-box; }
   .card.ranking { grid-column: 1 / -1; border-top: 3px solid #38bdf8; }
   .rank-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 4px 22px; margin-top: 10px; }
   .rank-item { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem; }
@@ -362,7 +364,9 @@ function renderRanking(rk) {
 
 function renderTudo() {
   const grid = document.getElementById('grid');
-  grid.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidoDestaque ? [renderPartido()] : []), ...(CONFIG.rankings || []).map(renderRanking));
+  const mason = el('div', 'masonry');
+  mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidoDestaque ? [renderPartido()] : []));
+  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking));
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);

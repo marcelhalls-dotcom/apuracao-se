@@ -56,6 +56,20 @@
   .rank-item .v { text-align: right; }
   .rank-item.eleito { border-left: 3px solid #22c55e; }
   .rank-item.meu { background: rgba(250,204,21,0.10) !important; }
+  .card.meta-senado { grid-column: 1 / -1; border-top: 3px solid #a78bfa; }
+  .card.meta-senado h2 { color: #c4b5fd; }
+  .ms-tot { display: flex; gap: 26px; flex-wrap: wrap; margin: 10px 0 12px; }
+  .ms-tot div { background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 8px; }
+  .ms-tot strong { display: block; font-size: 1.25rem; color: #c4b5fd; }
+  .ms-regs { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 10px; }
+  .ms-regs details { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px 12px; }
+  .ms-regs summary { cursor: pointer; display: flex; justify-content: space-between; gap: 8px; font-weight: 600; }
+  .ms-regs summary .sub { color: var(--subtext); font-weight: 400; font-size: 0.82rem; }
+  .ms-regs table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
+  .ms-regs th { text-align: right; color: var(--subtext); font-weight: 500; padding: 3px 4px; }
+  .ms-regs th:first-child, .ms-regs td:first-child { text-align: left; }
+  .ms-regs td { text-align: right; padding: 3px 4px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .pos-var { color: #86efac; } .neg-var { color: #fca5a5; }
   .card.partido { border-top: 3px solid #facc15; }
   .card.partido h2 { color: #facc15; }
   .card .meta { color: var(--subtext); font-size: 0.82rem; margin: 4px 0 14px; }
@@ -169,6 +183,9 @@ const CONFIG = {
   ],
 };
 /* ===================================================================== */
+
+// Meta de votação - Senado 2026 por município (relatório enviado pelo Marcel; comparativo com 2018).
+const META_SENADO = [{"regiao": "Agreste Central", "v2018": 40067, "meta": 29390, "mun": [["Itabaiana", 19312, 12000], ["Carira", 2809, 1500], ["Malhador", 2671, 300], ["Areia Branca", 3181, 3500], ["Campo do Brito", 3860, 3000], ["São Domingos", 1282, 1282], ["Macambira", 1308, 1308], ["Moita Bonita", 2239, 2500], ["Frei Paulo", 2137, 3200], ["Pedra Mole", 521, 800], ["Pinhão", 747, 0]]}, {"regiao": "Alto Sertão", "v2018": 18538, "meta": 19225, "mun": [["Canindé", 2165, 1500], ["Gararu", 1729, 2000], ["Monte Alegre", 1225, 1225], ["Poço Redondo", 1485, 2000], ["Porto da Folha", 4422, 2500], ["Lourdes", 1640, 2000], ["Glória", 5872, 8000]]}, {"regiao": "Baixo São Francisco", "v2018": 16760, "meta": 16754, "mun": [["Propriá", 5117, 5117], ["Canhoba", 1113, 300], ["Ilha das Flores", 803, 1300], ["Cedro de São João", 1195, 1195], ["Amparo do São Francisco", 379, 400], ["Telha", 488, 600], ["Japoatã", 1590, 600], ["Neópolis", 2442, 2442], ["Pacatuba", 1078, 2000], ["Brejo Grande", 555, 700], ["São Francisco", 900, 1000], ["Malhada dos Bois", 699, 699], ["Santana do São Francisco", 401, 401]]}, {"regiao": "Centro Sul", "v2018": 40447, "meta": 41500, "mun": [["Boquim", 4227, 3500], ["Salgado", 2481, 2500], ["Pedrinhas", 1278, 2000], ["Poço Verde", 2909, 3500], ["Riachão do Dantas", 2129, 0], ["Simão Dias", 4819, 6000], ["Tobias Barreto", 8680, 9000], ["Lagarto", 13924, 15000]]}, {"regiao": "Grande Aracaju", "v2018": 266029, "meta": 151000, "mun": [["Barra dos Coqueiros", 7311, 9000], ["Aracaju", 191909, 80000], ["N. Sra. do Socorro", 38851, 42000], ["São Cristóvão", 20159, 12000], ["Laranjeiras", 7799, 8000]]}, {"regiao": "Leste", "v2018": 30110, "meta": 19774, "mun": [["Siriri", 1901, 1500], ["Santa Rosa de Lima", 841, 1000], ["Santo Amaro das Brotas", 2085, 1000], ["Rosário do Catete", 2462, 1000], ["Pirambu", 1782, 700], ["Maruim", 3816, 2000], ["Riachuelo", 2288, 1000], ["Japaratuba", 3595, 2000], ["General Maynard", 774, 774], ["Carmópolis", 3030, 2000], ["Divina Pastora", 1093, 800], ["Capela", 6443, 6000]]}, {"regiao": "Médio Sertão", "v2018": 24153, "meta": 17703, "mun": [["Ribeirópolis", 4421, 1000], ["Gracho Cardoso", 1401, 1401], ["Muribeca", 1674, 0], ["Aleixo", 720, 1000], ["Aquidabã", 3788, 2000], ["Cumbe", 1312, 1312], ["Feira Nova", 1402, 1000], ["Itabi", 1388, 1388], ["Aparecida", 1602, 1602], ["Dores", 6445, 7000]]}, {"regiao": "Sul", "v2018": 38345, "meta": 31300, "mun": [["Itaporanga d'Ajuda", 6152, 4000], ["Cristinápolis", 3107, 1000], ["Estância", 11193, 8000], ["Umbaúba", 3996, 3000], ["Santa Luzia do Itanhy", 913, 2000], ["Indiaroba", 1319, 3000], ["Arauá", 2076, 1800], ["Itabaianinha", 8454, 6000], ["Tomar do Geru", 1135, 2500]]}];
 
 const BASE = 'https://resultados.tse.jus.br/oficial';
 const fmtInt = new Intl.NumberFormat('pt-BR');
@@ -370,11 +387,47 @@ function renderRanking(rk) {
   return card;
 }
 
+let metaSenadoCard = null;
+function renderMetaSenado() {
+  if (metaSenadoCard) return metaSenadoCard;   // conteúdo fixo: monta uma vez (preserva regiões abertas)
+  const card = el('section', 'card meta-senado');
+  card.appendChild(el('h2', null, 'Meta de votação - Senado 2026 por município'));
+  card.appendChild(el('div', 'meta', 'Relatório de meta da campanha (não é dado do TSE). Comparativo com os votos obtidos em 2018, por região de Sergipe. Clique na região para ver as cidades.'));
+  const t2018 = META_SENADO.reduce((a, r) => a + r.v2018, 0), tMeta = META_SENADO.reduce((a, r) => a + r.meta, 0);
+  const nMun = META_SENADO.reduce((a, r) => a + r.mun.length, 0);
+  const tot = el('div', 'ms-tot');
+  for (const [lbl, v] of [['Municípios', nMun], ['Votos 2018', t2018], ['Meta 2026', tMeta], ['Variação', tMeta - t2018]]) {
+    const d = el('div'); d.appendChild(el('span', null, lbl)); const st = el('strong', null, (lbl === 'Variação' && v > 0 ? '+' : '') + fmtInt.format(v)); d.appendChild(st); tot.appendChild(d);
+  }
+  card.appendChild(tot);
+  const regs = el('div', 'ms-regs');
+  for (const r of META_SENADO) {
+    const det = el('details'); const sm = el('summary');
+    sm.appendChild(el('span', null, r.regiao));
+    const dv = r.meta - r.v2018;
+    sm.appendChild(el('span', 'sub', `2018: ${fmtInt.format(r.v2018)} · Meta: ${fmtInt.format(r.meta)} (${dv > 0 ? '+' : ''}${fmtInt.format(dv)})`));
+    det.appendChild(sm);
+    const tb = el('table'); const hr = el('tr');
+    for (const h of ['Município', 'Votos 2018', 'Meta 2026', 'Variação']) hr.appendChild(el('th', null, h));
+    tb.appendChild(hr);
+    for (const [m, v18, mt] of r.mun) {
+      const tr = el('tr'); const v = mt - v18;
+      tr.appendChild(el('td', null, m)); tr.appendChild(el('td', null, fmtInt.format(v18))); tr.appendChild(el('td', null, fmtInt.format(mt)));
+      tr.appendChild(el('td', v > 0 ? 'pos-var' : (v < 0 ? 'neg-var' : null), (v > 0 ? '+' : '') + fmtInt.format(v)));
+      tb.appendChild(tr);
+    }
+    det.appendChild(tb); regs.appendChild(det);
+  }
+  card.appendChild(regs);
+  metaSenadoCard = card;
+  return card;
+}
+
 function renderTudo() {
   const grid = document.getElementById('grid');
   const mason = el('div', 'masonry');
   mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking));
+  grid.replaceChildren(mason, ...(CONFIG.rankings || []).map(renderRanking), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.map(c => estado[c.codigo]?.dados).find(Boolean);

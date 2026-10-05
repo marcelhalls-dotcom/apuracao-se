@@ -575,14 +575,15 @@ const CONFIG = {
   intervaloSegundos: 10,
   intervaloFinalSegundos: 300,
   cargos: [
-    { codigo: 3, titulo: 'Governador', matematico: 'maioria', candidatos: [
+    // todosCandidatos: lista completa do TSE; candidatos[] = acompanhados (★)
+    { codigo: 3, titulo: 'Governador', matematico: 'maioria', todosCandidatos: true, verTodosLim: 99, candidatos: [
       { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
       { nome: 'Valmir de Francisquinho', numero: 10 },  // REPUBLICANOS (pedido como "Valmir de Franciscatto")
     ]},
     // Presidente vem da "Eleição Ordinária Federal" (6257); todos os candidatos, ordenados por votos.
     { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', matematico: 'maioria', todosCandidatos: true, candidatos: [] },
     { chave: 'pres-se', codigo: 1, eleicao: '6257', uf: 'se', titulo: 'Presidente - Sergipe', todosCandidatos: true, candidatos: [] },
-    { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', candidatos: [
+    { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', todosCandidatos: true, verTodosLim: 99, candidatos: [
       { nome: 'Alessandro Vieira', numero: 155 },       // MDB — na urna: "DELEGADO ALESSANDRO"
       { nome: 'Delegado André David', numero: 101 },    // REPUBLICANOS
       { nome: 'Rogério Carvalho', numero: 131 },        // PT — é candidato a SENADOR (não a governador)
@@ -910,7 +911,7 @@ function renderCard(cargo) {
     const body = el('div', 'cand-body');
     const l1 = el('div', 'linha');
     const nome = el('span', 'nome', c.nome);
-    const isMeu = !cargo.todosCandidatos && (cargo.candidatos || []).some(x => String(x.numero) === String(c.numero));
+    const isMeu = (cargo.candidatos || []).some(x => String(x.numero) === String(c.numero));
     if (isMeu) { row.classList.add('meu'); nome.prepend(el('span', 'mark-star', '★')); }
     if (r) {
       const stl = (r.st || '').toLowerCase();
@@ -945,7 +946,7 @@ function renderCard(cargo) {
   }
   if (cargo.todosCandidatos) {
     const rows = [...card.querySelectorAll('.cand')];
-    const lim = 5;
+    const lim = Number.isFinite(cargo.verTodosLim) ? cargo.verTodosLim : 5;
     if (rows.length > lim) {
       rows.forEach((r, i) => { if (i >= lim) r.hidden = true; });
       const btn = el('button', 'toggle-mais');

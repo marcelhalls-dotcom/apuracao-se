@@ -63,19 +63,34 @@ async function checkRate(env, ip) {
   return { ok: true, remainingHour: hourLimit - nH - 1, remainingDay: dayLimit - nD - 1 };
 }
 
-function sanitizeMessages(input, maxChars, maxHist) {
+function sanitizeMessages(input, maxChars, maxHist, histTrunc) {
   if (!Array.isArray(input)) return { error: 'Campo messages inválido.' };
   const cleaned = [];
   for (const m of input) {
     if (!m || (m.role !== 'user' && m.role !== 'assistant')) continue;
     let content = String(m.content || '').trim();
     if (!content) continue;
-    if (content.length > maxChars) return { error: `Cada mensagem pode ter no máximo ${maxChars} caracteres.` };
     cleaned.push({ role: m.role, content });
   }
   if (!cleaned.length) return { error: 'Envie pelo menos uma mensagem.' };
   if (cleaned[cleaned.length - 1].role !== 'user') return { error: 'A última mensagem deve ser do usuário.' };
-  return { messages: cleaned.slice(-maxHist) };
+
+  // Só a pergunta nova do usuário é limitada; histórico antigo é truncado (não rejeitado).
+  const last = cleaned[cleaned.length - 1];
+  if (last.content.length > maxChars) {
+    return { error: `Cada pergunta pode ter no máximo ${maxChars} caracteres.` };
+  }
+
+  const sliced = cleaned.slice(-maxHist);
+  const trunc = Math.max(200, Number(histTrunc) || 1500);
+  return {
+    messages: sliced.map((m, i) => {
+      const isLast = i === sliced.length - 1;
+      if (isLast) return m;
+      if (m.content.length <= trunc) return m;
+      return { role: m.role, content: m.content.slice(0, trunc) + '…' };
+    }),
+  };
 }
 
 function normKey(s) {
@@ -131,6 +146,17 @@ function detectMuns(text, munIndex) {
   return hits;
 }
 
+function softNorm(s) {
+  return String(s || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/BAPTISTA/g, 'BATISTA')
+    .replace(/[^A-Z0-9\s]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function detectCandidates(text, mapaIndex) {
   const key = normKey(text);
   const hits = [];
@@ -138,27 +164,30 @@ function detectCandidates(text, mapaIndex) {
     for (const c of list) {
       const n = String(c.n);
       const nk = normKey(c.nm || '');
+      const nuk = normKey(c.nu || '');
       const numHit = new RegExp(`(?:^|[^0-9])${n}(?:[^0-9]|$)`).test(text);
-      const nameHit = nk.length >= 5 && key.includes(nk);
-      // also match first+last token of name if long enough
+      const nameHit = (nk.length >= 5 && key.includes(nk)) || (nuk.length >= 5 && key.includes(nuk));
       let partial = false;
-      const parts = (c.nm || '').split(/\s+/).filter(p => normKey(p).length >= 5);
-      if (parts.length >= 2) {
-        const a = normKey(parts[0]);
-        const b = normKey(parts[parts.length - 1]);
+      const nameParts = `${c.nm || ''} ${c.nu || ''}`.split(/\s+/).filter(p => normKey(p).length >= 5);
+      if (nameParts.length >= 2) {
+        const a = normKey(nameParts[0]);
+        const b = normKey(nameParts[nameParts.length - 1]);
         if (a.length >= 5 && b.length >= 5 && key.includes(a) && key.includes(b)) partial = true;
       }
+      // nome de urna multi-token: todos tokens >=4 no texto (ex.: MARCEL + ENFERMAGEM)
+      if (!nameHit && !partial && nuk.length >= 8) {
+        const utoks = softNorm(c.nu || '').split(' ').filter(t => t.length >= 4);
+        if (utoks.length >= 2 && utoks.every(t => key.includes(t))) partial = true;
+      }
       if (!nameHit && !partial) {
-        const tokens = (c.nm || '').split(/\s+/).map(normKey).filter(t => t.length >= 5);
-        // token distintivo (>=6) basta; evita JOSE/MARIA curtos
+        const tokens = `${c.nm || ''} ${c.nu || ''}`.split(/\s+/).map(normKey).filter(t => t.length >= 5);
         if (tokens.some(t => t.length >= 6 && key.includes(t))) partial = true;
       }
       if (numHit || nameHit || partial) {
-        hits.push({ cargo, n, nm: c.nm, sg: c.sg, t: c.t, a: c.a });
+        hits.push({ cargo, n, nm: c.nm, nu: c.nu, sg: c.sg, t: c.t, a: c.a });
       }
     }
   }
-  // dedupe by cargo+n
   const uniq = [];
   const sk = new Set();
   for (const h of hits) {
@@ -167,7 +196,56 @@ function detectCandidates(text, mapaIndex) {
     sk.add(k);
     uniq.push(h);
   }
+  // Prefer urna-name / fuller matches: score by overlap with query
+  uniq.sort((a, b) => {
+    const score = (c) => {
+      let s = 0;
+      const nu = normKey(c.nu || '');
+      const nm = normKey(c.nm || '');
+      if (nu && key.includes(nu)) s += 100;
+      if (nm && key.includes(nm)) s += 80;
+      for (const t of softNorm(c.nu || '').split(' ')) if (t.length >= 5 && key.includes(t)) s += 10;
+      return s;
+    };
+    return score(b) - score(a);
+  });
   return uniq;
+}
+
+function extractLocalQuery(text) {
+  const m = String(text || '').match(
+    /col[eé]gio\s+([^,.?!\n]+)|escola\s+([^,.?!\n]+)|local(?:\s+de\s+vota[cç][aã]o)?\s+([^,.?!\n]+)/i
+  );
+  if (!m) return '';
+  return softNorm(m[1] || m[2] || m[3] || '');
+}
+
+function findLocalsByQuery(geo, querySoft, limit = 5) {
+  if (!querySoft || querySoft.length < 4) return [];
+  const qTokens = querySoft.split(' ').filter(t => t.length >= 3 && !['COLEGIO', 'ESCOLA', 'EMEF', 'CE', 'EE'].includes(t));
+  if (!qTokens.length) return [];
+  const scored = [];
+  for (let i = 0; i < (geo.loc || []).length; i++) {
+    const L = geo.loc[i];
+    const nk = softNorm(L.nm || '');
+    if (!nk) continue;
+    let hit = 0;
+    for (const t of qTokens) if (nk.includes(t)) hit++;
+    if (hit < qTokens.length) continue;
+    // prefer shorter names / exact-ish
+    const bonus = nk.includes(qTokens.join(' ')) ? 5 : 0;
+    scored.push({ i, L, score: hit * 10 + bonus - Math.min(nk.length, 80) / 100 });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit);
+}
+
+function votesAtLocal(cand, locIdx) {
+  let v = 0;
+  for (const pair of cand.v || []) {
+    if (pair[0] === locIdx) v += pair[1] || 0;
+  }
+  return v;
 }
 
 function wantsGeoDetail(text) {
@@ -212,7 +290,7 @@ async function buildRetrieval(env, messages) {
     return out;
   }
   try {
-    mapaIndex = await cachedJson(`${pages}/mapa/index.json`);
+    mapaIndex = await cachedJson(`${pages}/mapa/index.json?v=nu1`);
   } catch (e) {
     mapaIndex = { cargos: {} };
   }
@@ -261,27 +339,72 @@ async function buildRetrieval(env, messages) {
     }
   }
 
-  // Bairro/zona/local detail for candidate + mun
-  if (wantsGeoDetail(text) && muns.length && cands.length) {
+  // Bairro/zona/local detail for candidate (+ mun opcional)
+  if (wantsGeoDetail(text) && cands.length) {
     try {
       geo = await cachedJson(`${pages}/mapa/geo-se.json`);
     } catch { geo = null; }
     if (geo) {
       const mode = /zona/.test(text.toLowerCase()) ? 'zona' : (/col[eé]gio|local|escola/.test(text.toLowerCase()) ? 'local' : 'bairro');
-      for (const mun of muns.slice(0, 2)) {
+      const localQ = extractLocalQuery(text);
+      const localHits = mode === 'local' ? findLocalsByQuery(geo, localQ, 5) : [];
+
+      // Match exato/fuzzy de colégio/local — mesmo sem município no texto
+      if (localHits.length && cands.length) {
         for (const c of cands.slice(0, 2)) {
           try {
             const cand = await cachedJson(`${pages}/mapa/${c.cargo}/${c.n}.json`);
-            const agg = aggregateCandidateInMun(geo, cand, mun.i, mode);
+            const locais = [];
+            for (const hit of localHits.slice(0, 3)) {
+              const L = hit.L;
+              const munMeta = (munIndex.muns || []).find(m => m.i === L.m);
+              locais.push({
+                local: L.nm,
+                numero_local: L.nl,
+                bairro: L.b,
+                zona: L.z,
+                municipio: munMeta ? munMeta.nm : String(L.m),
+                votos_no_local: votesAtLocal(cand, hit.i),
+              });
+            }
             out.itens.push({
-              detalhe: mode,
-              municipio: mun.nm,
-              candidato: { cargo: CARGO_LABEL[c.cargo] || c.cargo, numero: c.n, nome: cand.nm || c.nm, partido: cand.sg || c.sg },
-              votos_no_municipio: agg.total,
-              top: agg.top,
+              detalhe: 'local_exato',
+              candidato: {
+                cargo: CARGO_LABEL[c.cargo] || c.cargo,
+                numero: c.n,
+                nome: cand.nm || c.nm,
+                nome_urna: c.nu || cand.nu || null,
+                partido: cand.sg || c.sg,
+              },
+              consulta_local: localQ,
+              locais,
             });
           } catch (e) {
-            out.itens.push({ detalhe: mode, municipio: mun.nm, candidato: c.n, erro: 'Falha ao detalhar mapa do candidato' });
+            out.itens.push({ detalhe: 'local_exato', candidato: c.n, erro: 'Falha ao detalhar local do candidato' });
+          }
+        }
+      } else if (muns.length) {
+        for (const mun of muns.slice(0, 2)) {
+          for (const c of cands.slice(0, 2)) {
+            try {
+              const cand = await cachedJson(`${pages}/mapa/${c.cargo}/${c.n}.json`);
+              const agg = aggregateCandidateInMun(geo, cand, mun.i, mode);
+              out.itens.push({
+                detalhe: mode,
+                municipio: mun.nm,
+                candidato: {
+                  cargo: CARGO_LABEL[c.cargo] || c.cargo,
+                  numero: c.n,
+                  nome: cand.nm || c.nm,
+                  nome_urna: c.nu || null,
+                  partido: cand.sg || c.sg,
+                },
+                votos_no_municipio: agg.total,
+                top: agg.top,
+              });
+            } catch (e) {
+              out.itens.push({ detalhe: mode, municipio: mun.nm, candidato: c.n, erro: 'Falha ao detalhar mapa do candidato' });
+            }
           }
         }
       }
@@ -299,7 +422,7 @@ async function buildRetrieval(env, messages) {
   out.detectado = {
     municipios: muns.map(m => m.nm),
     cargos: cargos.map(c => CARGO_LABEL[c] || c),
-    candidatos: cands.slice(0, 8).map(c => `${c.n} ${c.nm} (${CARGO_LABEL[c.cargo] || c.cargo})`),
+    candidatos: cands.slice(0, 8).map(c => `${c.n} ${c.nu || c.nm} (${CARGO_LABEL[c.cargo] || c.cargo})`),
   };
   return out;
 }
@@ -321,7 +444,7 @@ export default {
         service: 'apuracao-se-chat',
         scope: 'Eleições Sergipe 2026/2022 + Presidente BR/SE + mapa municipal',
         limits: {
-          max_chars: Number(env.MAX_MSG_CHARS || 500),
+          max_chars: Number(env.MAX_MSG_CHARS || 1000),
           max_history: Number(env.MAX_HISTORY || 8),
           rate_hour: Number(env.RATE_HOUR || 20),
           rate_day: Number(env.RATE_DAY || 60),
@@ -339,9 +462,10 @@ export default {
     try { body = await request.json(); }
     catch { return json(400, { error: 'JSON inválido.' }, cors); }
 
-    const maxChars = Number(env.MAX_MSG_CHARS || 500);
+    const maxChars = Number(env.MAX_MSG_CHARS || 1000);
     const maxHist = Number(env.MAX_HISTORY || 8);
-    const parsed = sanitizeMessages(body.messages, maxChars, maxHist);
+    const histTrunc = Number(env.HIST_TRUNC_CHARS || 1500);
+    const parsed = sanitizeMessages(body.messages, maxChars, maxHist, histTrunc);
     if (parsed.error) return json(400, { error: parsed.error }, cors);
 
     const ip = clientIp(request);

@@ -434,16 +434,22 @@
     padding: 0 12px 8px; color: var(--subtext); font-size: 0.72rem; line-height: 1.35;
   }
   .chat-form {
-    display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(148,163,184,0.25);
+    display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(148,163,184,0.25);
+    align-items: end;
   }
   .chat-form textarea {
-    flex: 1; min-height: 44px; max-height: 96px; resize: vertical;
+    grid-column: 1; grid-row: 1; min-height: 44px; max-height: 96px; resize: vertical; width: 100%;
     border-radius: 10px; border: 1px solid rgba(148,163,184,0.35);
     background: #0f172a; color: var(--text); padding: 10px; font: inherit;
   }
+  .chat-char {
+    grid-column: 1; grid-row: 2; color: var(--subtext); font-size: 0.7rem; line-height: 1; padding-left: 2px;
+  }
+  .chat-char.warn { color: #fbbf24; }
+  .chat-char.over { color: #f87171; }
   .chat-form button[type=submit] {
-    appearance: none; border: 1px solid rgba(56,189,248,0.5); background: rgba(56,189,248,0.18);
-    color: #7dd3fc; border-radius: 10px; padding: 0 14px; min-width: 72px; cursor: pointer; font-weight: 600;
+    grid-column: 2; grid-row: 1 / span 2; appearance: none; border: 1px solid rgba(56,189,248,0.5); background: rgba(56,189,248,0.18);
+    color: #7dd3fc; border-radius: 10px; padding: 0 14px; min-width: 72px; cursor: pointer; font-weight: 600; align-self: stretch;
   }
   .chat-form button[type=submit]:disabled { opacity: 0.5; cursor: wait; }
   .chat-typing { align-self: flex-start; color: #94a3b8; font-size: 0.82rem; font-style: italic; }
@@ -544,7 +550,8 @@
   <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros.</div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="500" rows="2" placeholder="Pergunte sobre Sergipe 2026/2022…" required></textarea>
+    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre Sergipe 2026/2022…" required></textarea>
+    <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
 </div>
@@ -2274,6 +2281,17 @@ function bootChat() {
   const form = document.getElementById('chat-form');
   const input = document.getElementById('chat-input');
   const send = document.getElementById('chat-send');
+  const charEl = document.getElementById('chat-char');
+  const CHAT_MAX = 1000;
+  const syncChar = () => {
+    const n = (input.value || '').length;
+    if (!charEl) return;
+    charEl.textContent = n + '/' + CHAT_MAX;
+    charEl.classList.toggle('warn', n >= CHAT_MAX - 80);
+    charEl.classList.toggle('over', n >= CHAT_MAX);
+  };
+  input.addEventListener('input', syncChar);
+  syncChar();
   const suggest = document.getElementById('chat-suggest');
   if (!fab || !panel || !form) return;
 
@@ -2340,8 +2358,8 @@ function bootChat() {
     if (busy) return;
     const text = (input.value || '').trim();
     if (!text) return;
-    if (text.length > 500) {
-      addBubble('bot', 'Cada pergunta pode ter no máximo 500 caracteres.', 'err');
+    if (text.length > 1000) {
+      addBubble('bot', 'Cada pergunta pode ter no máximo 1000 caracteres.', 'err');
       return;
     }
     input.value = '';

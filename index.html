@@ -84,6 +84,16 @@
   .lista-el { margin-bottom: 10px; }
   .lista-el .cab { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.88rem; color: #fcd34d; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 3px 2px; }
   .lista-el .cab span:last-child { color: var(--subtext); font-weight: 500; }
+  .card.alese { grid-column: 1 / -1; border-top: 3px solid #f59e0b; }
+  .card.alese h2 { color: #fcd34d; }
+  .alese-wrap { display: grid; grid-template-columns: minmax(320px, 1.1fr) 1fr; gap: 20px; align-items: center; }
+  @media (max-width: 760px) { .alese-wrap { grid-template-columns: 1fr; } }
+  .alese-wrap svg { width: 100%; height: auto; max-height: 330px; }
+  .alese-leg { display: grid; gap: 6px; font-size: 0.88rem; }
+  .alese-leg .it { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: start; }
+  .alese-leg .dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; }
+  .alese-leg .nomes { color: var(--subtext); font-size: 0.76rem; }
+  .alese-leg .q { font-weight: 800; font-size: 1rem; }
   .card.custo { grid-column: 1 / -1; border-top: 3px solid #f59e0b; }
   .card.custo h2 { color: #fcd34d; }
   .custo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; margin-top: 10px; }
@@ -513,6 +523,44 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
   return card;
 }
 
+const CORES_LISTA = { 'PSD': '#22c55e', 'PP / UNIÃO': '#3b82f6', 'PCDOB / PT / PV': '#ef4444', 'REPUBLICANOS': '#8b5cf6', 'PL': '#facc15', 'MDB': '#14b8a6', 'PSB': '#f472b6', 'AVANTE': '#f97316', 'PSOL / REDE': '#eab308', 'PDT': '#fb7185', 'PSDB / CIDADANIA': '#38bdf8', 'NOVO': '#fdba74' };
+const PALETA_EXTRA = ['#a3e635', '#c084fc', '#2dd4bf', '#fca5a5', '#93c5fd', '#fde68a'];
+function corLista(nome, i) { return CORES_LISTA[nome] || PALETA_EXTRA[i % PALETA_EXTRA.length]; }
+
+function renderAlese() {
+  const d = estado[7]?.dados;
+  const card = el('section', 'card alese');
+  card.appendChild(el('h2', null, 'Alese - distribuição das 24 cadeiras'));
+  if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE calcular as vagas de Deputado Estadual')); return card; }
+  card.appendChild(el('div', 'meta', `${d.totalFinal ? 'Resultado final do TSE' : 'Projeção com ' + fmtPct(d.pst) + ' das urnas'} • Quociente eleitoral ${fmtInt.format(d.qe)} votos`));
+  const listas = [...d.listasVagas].sort((a, b) => b.vag - a.vag || b.votos - a.votos).map((l, i) => ({ ...l, cor: corLista(l.nome, i) }));
+  const total = listas.reduce((t, l) => t + l.vag, 0);
+  // hemiciclo: fileiras concêntricas, cadeiras ordenadas por ângulo e coloridas em sequência
+  const fileiras = total <= 12 ? 2 : total <= 30 ? 3 : 4, R0 = 70, R1 = 170, W = 400, H = 210, cx = 200, cy = 195;
+  const raios = Array.from({ length: fileiras }, (_, i) => R0 + (R1 - R0) * (fileiras === 1 ? 1 : i / (fileiras - 1)));
+  const somaR = raios.reduce((a, b) => a + b, 0);
+  let porFileira = raios.map(r => Math.round(total * r / somaR));
+  let dif = total - porFileira.reduce((a, b) => a + b, 0); porFileira[porFileira.length - 1] += dif;
+  const pts = [];
+  raios.forEach((r, i) => { const n = porFileira[i]; for (let k = 0; k < n; k++) { const ang = Math.PI * (n === 1 ? 0.5 : k / (n - 1)); pts.push({ ang, x: cx - r * Math.cos(ang), y: cy - r * Math.sin(ang) }); } });
+  pts.sort((a, b) => a.ang - b.ang);
+  const raioCad = Math.min(17, (R1 - R0) / (fileiras * 1.15));
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let idx = 0;
+  listas.forEach(l => { for (let k = 0; k < l.vag; k++) { const pt = pts[idx++]; if (!pt) break;
+    const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.5');
+    const t = document.createElementNS(ns, 'title'); t.textContent = `${l.nome}${l.eleitos[k] ? ' - ' + l.eleitos[k].nome : ''}`; c.appendChild(t); svg.appendChild(c); } });
+  const tx = document.createElementNS(ns, 'text'); tx.setAttribute('x', cx); tx.setAttribute('y', cy - 8); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('fill', '#e2e8f0'); tx.setAttribute('font-size', '30'); tx.setAttribute('font-weight', '800'); tx.textContent = total; svg.appendChild(tx);
+  const wrap = el('div', 'alese-wrap'); wrap.appendChild(svg);
+  const leg = el('div', 'alese-leg');
+  listas.forEach(l => { const it = el('div', 'it'); const dot = el('span', 'dot'); dot.style.background = l.cor; it.appendChild(dot);
+    const tx2 = el('div'); tx2.appendChild(el('div', null, l.nome)); tx2.appendChild(el('div', 'nomes', l.eleitos.map(e => e.nome).join(', '))); it.appendChild(tx2);
+    it.appendChild(el('span', 'q', String(l.vag))); leg.appendChild(it); });
+  wrap.appendChild(leg); card.appendChild(wrap);
+  return card;
+}
+
 function renderEleitos() {
   const card = el('section', 'card eleitos');
   card.appendChild(el('h2', null, 'Eleitos - Deputado Federal e Estadual'));
@@ -617,7 +665,7 @@ function renderTudo() {
   const grid = document.getElementById('grid');
   const mason = el('div', 'masonry');
   mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(mason, renderEleitos(), ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos('5 mais votados do PL (22)', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }, { numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]), renderTopPartidos(), renderCusto(), renderMetaSenado());
+  grid.replaceChildren(renderAlese(), mason, renderEleitos(), ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos('5 mais votados do PL (22)', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }, { numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]), renderTopPartidos(), renderCusto(), renderMetaSenado());
 
   // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
   const ref = CONFIG.cargos.filter(c => !c.uf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);

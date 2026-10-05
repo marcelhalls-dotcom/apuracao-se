@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Urna eletrônica">
+  <!-- body -->
+  <rect x="4" y="3" width="24" height="26" rx="3" fill="#c4b89a"/>
+  <rect x="5" y="4" width="22" height="24" rx="2.2" fill="#d6ccb4"/>
+  <!-- top bevel -->
+  <rect x="5" y="4" width="22" height="3" rx="1.5" fill="#b6aa8e"/>
+  <!-- screen -->
+  <rect x="8" y="8" width="16" height="7" rx="1.2" fill="#1e293b"/>
+  <rect x="9" y="9" width="14" height="5" rx="0.8" fill="#0f172a"/>
+  <!-- faint screen content -->
+  <rect x="10.5" y="10.2" width="6" height="1.1" rx="0.4" fill="#334155"/>
+  <rect x="10.5" y="12.1" width="9" height="0.9" rx="0.4" fill="#475569"/>
+  <!-- keypad grid 3x3 + bottom row -->
+  <g fill="#94a3b8">
+    <!-- row 1 -->
+    <rect x="9" y="17" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="14.4" y="17" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="19.8" y="17" width="3.2" height="2.4" rx="0.5"/>
+    <!-- row 2 -->
+    <rect x="9" y="20.2" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="14.4" y="20.2" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="19.8" y="20.2" width="3.2" height="2.4" rx="0.5"/>
+    <!-- row 3 -->
+    <rect x="9" y="23.4" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="14.4" y="23.4" width="3.2" height="2.4" rx="0.5"/>
+    <rect x="19.8" y="23.4" width="3.2" height="2.4" rx="0.5"/>
+  </g>
+  <!-- dark key accents (numbers feel) -->
+  <g fill="#64748b">
+    <circle cx="10.6" cy="18.2" r="0.45"/>
+    <circle cx="16" cy="18.2" r="0.45"/>
+    <circle cx="21.4" cy="18.2" r="0.45"/>
+    <circle cx="10.6" cy="21.4" r="0.45"/>
+    <circle cx="16" cy="21.4" r="0.45"/>
+    <circle cx="21.4" cy="21.4" r="0.45"/>
+    <circle cx="10.6" cy="24.6" r="0.45"/>
+    <circle cx="16" cy="24.6" r="0.45"/>
+  </g>
+  <!-- green confirma (bottom-right key) -->
+  <rect x="19.8" y="23.4" width="3.2" height="2.4" rx="0.5" fill="#22c55e"/>
+  <rect x="20.3" y="24.2" width="2.2" height="0.8" rx="0.3" fill="#86efac"/>
+  <!-- side shadow -->
+  <path d="M28 6v20c0 1.5-1 2.5-2.5 2.5H25V5.5c1.2 0 3 .8 3 .5z" fill="#a89878" opacity=".35"/>
+</svg>

@@ -488,6 +488,21 @@
     color: #7dd3fc; border-radius: 999px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; text-decoration: none;
   }
 
+
+  .rel-preview { margin-top: 10px; max-height: 70vh; overflow: auto; }
+  .rel-preview-pre { white-space: pre-wrap; font-size: 0.78rem; color: #cbd5e1; }
+  .rel-preview-rich { font-size: 0.86rem; }
+  .rel-exec { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 12px; }
+  .rel-photos { display: flex; gap: 8px; }
+  .rel-photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(148,163,184,.35); background: #0f172a; }
+  .rel-maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin: 12px 0; }
+  .rel-maps svg { width: 100%; height: auto; background: #f8fafc; border-radius: 8px; border: 1px solid rgba(148,163,184,.25); }
+  .rel-drill details { margin: 4px 0 4px 8px; }
+  .rel-drill summary { cursor: pointer; padding: 4px 0; }
+  .rel-esc { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin: 4px 0 8px; }
+  .rel-esc th, .rel-esc td { border: 1px solid rgba(148,163,184,.25); padding: 2px 4px; text-align: left; }
+  .rel-esc th { background: rgba(30,64,120,.35); }
+
 </style>
 </head>
 <body>
@@ -2206,7 +2221,11 @@ function setView(name, pushHash) {
     }
   }
   if (window.__syncTabs) window.__syncTabs();
-  if (name === 'relatorios' && window.Relatorios) window.Relatorios.bootUI();
+  if (name === 'relatorios' && window.Relatorios) {
+    // só monta a UI; applyHashFromLocation é chamado por applyHashView / openInPanel
+    // (evitar recursão setView ↔ applyHashFromLocation)
+    window.Relatorios.bootUI();
+  }
 }
 
 async function compartilhar() {
@@ -2508,6 +2527,9 @@ function bootNav() {
   const applyHashView = () => {
     const { view } = parseLocationHash();
     setView(view, false);
+    if (view === 'relatorios' && window.Relatorios && window.Relatorios.applyHashFromLocation) {
+      window.Relatorios.applyHashFromLocation();
+    }
   };
   window.addEventListener('hashchange', applyHashView);
   window.addEventListener('popstate', applyHashView);
@@ -2640,6 +2662,7 @@ function syncRelGlobals() {
   window.estado = estado;
   window.HIST = typeof HIST !== 'undefined' ? HIST : null;
   window.MAPA_INDEX = typeof MAPA_INDEX !== 'undefined' ? MAPA_INDEX : null;
+  window.loadMapaIndex = typeof loadMapaIndex === 'function' ? loadMapaIndex : window.loadMapaIndex;
   window.META_SENADO = typeof META_SENADO !== 'undefined' ? META_SENADO : null;
   window.getJSON = getJSON;
   window.fmtInt = fmtInt;

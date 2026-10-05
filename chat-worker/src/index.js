@@ -209,8 +209,17 @@ function detectCandidates(text, mapaIndex) {
     return s;
   };
   uniq.sort((a, b) => score(b) - score(a));
+  // Keep top matches; if the #1 is a strong urna hit, still retain other
+  // decent partials (e.g. "Sobral e Franco" → two candidatos, not only Sobral).
   if (uniq.length && score(uniq[0]) >= 100) {
-    return uniq.filter(c => score(c) >= 50).slice(0, 6);
+    const strong = uniq.filter(c => score(c) >= 50);
+    const extras = uniq.filter(c => score(c) >= 12 && score(c) < 50);
+    const merged = [...strong];
+    for (const e of extras) {
+      if (merged.length >= 6) break;
+      if (!merged.some(m => m.cargo === e.cargo && m.n === e.n)) merged.push(e);
+    }
+    return merged.slice(0, 8);
   }
   return uniq.slice(0, 10);
 }
@@ -462,16 +471,33 @@ function detectReportIntent(text, retrieval) {
 
   const parsed = cands.map(parseCand).filter(Boolean);
   const first = parsed[0];
-  const wantsCand = /candidato|votação\s+do|votacao\s+do|relat[oó]rio\s+do\s+candid/i.test(t);
+  const second = parsed[1];
+  const wantsCand = /candidato|votos?\s+d[oe]|votação\s+do|votacao\s+do|relat[oó]rio|mapa\s+eleitoral|compar/i.test(t);
   const wantsMun = /relat[oó]rio\s+do\s+munic|munic[ií]pio\s+de\s+|na\s+cidade\s+de\s+/i.test(t);
+  const wantsCompare = /compar|versus|\svs\.?\s|dois\s+candidat|ambos|e\s+o\s+candidat|mapa\s+eleitoral\s+dos\s+dois|zonead/i.test(t)
+    || (parsed.length >= 2 && wantsCand);
+
+  if (wantsCompare && first && second && first.cargo) {
+    const cargo = first.cargo === second.cargo ? first.cargo : first.cargo;
+    return {
+      template: 'comparar',
+      cargo,
+      a: first.n,
+      b: second.n,
+      nomeA: first.nm,
+      nomeB: second.nm,
+      options: { hist: true, fotos: true, zoneado: true },
+    };
+  }
 
   if (wantsCand && first && first.cargo) {
     return {
       template: 'candidato',
       cargo: first.cargo,
       numero: first.n,
+      a: first.n,
       nome: first.nm,
-      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: false },
+      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: true },
     };
   }
 
@@ -489,13 +515,25 @@ function detectReportIntent(text, retrieval) {
     };
   }
 
+  if (parsed.length >= 2 && first && second && first.cargo) {
+    return {
+      template: 'comparar',
+      cargo: first.cargo,
+      a: first.n,
+      b: second.n,
+      nomeA: first.nm,
+      nomeB: second.nm,
+      options: { hist: true, fotos: true, zoneado: true },
+    };
+  }
   if (first && first.cargo) {
     return {
       template: 'candidato',
       cargo: first.cargo,
       numero: first.n,
+      a: first.n,
       nome: first.nm,
-      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: false },
+      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: true },
     };
   }
 

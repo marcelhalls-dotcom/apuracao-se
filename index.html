@@ -1558,7 +1558,7 @@ const mapaCache = new Map();
 
 async function loadMapaIndex() {
   if (MAPA_INDEX) return MAPA_INDEX;
-  try { MAPA_INDEX = await getJSON('mapa/index.json'); }
+  try { MAPA_INDEX = await getJSON('mapa/index.json'); if (typeof syncRelGlobals === 'function') syncRelGlobals(); }
   catch (e) { console.warn('mapa/index.json', e); MAPA_INDEX = { cargos: {} }; }
   return MAPA_INDEX;
 }
@@ -2609,7 +2609,7 @@ async function atualizar() {
   try {
     if (!codigoEleicao) codigoEleicao = await descobrirEleicao();
     if (!HIST) {
-      try { HIST = await getJSON('historico.json'); }
+      try { HIST = await getJSON('historico.json'); if (typeof syncRelGlobals === 'function') syncRelGlobals(); }
       catch (e) { console.warn('historico.json indisponível', e); HIST = { historico: {}, senado81: [], eleitos_se: null, substituicoes: {} }; }
     }
     await Promise.all(CONFIG.cargos.map(async cargo => {
@@ -2625,10 +2625,25 @@ async function atualizar() {
   } finally {
     buscando = false;
     segundos = intervaloAtual();
-    renderTudo(); renderStatus();
+    renderTudo(); renderStatus(); if (typeof syncRelGlobals === 'function') syncRelGlobals();
   }
 }
 
+
+function syncRelGlobals() {
+  window.CONFIG = CONFIG;
+  window.estado = estado;
+  window.HIST = typeof HIST !== 'undefined' ? HIST : null;
+  window.MAPA_INDEX = typeof MAPA_INDEX !== 'undefined' ? MAPA_INDEX : null;
+  window.META_SENADO = typeof META_SENADO !== 'undefined' ? META_SENADO : null;
+  window.getJSON = getJSON;
+  window.fmtInt = fmtInt;
+  window.fmtPct = fmtPct;
+  window.chaveDe = chaveDe;
+  window.setView = setView;
+}
+
+syncRelGlobals();
 bootNav();
 bootChat();
 renderTudo();

@@ -1154,19 +1154,16 @@
   function onModeChange(root) {
     syncModePanels(root);
     const mode = (root.querySelector('input[name=rel-mode]:checked') || {}).value || 'resumo';
-    // limpa campos de outros modelos para não vazar no custom/hash
-    if (mode === 'resumo') {
-      // ok
-    } else if (mode === 'candidato') {
-      const a = root.querySelector('#rel-cand-a'); const b = root.querySelector('#rel-cand-b');
-      // mantém A como sugestão no #rel-cand se vazio
+    if (mode === 'candidato') {
+      const a = root.querySelector('#rel-cand-a');
+      const candPicker = root.querySelector('.rel-picker[data-picker="rel-cand"]');
       const cand = root.querySelector('#rel-cand');
-      if (cand && !cand.value && a && a.value) cand.value = a.value;
+      if (candPicker && cand && !cand.value && a && a.value) setPickerValue(candPicker, a.value, true);
     }
     updateHashFromUI(root);
     refreshCandPhotos(root);
     const box = root.querySelector('#rel-preview');
-    if (box) box.textContent = 'Modelo: ' + mode + '. Atualize a prévia ou gere o PDF.';
+    if (box) box.innerHTML = '<p class="meta">Modelo: <strong>' + mode + '</strong>. Toque em “Atualizar prévia” para ver o relatório.</p>';
   }
 
   function applySpecToUI(root, spec) {
@@ -1177,88 +1174,192 @@
     if (radio) radio.checked = true;
     syncModePanels(root);
     const cargo = s.cargo || s.c || '7';
-    // limpa selects irrelevantes
-    const setVal = (sel, v) => { const el = root.querySelector(sel); if (el) el.value = v || ''; };
+    const setP = (id, v) => {
+      const picker = root.querySelector('.rel-picker[data-picker="' + id + '"]');
+      if (picker) setPickerValue(picker, v || '', true);
+    };
     if (mode === 'comparar') {
-      setVal('#rel-cand-a', s.a ? (cargo + ':' + s.a) : '');
-      setVal('#rel-cand-b', s.b ? (cargo + ':' + s.b) : '');
+      setP('rel-cand-a', s.a ? (cargo + ':' + s.a) : '');
+      setP('rel-cand-b', s.b ? (cargo + ':' + s.b) : '');
     } else if (mode === 'candidato') {
       const n = s.numero || s.n;
-      setVal('#rel-cand', n ? (cargo + ':' + n) : '');
+      setP('rel-cand', n ? (cargo + ':' + n) : '');
     } else if (mode === 'municipio') {
-      setVal('#rel-mun', s.cd || s.mun || '');
+      const el = root.querySelector('#rel-mun'); if (el) el.value = s.cd || s.mun || '';
     }
     refreshCandPhotos(root);
-    filterCandSelects(root);
+  }
+
+  let CAND_FLAT = []; // { value, cargo, n, nm, nu, sg, label, search }
+
+  function rebuildCandFlat() {
+    CAND_FLAT = [];
+    for (const [cg, list] of Object.entries((global.MAPA_INDEX || {}).cargos || {})) {
+      if (!['1', '3', '5', '6', '7'].includes(cg)) continue;
+      for (const c of list) {
+        const nm = c.nu || c.nm || '';
+        const label = nm + ' (' + c.n + (c.sg ? ' · ' + c.sg : '') + ') · ' + (CARGO_NOME[cg] || cg);
+        CAND_FLAT.push({
+          value: cg + ':' + c.n,
+          cargo: cg, n: String(c.n), nm: c.nm || '', nu: c.nu || nm, sg: c.sg || '',
+          label,
+          search: (nm + ' ' + (c.nm || '') + ' ' + c.n + ' ' + (c.sg || '') + ' ' + (CARGO_NOME[cg] || '')).toLowerCase(),
+        });
+      }
+    }
   }
 
   function candMetaFromValue(val) {
-    if (!val || !val.includes(':')) return null;
-    const [cg, n] = val.split(':');
+    if (!val || !String(val).includes(':')) return null;
+    const [cg, n] = String(val).split(':');
+    const hit = CAND_FLAT.find(x => x.value === val) || null;
+    if (hit) return { cargo: hit.cargo, numero: hit.n, meta: { n: hit.n, nm: hit.nm, nu: hit.nu, sg: hit.sg } };
     const list = ((global.MAPA_INDEX || {}).cargos || {})[cg] || [];
     const c = list.find(x => String(x.n) === String(n));
     return { cargo: cg, numero: n, meta: c || { n, nm: n, nu: n, sg: '' } };
   }
 
-  function refreshCandPhotos(root) {
-    root.querySelectorAll('.rel-picker').forEach(picker => {
-      const sel = picker.querySelector('select');
-      const img = picker.querySelector('.rel-picker-photo');
-      const fallback = picker.querySelector('.rel-picker-fallback');
-      if (!sel || !img) return;
-      const info = candMetaFromValue(sel.value);
-      if (!info) {
-        img.removeAttribute('src'); img.hidden = true;
-        if (fallback) { fallback.hidden = false; fallback.textContent = '?'; }
-        return;
-      }
-      const src = fotoPath(info.cargo, info.numero);
-      img.onload = () => { img.hidden = false; if (fallback) fallback.hidden = true; };
-      img.onerror = () => {
-        img.hidden = true;
-        if (fallback) {
-          fallback.hidden = false;
-          const nm = info.meta.nu || info.meta.nm || info.numero;
-          const parts = String(nm).trim().split(/\s+/);
-          fallback.textContent = parts.length < 2 ? String(nm).slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-        }
-      };
-      img.alt = info.meta.nu || info.meta.nm || info.numero;
-      img.src = src;
-    });
+  function setPickerValue(picker, value, silent) {
+    const hidden = picker.querySelector('input[type=hidden]');
+    const input = picker.querySelector('.rel-picker-input');
+    const chosen = picker.querySelector('.rel-picker-chosen');
+    const menu = picker.querySelector('.rel-picker-menu');
+    if (hidden) hidden.value = value || '';
+    const info = candMetaFromValue(value);
+    if (info) {
+      const lab = (info.meta.nu || info.meta.nm || info.numero) + ' · ' + info.numero + (info.meta.sg ? ' · ' + info.meta.sg : '');
+      if (input) input.value = lab;
+      if (chosen) { chosen.hidden = false; chosen.textContent = 'Selecionado: ' + lab; }
+    } else {
+      if (input && !silent) { /* keep typed text while searching */ }
+      if (!value && input) input.value = '';
+      if (chosen) { chosen.hidden = true; chosen.textContent = ''; }
+    }
+    refreshOnePhoto(picker);
+    if (menu) { menu.hidden = true; if (input) input.setAttribute('aria-expanded', 'false'); }
   }
 
-  function filterCandSelects(root) {
-    root.querySelectorAll('.rel-picker').forEach(picker => {
-      const q = (picker.querySelector('.rel-picker-search')?.value || '').trim().toLowerCase();
-      const sel = picker.querySelector('select');
-      if (!sel) return;
-      const cur = sel.value;
-      for (const opt of sel.querySelectorAll('option')) {
-        if (!opt.value) { opt.hidden = false; continue; }
-        if (!q) { opt.hidden = false; continue; }
-        const hay = (opt.textContent || '').toLowerCase() + ' ' + opt.value.toLowerCase();
-        opt.hidden = !hay.includes(q);
+  function refreshOnePhoto(picker) {
+    const hidden = picker.querySelector('input[type=hidden]');
+    const img = picker.querySelector('.rel-picker-photo');
+    const fallback = picker.querySelector('.rel-picker-fallback');
+    if (!img) return;
+    const info = candMetaFromValue(hidden && hidden.value);
+    if (!info) {
+      img.removeAttribute('src'); img.hidden = true;
+      if (fallback) { fallback.hidden = false; fallback.textContent = '?'; }
+      return;
+    }
+    const src = fotoPath(info.cargo, info.numero);
+    img.onload = () => { img.hidden = false; if (fallback) fallback.hidden = true; };
+    img.onerror = () => {
+      img.hidden = true;
+      if (fallback) {
+        fallback.hidden = false;
+        const nm = info.meta.nu || info.meta.nm || info.numero;
+        const parts = String(nm).trim().split(/\s+/);
+        fallback.textContent = parts.length < 2 ? String(nm).slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
       }
-      for (const g of sel.querySelectorAll('optgroup')) {
-        const any = [...g.querySelectorAll('option')].some(o => !o.hidden && o.value);
-        g.hidden = q && !any;
-      }
-      // se filtro escondeu o atual, mantém valor mesmo hidden (não limpa)
-      if (cur) sel.value = cur;
+    };
+    img.alt = info.meta.nu || info.meta.nm || info.numero;
+    img.src = src;
+  }
+
+  function refreshCandPhotos(root) {
+    root.querySelectorAll('.rel-picker').forEach(refreshOnePhoto);
+  }
+
+  function filterCandQuery(q) {
+    const qq = (q || '').trim().toLowerCase();
+    if (!qq) return CAND_FLAT.slice(0, 10);
+    const out = [];
+    for (const c of CAND_FLAT) {
+      if (c.search.includes(qq)) out.push(c);
+      if (out.length >= 10) break;
+    }
+    return out;
+  }
+
+  function renderPickerMenu(picker, items, activeIdx) {
+    const menu = picker.querySelector('.rel-picker-menu');
+    const input = picker.querySelector('.rel-picker-input');
+    if (!menu) return;
+    if (!items.length) {
+      menu.innerHTML = '<li class="rel-picker-empty" style="padding:10px;color:#94a3b8;font-size:0.85rem">Nenhum candidato</li>';
+      menu.hidden = false;
+      if (input) input.setAttribute('aria-expanded', 'true');
+      return;
+    }
+    menu.innerHTML = items.map((c, i) => {
+      const ini = (c.nu || c.nm || c.n).slice(0, 2).toUpperCase();
+      return '<li role="option" id="' + picker.dataset.picker + '-opt-' + i + '" aria-selected="' + (i === activeIdx ? 'true' : 'false') + '">'
+        + '<button type="button" class="rel-picker-item" data-value="' + c.value + '">'
+        + '<img src="' + fotoPath(c.cargo, c.n) + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'rel-picker-item-ph\',textContent:\'' + ini.replace(/'/g, '') + '\'}))"/>'
+        + '<span class="rel-picker-item-meta"><span class="rel-picker-item-name">' + (c.nu || c.nm) + '</span>'
+        + '<span class="rel-picker-item-sub">nº ' + c.n + (c.sg ? ' · ' + c.sg : '') + ' · ' + (CARGO_NOME[c.cargo] || c.cargo) + '</span></span>'
+        + '</button></li>';
+    }).join('');
+    menu.hidden = false;
+    if (input) input.setAttribute('aria-expanded', 'true');
+    menu.querySelectorAll('.rel-picker-item').forEach(btn => {
+      btn.addEventListener('mousedown', (ev) => {
+        ev.preventDefault(); // keep focus
+        setPickerValue(picker, btn.getAttribute('data-value'));
+        const root = picker.closest('#grid-relatorios') || document;
+        updateHashFromUI(root);
+      });
     });
   }
 
   function wireCandPickers(root) {
     root.querySelectorAll('.rel-picker').forEach(picker => {
-      if (picker.dataset.wired) return;
-      picker.dataset.wired = '1';
-      const search = picker.querySelector('.rel-picker-search');
-      const sel = picker.querySelector('select');
-      if (search) search.addEventListener('input', () => filterCandSelects(root));
-      if (sel) sel.addEventListener('change', () => {
-        refreshCandPhotos(root);
-        updateHashFromUI(root);
+      if (picker.dataset.wired === '2') return;
+      picker.dataset.wired = '2';
+      const input = picker.querySelector('.rel-picker-input');
+      const menu = picker.querySelector('.rel-picker-menu');
+      if (!input || !menu) return;
+      let activeIdx = 0;
+      let items = [];
+
+      const openWith = (q) => {
+        items = filterCandQuery(q);
+        activeIdx = 0;
+        renderPickerMenu(picker, items, activeIdx);
+      };
+
+      input.addEventListener('focus', () => openWith(input.value));
+      input.addEventListener('input', () => {
+        // typing clears committed value until pick
+        const hidden = picker.querySelector('input[type=hidden]');
+        if (hidden) hidden.value = '';
+        const chosen = picker.querySelector('.rel-picker-chosen');
+        if (chosen) chosen.hidden = true;
+        refreshOnePhoto(picker);
+        openWith(input.value);
+      });
+      input.addEventListener('keydown', (ev) => {
+        if (menu.hidden && (ev.key === 'ArrowDown' || ev.key === 'Enter')) {
+          openWith(input.value); ev.preventDefault(); return;
+        }
+        if (menu.hidden) return;
+        if (ev.key === 'ArrowDown') {
+          ev.preventDefault(); activeIdx = Math.min(items.length - 1, activeIdx + 1);
+          renderPickerMenu(picker, items, activeIdx);
+        } else if (ev.key === 'ArrowUp') {
+          ev.preventDefault(); activeIdx = Math.max(0, activeIdx - 1);
+          renderPickerMenu(picker, items, activeIdx);
+        } else if (ev.key === 'Enter') {
+          ev.preventDefault();
+          if (items[activeIdx]) {
+            setPickerValue(picker, items[activeIdx].value);
+            updateHashFromUI(root);
+          }
+        } else if (ev.key === 'Escape') {
+          menu.hidden = true; input.setAttribute('aria-expanded', 'false');
+        }
+      });
+      input.addEventListener('blur', () => {
+        setTimeout(() => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); }, 150);
       });
     });
   }
@@ -1267,6 +1368,7 @@
     if (!global.MAPA_INDEX && typeof global.loadMapaIndex === 'function') {
       try { await global.loadMapaIndex(); } catch (e) { console.warn('loadMapaIndex', e); }
     }
+    rebuildCandFlat();
     const preserved = {
       mode: (root.querySelector('input[name=rel-mode]:checked') || {}).value,
       cand: root.querySelector('#rel-cand')?.value || '',
@@ -1275,43 +1377,29 @@
       custom: root.querySelector('#rel-cand-custom')?.value || '',
       mun: root.querySelector('#rel-mun')?.value || '',
     };
-    const opts = ['<option value="">Escolha…</option>'];
-    for (const [cg, list] of Object.entries((global.MAPA_INDEX || {}).cargos || {})) {
-      if (!['1', '3', '5', '6', '7'].includes(cg)) continue;
-      const group = list.map(c => {
-        const label = (c.nu || c.nm) + ' (' + c.n + ' · ' + (c.sg || '') + ')';
-        return '<option value="' + cg + ':' + c.n + '" data-nm="' + String(c.nu || c.nm || '').replace(/"/g, '') + '" data-sg="' + String(c.sg || '') + '">' + label + '</option>';
-      }).join('');
-      opts.push('<optgroup label="' + (CARGO_NOME[cg] || cg) + '">' + group + '</optgroup>');
-    }
-    const html = opts.join('');
-    for (const id of ['#rel-cand', '#rel-cand-a', '#rel-cand-b', '#rel-cand-custom']) {
-      const el = root.querySelector(id); if (el) el.innerHTML = html;
-    }
     const idx = await loadMunIndex();
     const munHtml = ['<option value="">Escolha o município…</option>']
       .concat([...(idx.muns || [])].sort((a, b) => a.nm.localeCompare(b.nm, 'pt-BR')).map(m => '<option value="' + m.cd + '">' + m.nm + '</option>'))
       .join('');
     const mun = root.querySelector('#rel-mun'); if (mun) mun.innerHTML = munHtml;
 
-    // restaura seleção do usuário (não deixar o hash antigo sobrescrever após troca de modelo)
-    const setIf = (sel, v) => {
-      const el = root.querySelector(sel);
-      if (!el || !v) return;
-      if ([...el.options].some(o => o.value === v)) el.value = v;
-    };
     if (preserved.mode) {
       const r = root.querySelector('input[name=rel-mode][value="' + preserved.mode + '"]');
       if (r) r.checked = true;
     }
-    setIf('#rel-cand', preserved.cand);
-    setIf('#rel-cand-a', preserved.a);
-    setIf('#rel-cand-b', preserved.b);
-    setIf('#rel-cand-custom', preserved.custom);
-    setIf('#rel-mun', preserved.mun);
+    const applyP = (id, v) => {
+      const picker = root.querySelector('.rel-picker[data-picker="' + id + '"]');
+      if (picker) setPickerValue(picker, v || '', true);
+    };
+    applyP('rel-cand', preserved.cand);
+    applyP('rel-cand-a', preserved.a);
+    applyP('rel-cand-b', preserved.b);
+    applyP('rel-cand-custom', preserved.custom);
+    if (mun && preserved.mun) {
+      if ([...mun.options].some(o => o.value === preserved.mun)) mun.value = preserved.mun;
+    }
     syncModePanels(root);
     wireCandPickers(root);
-    filterCandSelects(root);
     refreshCandPhotos(root);
   }
 
@@ -1327,86 +1415,128 @@
       + '<div>Ranking cargo: <strong>' + rank + '</strong></div>'
       + '<div>Ranking partido/fed.: <strong>' + pr + '</strong></div>'
       + '<div>Situação: <strong>' + (st.st || '—') + '</strong></div>'
-      + '<div class="rel-cand-hist">2022: ' + histLine(st.hist) + '</div>'
+      + '<div class="rel-cand-hist">Histórico: ' + histLine(st.hist) + '</div>'
       + '</div></article>';
   }
 
-  function renderWebPreview(root, spec, built) {
+  function revokePreviewUrls(box) {
+    if (!box || !box._relBlobUrls) return;
+    for (const u of box._relBlobUrls) { try { URL.revokeObjectURL(u); } catch (e) {} }
+    box._relBlobUrls = [];
+  }
+
+  function htmlPreviewShell(title, bodyHtml, pdfUrl) {
+    return '<div class="rel-preview-rich">'
+      + '<h3 style="margin:0 0 8px;color:#7dd3fc">' + title + '</h3>'
+      + bodyHtml
+      + '<div class="rel-pdf-preview">'
+      + '<div class="rel-pdf-actions">'
+      + '<a class="btn-mapa" href="' + pdfUrl + '" download="previa-relatorio.pdf">Baixar PDF da prévia</a>'
+      + '<a class="btn-mapa" href="' + pdfUrl + '" target="_blank" rel="noopener">Abrir PDF</a>'
+      + '</div>'
+      + '<div class="rel-pdf-frame-wrap">'
+      + '<object class="rel-pdf-frame" data="' + pdfUrl + '#toolbar=1&navpanes=0" type="application/pdf" title="Prévia do PDF">'
+      + '<iframe class="rel-pdf-frame" src="' + pdfUrl + '#toolbar=1" title="Prévia do PDF"></iframe>'
+      + '</object>'
+      + '</div>'
+      + '<p class="meta">Se o PDF não aparecer no celular, use “Abrir PDF” ou “Baixar”. A prévia HTML acima resume o conteúdo.</p>'
+      + '</div></div>';
+  }
+
+  async function buildHtmlSummary(spec) {
+    const t = spec.template || 'resumo';
+    if (t === 'comparar' && spec.a && spec.b) {
+      await ensureCargoEstado(spec.cargo);
+      const geojson = await loadGeoMun();
+      const geo = await loadGeoLoc();
+      const treeA = buildVoteTree(geo, await loadCandFile(spec.cargo, spec.a) || { v: [] });
+      const treeB = buildVoteTree(geo, await loadCandFile(spec.cargo, spec.b) || { v: [] });
+      const munIdx = await loadMunIndex();
+      const munNames = new Map((munIdx.muns || []).map(m => [m.i, m.nm]));
+      const cmpRows = mergeCompareTrees(treeA, treeB, munNames);
+      const stA = candState(spec.cargo, spec.a), stB = candState(spec.cargo, spec.b);
+      const aByI = new Map([...treeA.byI.entries()].map(([i, n]) => [i, n.v]));
+      const bByI = new Map([...treeB.byI.entries()].map(([i, n]) => [i, n.v]));
+      const winByI = new Map(cmpRows.map(r => [r.i, r.winner]));
+      const svgA = buildChoroplethSVG(geojson, aByI, { w: 420, h: 320, title: 'A (quantis)', mode: 'seq', munNames });
+      const svgB = buildChoroplethSVG(geojson, bByI, { w: 420, h: 320, title: 'B (quantis)', mode: 'seq', munNames });
+      const svgC = buildChoroplethSVG(geojson, aByI, { w: 420, h: 320, title: 'Vencedor', mode: 'win', winByI, aByI, bByI, munNames });
+      return '<div class="rel-exec-cards">' + candCardHtml('A', stA, spec.cargo, spec.a) + candCardHtml('B', stB, spec.cargo, spec.b) + '</div>'
+        + '<p>Δ A−B: <strong>' + fmtN(stA.vap - stB.vap) + '</strong> · ' + cmpRows.length + ' municípios</p>'
+        + '<div class="rel-maps">' + svgA + svgB + svgC + '</div>';
+    }
+    if (t === 'candidato' && (spec.numero || spec.n)) {
+      await ensureCargoEstado(spec.cargo);
+      const numero = spec.numero || spec.n;
+      const st = candState(spec.cargo, numero);
+      const geojson = await loadGeoMun();
+      const geo = await loadGeoLoc();
+      const tree = buildVoteTree(geo, await loadCandFile(spec.cargo, numero) || { v: [] });
+      const valueByI = new Map([...tree.byI.entries()].map(([i, n]) => [i, n.v]));
+      const munIdx = await loadMunIndex();
+      const munNames = new Map((munIdx.muns || []).map(m => [m.i, m.nm]));
+      const svg = buildChoroplethSVG(geojson, valueByI, { w: 480, h: 360, title: st.nome + ' (quantis)', mode: 'seq', munNames });
+      return '<div class="rel-exec-cards">' + candCardHtml('Candidato', st, spec.cargo, numero) + '</div>'
+        + '<div class="rel-maps">' + svg + '</div>'
+        + '<p class="meta">PDF completo: mapa + município → zona → bairro → escola.</p>';
+    }
+    if (t === 'municipio' && (spec.cd || spec.mun)) {
+      const cd = spec.cd || spec.mun;
+      const idx = await loadMunIndex();
+      const mun = (idx.muns || []).find(m => String(m.cd) === String(cd));
+      return '<p><strong>Município:</strong> ' + (mun ? mun.nm : cd) + ' <span class="meta">(código ' + cd + ')</span></p>'
+        + '<p class="meta">O PDF lista os mais votados por cargo neste município.</p>';
+    }
+    // resumo
+    await ensureCargoEstado(7);
+    const { dados } = cargoDados(7);
+    const top = sortedTodos(dados).slice(0, 8);
+    let rows = top.map((k, i) => '<tr><td>' + (i + 1) + '</td><td>' + k.n + '</td><td>' + (k.nome || '') + '</td><td>' + (k.partido || '') + '</td><td>' + fmtN(k.vap) + '</td></tr>').join('');
+    return '<p class="meta">Resumo da eleição em Sergipe — amostra Dep. Estadual (top 8). O PDF traz os blocos marcados.</p>'
+      + '<table class="rel-esc"><thead><tr><th>#</th><th>Nº</th><th>Nome</th><th>Partido</th><th>Votos</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+
+  async function showVisualPreview(root, spec) {
     const box = root.querySelector('#rel-preview');
     if (!box) return;
-    if (!built) { box.innerHTML = '<pre class="rel-preview-pre">Prévia:\n' + JSON.stringify(spec, null, 2) + '</pre>'; return; }
-
-    if (spec.template === 'candidato' && built && built.kind === 'candidato') {
-      const st = built.st;
-      let html = '<div class="rel-preview-rich">';
-      html += '<div class="rel-exec-cards">' + candCardHtml('Candidato', st, spec.cargo, built.numero) + '</div>';
-      html += '<p class="meta">Prévia do relatório individual (PDF traz mapa + detalhe completo).</p>';
-      html += '</div>';
-      box.innerHTML = html;
-      return;
-    }
-
-    if (spec.template === 'comparar' && spec.a && spec.b) {
-      const { stA, stB, cmpRows, aByI, bByI, winByI, geojson, treeA, treeB, munNames } = built;
-      const names = munNames || new Map();
-      const svgA = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'A — ' + stA.nome + ' (quantis)', mode: 'seq', munNames: names });
-      const svgB = buildChoroplethSVG(geojson, bByI, { w: 480, h: 360, title: 'B — ' + stB.nome + ' (quantis)', mode: 'seq', munNames: names });
-      const svgC = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'Vencedor (intensidade = margem)', mode: 'win', winByI, aByI, bByI, munNames: names });
-      const statsA = computeKeyStats(treeA, cmpRows, 'a');
-      const statsB = computeKeyStats(treeB, cmpRows, 'b');
-      const topLine = (stats, label) => {
-        const top = (stats.top5 || []).map((m, i) => (i + 1) + '. ' + (names.get(m.i) || m.i) + ' (' + fmtN(m.v) + ')').join(' · ');
-        return '<p class="rel-stats"><strong>' + label + '</strong>: ' + stats.munComVoto + ' mun. com voto · vence em '
-          + stats.wins + ' · concentração top 3: ' + fmtP(stats.conc) + '<br/>Top 5: ' + top + '</p>';
-      };
-      let html = '<div class="rel-preview-rich">';
-      html += '<div class="rel-exec-cards">' + candCardHtml('A', stA, spec.cargo, spec.a) + candCardHtml('B', stB, spec.cargo, spec.b) + '</div>';
-      html += '<p>Δ A−B: <strong>' + fmtN(stA.vap - stB.vap) + '</strong></p>';
-      html += topLine(statsA, 'A') + topLine(statsB, 'B');
-      html += '<div class="rel-maps">' + svgA + svgB + svgC + '</div>';
-      html += '<h3>Municípios (' + cmpRows.length + ')</h3><div class="rel-drill">';
-      for (const r of cmpRows) {
-        html += '<details class="rel-mun"><summary><strong>' + r.nm + '</strong> — A ' + fmtN(r.a) + ' · B ' + fmtN(r.b) + ' · Δ ' + fmtN(r.d) + '</summary>';
-        const zonaIds = new Set([
-          ...((r.aNode && r.aNode.zonaList) || []).map(z => z.z),
-          ...((r.bNode && r.bNode.zonaList) || []).map(z => z.z),
-        ]);
-        for (const zid of [...zonaIds].sort((a, b) => a - b)) {
-          const za = r.aNode && r.aNode.zonas.get(zid);
-          const zb = r.bNode && r.bNode.zonas.get(zid);
-          html += '<details class="rel-zona"><summary>Zona ' + zid + ' — A ' + fmtN(za ? za.v : 0) + ' · B ' + fmtN(zb ? zb.v : 0) + '</summary>';
-          const bairros = new Set([
-            ...((za && za.bairroList) || []).map(b => b.nm),
-            ...((zb && zb.bairroList) || []).map(b => b.nm),
-          ]);
-          for (const bnm of [...bairros].sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
-            const ba = za && za.bairros.get(bnm);
-            const bb = zb && zb.bairros.get(bnm);
-            html += '<details class="rel-bairro"><summary>Bairro ' + bnm + ' — A ' + fmtN(ba ? ba.v : 0) + ' · B ' + fmtN(bb ? bb.v : 0) + '</summary><table class="rel-esc"><thead><tr><th>Nº</th><th>Escola</th><th>A</th><th>B</th><th>Δ</th></tr></thead><tbody>';
-            const escKeys = new Set([
-              ...((ba && ba.escolaList) || []).map(e => e.nl + '|' + e.nm),
-              ...((bb && bb.escolaList) || []).map(e => e.nl + '|' + e.nm),
-            ]);
-            const mapA = new Map(((ba && ba.escolaList) || []).map(e => [e.nl + '|' + e.nm, e]));
-            const mapB = new Map(((bb && bb.escolaList) || []).map(e => [e.nl + '|' + e.nm, e]));
-            for (const k of escKeys) {
-              const ea = mapA.get(k), eb = mapB.get(k);
-              const va = ea ? ea.v : 0, vb = eb ? eb.v : 0;
-              const nm = (ea || eb).nm, nl = (ea || eb).nl;
-              html += '<tr><td>' + (nl || '—') + '</td><td>' + nm + '</td><td>' + fmtN(va) + '</td><td>' + fmtN(vb) + '</td><td>' + fmtN(va - vb) + '</td></tr>';
-            }
-            html += '</tbody></table></details>';
-          }
-          html += '</details>';
-        }
-        html += '</details>';
+    revokePreviewUrls(box);
+    box._relBlobUrls = [];
+    box.innerHTML = '<p class="meta">Gerando prévia visual…</p>';
+    try {
+      const s = normalizeSpec(spec);
+      if (s.template === 'comparar' && (!s.a || !s.b)) {
+        box.innerHTML = '<p class="meta">Selecione candidatos A e B para a prévia.</p>'; return;
       }
-      html += '</div></div>';
-      box.innerHTML = html;
-      return;
+      if (s.template === 'candidato' && !(s.numero || s.n)) {
+        box.innerHTML = '<p class="meta">Selecione um candidato (digite o nome na busca).</p>'; return;
+      }
+      if (s.template === 'municipio' && !(s.cd || s.mun)) {
+        box.innerHTML = '<p class="meta">Selecione um município.</p>'; return;
+      }
+      const [htmlBody, doc] = await Promise.all([
+        buildHtmlSummary(s),
+        generate(s),
+      ]);
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      box._relBlobUrls.push(url);
+      const titles = {
+        comparar: 'Prévia — Comparativo',
+        candidato: 'Prévia — Candidato',
+        municipio: 'Prévia — Município',
+        resumo: 'Prévia — Resumo',
+        custom: 'Prévia — Personalizado',
+      };
+      box.innerHTML = htmlPreviewShell(titles[s.template] || 'Prévia', htmlBody, url);
+    } catch (e) {
+      console.error(e);
+      box.innerHTML = '<p class="meta">Erro na prévia: ' + (e.message || e) + '</p>';
     }
+  }
 
-    box.innerHTML = '<pre class="rel-preview-pre">Prévia pronta para PDF.\n' + JSON.stringify(spec, null, 2) + '</pre>';
+  function renderWebPreview(root, spec, built) {
+    // legado — sempre preferir showVisualPreview
+    showVisualPreview(root, spec);
   }
 
   function bootUI() {
@@ -1416,12 +1546,16 @@
     function pickerHtml(selId, label) {
       return [
         '<div class="rel-picker" data-picker="' + selId + '">',
-        '<label class="rel-field">' + label + '</label>',
+        '<label class="rel-field" for="' + selId + '-input">' + label + '</label>',
         '<div class="rel-picker-row">',
         '<div class="rel-picker-photo-wrap"><img class="rel-picker-photo" alt="" hidden/><div class="rel-picker-fallback" aria-hidden="true">?</div></div>',
-        '<div class="rel-picker-controls">',
-        '<input type="search" class="rel-picker-search" placeholder="Buscar nome, número ou partido…" aria-label="Buscar ' + label + '"/>',
-        '<select id="' + selId + '" aria-label="' + label + '"></select>',
+        '<div class="rel-picker-controls" style="position:relative;flex:1;min-width:0">',
+        '<input type="text" class="rel-picker-input" id="' + selId + '-input" autocomplete="off" spellcheck="false"',
+        ' role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="' + selId + '-menu"',
+        ' placeholder="Digite nome, número ou partido…" aria-label="Buscar ' + label + '"/>',
+        '<input type="hidden" id="' + selId + '" value=""/>',
+        '<ul class="rel-picker-menu" id="' + selId + '-menu" role="listbox" hidden></ul>',
+        '<div class="rel-picker-chosen" hidden></div>',
         '</div></div></div>'
       ].join('');
     }
@@ -1468,29 +1602,7 @@
         box.textContent = 'Montando prévia…';
         try {
           history.replaceState(null, '', buildRelHash(spec));
-          let built = null;
-          if (spec.template === 'comparar' && spec.a && spec.b) {
-            await ensureCargoEstado(spec.cargo);
-            const geojson = await loadGeoMun();
-            const geo = await loadGeoLoc();
-            const treeA = buildVoteTree(geo, await loadCandFile(spec.cargo, spec.a) || { v: [] });
-            const treeB = buildVoteTree(geo, await loadCandFile(spec.cargo, spec.b) || { v: [] });
-            const munIdx = await loadMunIndex();
-            const munNames = new Map((munIdx.muns || []).map(m => [m.i, m.nm]));
-            const cmpRows = mergeCompareTrees(treeA, treeB, munNames);
-            built = {
-              stA: candState(spec.cargo, spec.a), stB: candState(spec.cargo, spec.b),
-              cmpRows, treeA, treeB, geojson, munNames,
-              aByI: new Map([...treeA.byI.entries()].map(([i, n]) => [i, n.v])),
-              bByI: new Map([...treeB.byI.entries()].map(([i, n]) => [i, n.v])),
-              winByI: new Map(cmpRows.map(r => [r.i, r.winner])),
-            };
-          } else if (spec.template === 'candidato' && (spec.numero || spec.n)) {
-            await ensureCargoEstado(spec.cargo);
-            const numero = spec.numero || spec.n;
-            built = { kind: 'candidato', st: candState(spec.cargo, numero), numero };
-          }
-          renderWebPreview(root, spec, built);
+          await showVisualPreview(root, spec);
         } catch (e) {
           console.error(e);
           box.textContent = 'Erro na prévia: ' + (e.message || e);

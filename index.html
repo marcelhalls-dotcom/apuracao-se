@@ -550,6 +550,48 @@
     border: 1px solid rgba(148,163,184,.35); background: #0f172a; color: var(--text); font-size: 0.9rem;
   }
   .rel-field { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 4px; }
+  #btn-auto-update[aria-pressed="true"] { border-color: #4ade80; color: #86efac; background: rgba(34,197,94,.12); }
+  .rel-picker { position: relative; margin: 8px 0 14px; }
+  .rel-picker-menu {
+    position: absolute; z-index: 40; left: 66px; right: 0; top: 100%;
+    max-height: 280px; overflow: auto; margin: 4px 0 0; padding: 4px;
+    list-style: none; background: #0f172a; border: 1px solid rgba(148,163,184,.4);
+    border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.45);
+  }
+  .rel-picker-menu[hidden] { display: none !important; }
+  .rel-picker-item {
+    display: flex; gap: 8px; align-items: center; width: 100%;
+    padding: 8px; border: 0; border-radius: 8px; background: transparent;
+    color: var(--text); text-align: left; cursor: pointer; font: inherit;
+  }
+  .rel-picker-item:hover, .rel-picker-item[aria-selected="true"] { background: rgba(56,189,248,.14); }
+  .rel-picker-item img, .rel-picker-item .rel-picker-item-ph {
+    width: 36px; height: 48px; object-fit: cover; border-radius: 4px; flex-shrink: 0;
+    background: #1e293b; display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; color: #cbd5e1;
+  }
+  .rel-picker-item-meta { min-width: 0; }
+  .rel-picker-item-name { font-weight: 650; font-size: 0.9rem; }
+  .rel-picker-item-sub { font-size: 0.75rem; color: #94a3b8; }
+  .rel-picker-input {
+    width: 100%; min-height: 44px; padding: 8px 12px; border-radius: 8px;
+    border: 1px solid rgba(148,163,184,.35); background: #0f172a; color: var(--text); font-size: 0.95rem;
+  }
+  .rel-picker-chosen {
+    margin-top: 6px; font-size: 0.8rem; color: #7dd3fc;
+  }
+  .rel-pdf-preview { margin-top: 12px; }
+  .rel-pdf-frame-wrap {
+    margin-top: 10px; border: 1px solid rgba(148,163,184,.3); border-radius: 10px; overflow: hidden;
+    background: #0f172a;
+  }
+  .rel-pdf-frame { width: 100%; height: min(70vh, 720px); border: 0; background: #fff; }
+  .rel-pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  @media (max-width: 700px) {
+    .rel-picker-menu { left: 0; }
+    .rel-pdf-frame { height: 55vh; }
+  }
+
   .rel-drill details { margin: 4px 0 4px 8px; }
   .rel-drill summary { cursor: pointer; padding: 4px 0; }
   .rel-esc { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin: 4px 0 8px; }
@@ -568,6 +610,7 @@
   <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
   <div class="hdr-actions">
     <button type="button" class="btn" id="btn-atualizar">Atualizar agora</button>
+    <button type="button" class="btn" id="btn-auto-update" aria-pressed="false">Atualização automática: desligada</button>
     <button type="button" class="btn" id="btn-compartilhar">Compartilhar</button>
   </div>
   <div class="qe2022-wrap" id="qe-ref-wrap">
@@ -654,9 +697,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js"></script>
-<script src="relatorios.js"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261005r4"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261005r4"></script>
+<script src="relatorios.js?v=20261005r4"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -2929,13 +2972,16 @@ function renderStatus() {
   const box = document.getElementById('status');
   box.classList.toggle('erro', algumErro);
   box.classList.toggle('final', !algumErro && resultadoFinal);
+  const autoHint = (typeof autoUpdateOn !== 'undefined' && autoUpdateOn)
+    ? (resultadoFinal
+        ? `Resultado final • Próxima verificação em ${segundos}s`
+        : `Ao Vivo • Próxima atualização em ${segundos}s`)
+    : (resultadoFinal ? 'Resultado final • Atualização automática desligada' : 'Atualização automática desligada — use “Atualizar agora”');
   document.getElementById('status-texto').textContent = buscando
     ? 'Atualizando…'
     : algumErro
-      ? `Falha ao consultar o TSE • Nova tentativa em ${segundos}s`
-      : resultadoFinal
-        ? `Resultado final • Próxima verificação em ${segundos}s`
-        : `Ao Vivo • Próxima atualização em ${segundos}s`;
+      ? (autoUpdateOn ? `Falha ao consultar o TSE • Nova tentativa em ${segundos}s` : 'Falha ao consultar o TSE • Toque em “Atualizar agora”')
+      : autoHint;
 }
 function intervaloAtual() { return resultadoFinal ? CONFIG.intervaloFinalSegundos : CONFIG.intervaloSegundos; }
 
@@ -2981,14 +3027,39 @@ function syncRelGlobals() {
   window.buscarCargo = typeof buscarCargo === 'function' ? buscarCargo : window.buscarCargo;
 }
 
+const AUTO_KEY = 'apuracao-se-auto-update';
+let autoUpdateOn = localStorage.getItem(AUTO_KEY) === '1'; // default OFF
+
+function syncAutoUpdateBtn() {
+  const btn = document.getElementById('btn-auto-update');
+  if (!btn) return;
+  btn.setAttribute('aria-pressed', autoUpdateOn ? 'true' : 'false');
+  btn.textContent = autoUpdateOn ? 'Atualização automática: ligada' : 'Atualização automática: desligada';
+}
+
+function setAutoUpdate(on) {
+  autoUpdateOn = !!on;
+  try { localStorage.setItem(AUTO_KEY, autoUpdateOn ? '1' : '0'); } catch (e) {}
+  syncAutoUpdateBtn();
+  segundos = intervaloAtual();
+  renderStatus();
+}
+
 syncRelGlobals();
 bootNav();
 bootChat();
 renderTudo();
-atualizar();
+atualizar(); // uma carga inicial
 atualizarContadorAcessos();
+syncAutoUpdateBtn();
+const btnAuto = document.getElementById('btn-auto-update');
+if (btnAuto) btnAuto.addEventListener('click', () => setAutoUpdate(!autoUpdateOn));
 setInterval(() => {
   if (buscando) return;
+  if (!autoUpdateOn) {
+    // sem contagem regressiva agressiva — só mantém status estável
+    return;
+  }
   segundos--;
   if (segundos <= 0) atualizar(); else renderStatus();
 }, 1000);

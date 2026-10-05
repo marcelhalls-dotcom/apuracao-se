@@ -197,19 +197,21 @@ function detectCandidates(text, mapaIndex) {
     uniq.push(h);
   }
   // Prefer urna-name / fuller matches: score by overlap with query
-  uniq.sort((a, b) => {
-    const score = (c) => {
-      let s = 0;
-      const nu = normKey(c.nu || '');
-      const nm = normKey(c.nm || '');
-      if (nu && key.includes(nu)) s += 100;
-      if (nm && key.includes(nm)) s += 80;
-      for (const t of softNorm(c.nu || '').split(' ')) if (t.length >= 5 && key.includes(t)) s += 10;
-      return s;
-    };
-    return score(b) - score(a);
-  });
-  return uniq;
+  const score = (c) => {
+    let s = 0;
+    const nu = normKey(c.nu || '');
+    const nm = normKey(c.nm || '');
+    if (nu && key.includes(nu)) s += 100;
+    if (nm && key.includes(nm)) s += 80;
+    for (const t of softNorm(c.nu || '').split(' ')) if (t.length >= 5 && key.includes(t)) s += 10;
+    for (const t of softNorm(c.nm || '').split(' ')) if (t.length >= 5 && key.includes(t)) s += 4;
+    return s;
+  };
+  uniq.sort((a, b) => score(b) - score(a));
+  if (uniq.length && score(uniq[0]) >= 100) {
+    return uniq.filter(c => score(c) >= 50).slice(0, 6);
+  }
+  return uniq.slice(0, 10);
 }
 
 function extractLocalQuery(text) {
@@ -276,9 +278,10 @@ function aggregateCandidateInMun(geo, cand, munIdx, mode) {
 
 async function buildRetrieval(env, messages) {
   const pages = (env.PAGES_BASE || 'https://marcelhalls-dotcom.github.io/apuracao-se').replace(/\/$/, '');
-  const blob = messages.map(m => m.content).join('\n');
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
-  const text = blob + '\n' + lastUser;
+  const blob = messages.map(m => m.content).join('\n');
+  // Pergunta atual manda; histórico só como fallback (evita "contaminar" com nomes de turnos anteriores)
+  const text = lastUser || blob;
 
   const out = { fonte: 'mapa TSE (arquivos do painel)', itens: [] };
 
@@ -295,9 +298,12 @@ async function buildRetrieval(env, messages) {
     mapaIndex = { cargos: {} };
   }
 
-  const muns = detectMuns(text, munIndex);
-  let cargos = detectCargos(text);
-  let cands = detectCandidates(text, mapaIndex);
+  let muns = detectMuns(lastUser, munIndex);
+  if (!muns.length) muns = detectMuns(blob, munIndex);
+  let cargos = detectCargos(lastUser);
+  if (!cargos.length) cargos = detectCargos(blob);
+  let cands = detectCandidates(lastUser, mapaIndex);
+  if (!cands.length) cands = detectCandidates(blob, mapaIndex);
 
   // defaults when mun asked without cargo: provide all SE cargos
   if (muns.length && !cargos.length && !cands.length) cargos = ['7', '6', '5', '3', '1'];

@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apuração Sergipe 2026</title>
+<meta name="description" content="Apuração oficial de Sergipe 2026: governador, senado, deputados e presidente. Cadeiras da Alese e do Senado Federal, eleitos e histórico.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Apuração Sergipe 2026">
+<meta property="og:description" content="Resultados oficiais do TSE em Sergipe: Alese, Senado, eleitos e votação por cargo.">
+<meta property="og:url" content="https://marcelhalls-dotcom.github.io/apuracao-se/">
+<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Apuração Sergipe 2026">
+<meta name="twitter:description" content="Resultados oficiais do TSE em Sergipe: Alese, Senado, eleitos e votação por cargo.">
+<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png">
 <style>
   :root {
     --bg: #0f172a;
@@ -128,7 +141,7 @@
   .cand.turno2 { border-left: 4px solid #f59e0b; padding-left: 10px; background: rgba(245,158,11,0.08); border-radius: 6px; }
   .cand.turno2 .barra > div { background: #f59e0b !important; }
   .naoencontrado { color: #fca5a5; font-size: 0.82rem; }
-  .qe2022 { display: inline-block; margin-top: 14px; padding: 10px 16px; border: 2px dashed #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.10); }
+  .qe2022 { display: block; margin-top: 0; padding: 0; border: none; background: transparent; }
   .qe2022 .aviso { display: inline-block; background: #f59e0b; color: #1c1917; font-weight: 800; font-size: 0.78rem; letter-spacing: 0.04em; padding: 2px 10px; border-radius: 999px; margin-bottom: 6px; }
   .qe2022 .valores { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; font-size: 0.95rem; }
   .qe2022 .valores strong { color: #fcd34d; font-size: 1.1rem; }
@@ -184,32 +197,124 @@
   main.grid { display: block; max-width: none; }
   #views-root { max-width: 1200px; margin: 0 auto; }
 
+
+  /* UX audit */
+  .grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .rank-list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+  .ms-regs { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+  .toppart-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+  .eleitos-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+  .custo-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+  .alese-wrap { grid-template-columns: minmax(min(100%, 260px), 1.1fr) 1fr; }
+  .hemi-leg .it, .alese-leg .it { align-items: start; }
+  .hemi-leg .nomes, .alese-leg .nomes { word-break: break-word; overflow-wrap: anywhere; }
+  .nav a, .btn, .nav-select, .toggle-mais, .legenda .leg-item {
+    min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nav a { padding: 10px 14px; }
+  .btn { padding: 10px 16px; min-height: 44px; }
+  .nav-select { min-height: 44px; }
+  a:focus-visible, button:focus-visible, select:focus-visible, summary:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot { animation: none !important; }
+    .barra > div { transition: none !important; }
+    .flash-change { animation: none !important; background: rgba(56,189,248,0.25) !important; }
+  }
+  .flash-change { animation: flashNum 1.2s ease; }
+  @keyframes flashNum {
+    0% { background: rgba(56,189,248,0.45); }
+    100% { background: transparent; }
+  }
+  .legenda {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center;
+    max-width: 1100px; margin: 0 auto 12px; padding: 8px 4px;
+    font-size: 0.8rem; color: var(--subtext);
+  }
+  .legenda .leg-item { gap: 6px; padding: 4px 8px; border-radius: 8px; background: rgba(255,255,255,0.04); }
+  .legenda .sw { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .legenda .sw.eleito { background: #22c55e; }
+  .legenda .sw.meu { background: #facc15; }
+  .legenda .sw.turno2 { background: #f59e0b; }
+  .qe2022-wrap { display: none; max-width: 960px; margin: 12px auto 0; text-align: left; }
+  .qe2022-wrap.show { display: block; }
+  .qe2022-wrap > details { border: 2px dashed #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.10); padding: 8px 12px; }
+  .qe2022-wrap summary {
+    cursor: pointer; font-weight: 700; color: #fcd34d; list-style: none;
+    min-height: 44px; display: flex; align-items: center; gap: 8px;
+  }
+  .qe2022-wrap summary::-webkit-details-marker { display: none; }
+  .qe2022-wrap .qe-body { margin-top: 8px; }
+  .badge { white-space: nowrap; font-size: 0.7rem; vertical-align: middle; }
+  .nome { display: inline; }
+  .nome .badge { margin-left: 4px; }
+  .mark-ok { color: #86efac; font-weight: 800; margin-right: 4px; }
+  .mark-star { color: #facc15; font-weight: 800; margin-right: 4px; }
+  .mark-t2 { color: #f59e0b; font-weight: 800; margin-right: 4px; }
+  .cand.meu, .rank-item.meu { /* accompanied */ }
+  .toggle-mais {
+    margin-top: 10px; width: 100%; border: 1px dashed rgba(56,189,248,0.4);
+    background: transparent; color: var(--accent); border-radius: 10px; cursor: pointer; font-size: 0.88rem;
+  }
+  .ms-busca { width: 100%; max-width: 420px; margin: 8px 0 12px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid rgba(167,139,250,0.45); background: #0f172a; color: var(--text); font-size: 1rem; min-height: 44px; }
+  .ms-regs details.ms-hide { display: none; }
+  .ms-regs tr.ms-hide { display: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+
+  @media (max-width: 760px) {
+    .hemi-wrap, .alese-wrap { grid-template-columns: 1fr !important; }
+    .hemi-leg, .alese-leg { max-width: 100%; overflow-wrap: anywhere; }
+    .card { padding: 14px; overflow-x: hidden; }
+    .cand .linha { flex-wrap: wrap; }
+    .info { flex-wrap: wrap; }
+    .partido .cand { grid-template-columns: 1fr !important; }
+  }
+  .card.partido .cand { grid-template-columns: 1fr; }
+  .card.partido .cand-body .linha { gap: 6px; }
+  .card.partido .info { flex-direction: column; align-items: flex-start; }
+
 </style>
 </head>
 <body>
 
 <header>
   <h1>Apuração Sergipe 2026</h1>
-  <div id="status" class="status"><span class="dot"></span><span id="status-texto">Conectando ao TSE…</span></div>
+  <div id="status" class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="status-texto">Conectando ao TSE…</span></div>
   <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
   <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
-  <div class="qe2022">
-    <div class="aviso">⚠ REFERÊNCIA: ELEIÇÃO PASSADA (2022), NÃO É O QUOCIENTE DE 2026</div>
-    <div class="valores">
-      <span>Dep. Federal 2022: <strong>148.952</strong> = 1 cadeira · <strong>297.904</strong> = 2 direto · <strong>446.856</strong> = 3 direto</span>
-      <span>Dep. Estadual 2022: <strong>50.684</strong> = 1 cadeira · <strong>101.368</strong> = 2 direto · <strong>152.052</strong> = 3 direto</span>
-    </div>
-    <div class="valores" style="margin-top:6px">
-      <span>Com sobra (real 2022): Estadual 1ª ≈ <strong>40.548</strong> · 2ª ≈ <strong>79.794</strong> · 3ª ≈ <strong>119.691</strong></span>
-      <span>Federal 1ª ≈ <strong>119.162</strong> · 2ª ≈ <strong>199.934</strong></span>
-    </div>
-    <div class="nota">Cada quociente completo = 1 cadeira direta. Na prática a 2ª cadeira costuma sair na sobra com menos votos, porque partidos que não atingem o quociente não levam vaga direta e as sobras são divididas pelas maiores médias. Sobras (cadeiras que restam): partido precisa de ≥ 80% do QE (≈ 119.162 federal / ≈ 40.548 estadual) e o candidato ≥ 20% do QE (≈ 29.790 federal / ≈ 10.137 estadual).</div>
-    <div class="nota"><b>Quociente eleitoral = votos que o PARTIDO/FEDERAÇÃO precisa somar (nominais + legenda) para conquistar 1 cadeira. Não é a votação exigida de cada candidato.</b><br>Sergipe 2022 (TSE, dados abertos atuais): Federal 1.191.617 votos válidos ÷ 8 vagas. Estadual 1.216.425 votos válidos ÷ 24 vagas. O quociente de 2026 só é definido no fim da apuração.</div>
+  <div class="hdr-actions">
+    <button type="button" class="btn" id="btn-atualizar">Atualizar agora</button>
+    <button type="button" class="btn" id="btn-compartilhar">Compartilhar</button>
   </div>
-<div class="hdr-actions"><button type="button" class="btn" id="btn-atualizar">Atualizar agora</button></div>
+  <div class="qe2022-wrap" id="qe-ref-wrap">
+    <details>
+      <summary>Ver referência 2022 (quociente eleitoral)</summary>
+      <div class="qe-body qe2022">
+        <div class="aviso">⚠ REFERÊNCIA: ELEIÇÃO PASSADA (2022), NÃO É O QUOCIENTE DE 2026</div>
+        <div class="valores">
+          <span>Dep. Federal 2022: <strong>148.952</strong> = 1 cadeira · <strong>297.904</strong> = 2 direto · <strong>446.856</strong> = 3 direto</span>
+          <span>Dep. Estadual 2022: <strong>50.684</strong> = 1 cadeira · <strong>101.368</strong> = 2 direto · <strong>152.052</strong> = 3 direto</span>
+        </div>
+        <div class="valores" style="margin-top:6px">
+          <span>Com sobra (real 2022): Estadual 1ª ≈ <strong>40.548</strong> · 2ª ≈ <strong>79.794</strong> · 3ª ≈ <strong>119.691</strong></span>
+          <span>Federal 1ª ≈ <strong>119.162</strong> · 2ª ≈ <strong>199.934</strong></span>
+        </div>
+        <div class="nota">Cada quociente completo = 1 cadeira direta. Na prática a 2ª cadeira costuma sair na sobra com menos votos. Partido ≥ 80% do QE e candidato ≥ 20% do QE para sobras.</div>
+        <div class="nota"><b>Quociente eleitoral = votos do PARTIDO/FEDERAÇÃO</b> (nominais + legenda). Sergipe 2022: Federal 1.191.617 ÷ 8 · Estadual 1.216.425 ÷ 24.</div>
+      </div>
+    </details>
+  </div>
 </header>
 
-<nav class="nav-wrap" aria-label="Seções">
+<nav class="nav-wrap" aria-label="Seções do painel">
+  <div class="legenda" aria-label="Legenda de status">
+    <span class="leg-item"><span class="sw eleito" aria-hidden="true"></span><span>✓ Eleito</span></span>
+    <span class="leg-item"><span class="sw meu" aria-hidden="true"></span><span>★ Acompanhado</span></span>
+    <span class="leg-item"><span class="sw turno2" aria-hidden="true"></span><span>2º turno</span></span>
+  </div>
   <div class="nav" id="nav-tabs">
     <a href="#painel" data-view="painel" class="active">Painel principal</a>
     <a href="#presidente" data-view="presidente">Presidente</a>
@@ -228,7 +333,7 @@
   </div>
 </nav>
 
-<main id="views-root">
+<main id="views-root" aria-live="polite">
   <section class="view active" id="view-painel"><div class="grid ordered" id="grid-painel"></div></section>
   <section class="view" id="view-presidente"><div class="grid ordered two" id="grid-presidente"></div></section>
   <section class="view" id="view-senadores"><div class="grid ordered" id="grid-senadores"></div></section>
@@ -442,20 +547,55 @@ function fotoUrl(sqcand, uf, eleicao) {
 }
 function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
+  wrap.setAttribute('aria-hidden', 'true');
   wrap.textContent = iniciais(nome);
   const url = fotoUrl(sqcand, uf, eleicao);
   if (!url) return wrap;
   const img = document.createElement('img');
-  img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.src = url;
+  img.alt = nome ? ('Foto de ' + nome) : 'Foto do candidato';
+  img.loading = 'lazy'; img.decoding = 'async'; img.src = url;
   img.style.display = 'none';
   img.addEventListener('error', () => { img.remove(); });
-  img.addEventListener('load', () => { wrap.textContent = ''; img.style.display = 'block'; wrap.appendChild(img); });
+  img.addEventListener('load', () => { wrap.textContent = ''; wrap.removeAttribute('aria-hidden'); img.style.display = 'block'; wrap.appendChild(img); });
   wrap.appendChild(img);
   return wrap;
+}
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+const prevVotos = new Map();
+function markFlash(node, key, valor) {
+  if (valor == null || !node) return;
+  const prev = prevVotos.get(key);
+  prevVotos.set(key, valor);
+  if (prev != null && prev !== valor && !prefersReducedMotion()) node.classList.add('flash-change');
+}
+function badgeCurto(st, eleito, projetado, totalFinal) {
+  if (!st && !eleito && !projetado) return null;
+  const s = (st || '').toLowerCase();
+  const b = document.createElement('span');
+  // 2º turno tem prioridade sobre e=s do TSE
+  if (s.includes('2º turno') || s.includes('2o turno') || s.includes('segundo turno')) { b.className = 'badge outro'; b.textContent = '2º TURNO'; return b; }
+  if (eleito || s.startsWith('eleito')) { b.className = 'badge eleito'; b.textContent = '✓ ELEITO'; return b; }
+  if (projetado && !totalFinal) { b.className = 'badge eleito'; b.textContent = 'PROJEÇÃO'; return b; }
+  if (st) {
+    b.className = 'badge ' + (s.includes('não eleito') ? 'nao' : 'outro');
+    let t = st;
+    if (s.includes('suplente')) t = 'Suplente';
+    else if (s.length > 18) t = st.split(/\s+/)[0];
+    b.textContent = t;
+    return b;
+  }
+  return null;
 }
 function histTexto(h) {
   if (!h) return '';
   return `${h.ano}: ${fmtInt.format(h.votos)} votos (${h.cargo}${h.partido ? ' · ' + h.partido : ''})`;
+}
+function histKey(cargoOrCod, numero, uf) {
+  const cod = typeof cargoOrCod === 'object' ? cargoOrCod.codigo : cargoOrCod;
+  const u = (uf || (typeof cargoOrCod === 'object' ? cargoOrCod.uf : null) || 'se').toLowerCase();
+  return `${cod}:${numero}:${u}`;
 }
 function histOf(codigo, numero, uf) {
   if (!HIST || !HIST.historico) return null;
@@ -523,19 +663,17 @@ function renderCard(cargo) {
     const body = el('div', 'cand-body');
     const l1 = el('div', 'linha');
     const nome = el('span', 'nome', c.nome);
+    const isMeu = !cargo.todosCandidatos && (cargo.candidatos || []).some(x => String(x.numero) === String(c.numero));
+    if (isMeu) { row.classList.add('meu'); nome.prepend(el('span', 'mark-star', '★')); }
     if (r) {
       const stl = (r.st || '').toLowerCase();
-      if (r.eleito || stl.startsWith('eleito')) { row.classList.add('eleito'); if (!r.st) { const b0 = el('span', 'badge eleito', 'ELEITO'); nome.appendChild(b0); } }
-      else if (stl.includes('2º turno') || stl.includes('2o turno') || stl.includes('segundo turno')) row.classList.add('turno2');
-      const b = badgeStatus(r.st ? (row.classList.contains('eleito') ? '\u2713 ' + r.st.toUpperCase() : r.st) : '', r.eleito); if (b) nome.appendChild(b);
-    }
-    if (r && d && !d.totalFinal && d.projetados && d.projetados.has(String(c.numero)) && !row.classList.contains('eleito')) {
-      row.classList.add('eleito', 'mat');
-      nome.appendChild(el('span', 'badge eleito', '\u2713 ELEITO (PROJEÇÃO)'));
-    }
-    if (r && matEleitos.has(String(c.numero)) && !row.classList.contains('eleito')) {
-      row.classList.add('eleito', 'mat');
-      nome.appendChild(el('span', 'badge eleito', '\u2713 MATEMATICAMENTE ELEITO (PROJEÇÃO)'));
+      const proj = !!(d && !d.totalFinal && d.projetados && d.projetados.has(String(c.numero)));
+      const mat = matEleitos.has(String(c.numero));
+      if (stl.includes('2º turno') || stl.includes('2o turno') || stl.includes('segundo turno')) { row.classList.add('turno2'); nome.prepend(el('span', 'mark-t2', '2º')); }
+      else if (r.eleito || stl.startsWith('eleito')) { row.classList.add('eleito'); nome.prepend(el('span', 'mark-ok', '✓')); }
+      else if ((proj || mat) && !(d && d.totalFinal)) { row.classList.add('eleito', 'mat'); }
+      const b = badgeCurto(r.st, r.eleito, proj || mat, d && d.totalFinal);
+      if (b) nome.appendChild(b);
     }
     l1.appendChild(nome);
     l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));
@@ -548,13 +686,32 @@ function renderCard(cargo) {
       info.appendChild(el('span', 'naoencontrado', `Nº ${c.numero} não encontrado no TSE para ${cargo.titulo}`));
     } else {
       info.appendChild(el('span', null, `${c.numero}${r && r.partido ? ' · ' + r.partido : ''}`));
-      info.appendChild(el('span', null, r ? `${fmtInt.format(r.vap)} votos` : '— votos'));
+      const votosEl = el('span', null, r ? `${fmtInt.format(r.vap)} votos` : '— votos');
+      if (r) markFlash(votosEl, histKey(cargo, c.numero, cargo.uf) + ':vap', r.vap);
+      info.appendChild(votosEl);
     }
     body.appendChild(info);
     const hh = histOf(cargo.codigo, c.numero, cargo.uf || CONFIG.uf);
     if (hh) body.appendChild(el('div', 'hist-line', histTexto(hh)));
     row.appendChild(body);
     card.appendChild(row);
+  }
+  if (cargo.todosCandidatos) {
+    const rows = [...card.querySelectorAll('.cand')];
+    const lim = 5;
+    if (rows.length > lim) {
+      rows.forEach((r, i) => { if (i >= lim) r.hidden = true; });
+      const btn = el('button', 'toggle-mais');
+      btn.type = 'button';
+      let aberto = false;
+      const sync = () => {
+        btn.textContent = aberto ? 'Ver menos' : `Ver todos (${rows.length})`;
+        rows.forEach((r, i) => { if (i >= lim) r.hidden = !aberto; });
+      };
+      sync();
+      btn.addEventListener('click', () => { aberto = !aberto; sync(); });
+      card.appendChild(btn);
+    }
   }
   return card;
 }
@@ -607,7 +764,13 @@ function renderRanking(rk) {
         const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
     it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
     it.appendChild(el('span', 'pos', `${i + 1}º`));
-    const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n} · ${c.partido}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
+    const nm = el('div');
+    const title = el('div');
+    if (meus.has(c.n)) title.appendChild(el('span', 'mark-star', '★'));
+    if (c.eleito || (c.st || '').toLowerCase().startsWith('eleito') || proj) title.appendChild(el('span', 'mark-ok', '✓'));
+    title.appendChild(document.createTextNode(c.nome));
+    nm.appendChild(title);
+    const sb = el('div', 'sub', `${c.n} · ${c.partido}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · PROJEÇÃO')); nm.appendChild(sb);
     const hx = histOf(rk.codigo, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
     it.appendChild(nm);
     const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
@@ -641,7 +804,7 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
         const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
         it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
         it.appendChild(el('span', 'pos', `${i + 1}º`));
-        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
+        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · PROJEÇÃO')); nm.appendChild(sb);
         const hx = histOf(cod, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
         it.appendChild(nm);
         const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
@@ -680,6 +843,8 @@ function renderAlese() {
   const raioCad = Math.min(17, (R1 - R0) / (fileiras * 1.15));
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'Hemiciclo da Alese com ' + total + ' cadeiras: ' + listas.map(l => l.nome + ' ' + l.vag).join(', '));
   let idx = 0;
   listas.forEach(l => { for (let k = 0; k < l.vag; k++) { const pt = pts[idx++]; if (!pt) break;
     const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.5');
@@ -774,6 +939,14 @@ function renderMetaSenado() {
     const d = el('div'); d.appendChild(el('span', null, lbl)); const st = el('strong', null, (lbl === 'Variação' && v > 0 ? '+' : '') + fmtInt.format(v)); d.appendChild(st); tot.appendChild(d);
   }
   card.appendChild(tot);
+  const buscaWrap = el('div');
+  const lab = el('label', 'sr-only', 'Buscar município'); lab.htmlFor = 'ms-busca';
+  buscaWrap.appendChild(lab);
+  const busca = el('input', 'ms-busca');
+  busca.type = 'search'; busca.id = 'ms-busca'; busca.placeholder = 'Buscar município';
+  busca.setAttribute('autocomplete', 'off');
+  buscaWrap.appendChild(busca);
+  card.appendChild(buscaWrap);
   const regs = el('div', 'ms-regs');
   for (const r of META_SENADO) {
     const det = el('details'); const sm = el('summary');
@@ -788,11 +961,37 @@ function renderMetaSenado() {
       const tr = el('tr'); const v = mt - v18;
       tr.appendChild(el('td', null, m)); tr.appendChild(el('td', null, fmtInt.format(v18))); tr.appendChild(el('td', null, fmtInt.format(mt)));
       tr.appendChild(el('td', v > 0 ? 'pos-var' : (v < 0 ? 'neg-var' : null), (v > 0 ? '+' : '') + fmtInt.format(v)));
+      tr.dataset.mun = String(m).toLowerCase();
       tb.appendChild(tr);
     }
     det.appendChild(tb); regs.appendChild(det);
   }
   card.appendChild(regs);
+  // index rows for search
+  for (const det of regs.querySelectorAll('details')) {
+    const regiao = (det.querySelector('summary span') || {}).textContent || '';
+    for (const tr of det.querySelectorAll('tbody tr, tr')) {
+      const mun = (tr.querySelector('td') || {}).textContent || '';
+      tr.dataset.mun = mun.toLowerCase();
+      tr.dataset.regiao = regiao.toLowerCase();
+    }
+    det.dataset.regiao = regiao.toLowerCase();
+  }
+  busca.addEventListener('input', () => {
+    const q = busca.value.trim().toLowerCase();
+    for (const det of regs.querySelectorAll('details')) {
+      let any = false;
+      for (const tr of det.querySelectorAll('tr')) {
+        if (!tr.dataset.mun) continue;
+        const ok = !q || tr.dataset.mun.includes(q);
+        tr.classList.toggle('ms-hide', !ok);
+        if (ok) any = true;
+      }
+      det.classList.toggle('ms-hide', q && !any);
+      if (q && any) det.open = true;
+      if (!q) { /* leave open state as user left */ }
+    }
+  });
   metaSenadoCard = card;
   return card;
 }
@@ -812,6 +1011,9 @@ function renderHemicicloSVG(listas, totalLabel) {
   const raioCad = Math.min(total > 40 ? 11 : 17, (R1 - R0) / (fileiras * 1.15));
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('role', 'img');
+  const lbl = totalLabel != null ? totalLabel : String(total);
+  svg.setAttribute('aria-label', `Hemiciclo com ${lbl} cadeiras: ` + listas.map(l => `${l.nome} ${l.vag}`).join(', '));
   let idx = 0;
   listas.forEach(l => { for (let k = 0; k < l.vag; k++) { const pt = pts[idx++]; if (!pt) break;
     const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.2');
@@ -911,17 +1113,72 @@ function setView(name, pushHash) {
     const want = '#' + name;
     if (location.hash !== want) history.pushState(null, '', want);
   }
-  const qe = document.querySelector('.qe2022');
-  if (qe) qe.style.display = (name === 'federais' || name === 'estaduais' || name === 'painel') ? '' : 'none';
+  const qe = document.getElementById('qe-ref-wrap');
+  if (qe) {
+    const show = (name === 'federais' || name === 'estaduais');
+    qe.classList.toggle('show', show);
+    if (!show) {
+      const det = qe.querySelector('details');
+      if (det) det.open = false;
+    }
+  }
+  if (window.__syncTabs) window.__syncTabs();
+}
+
+async function compartilhar() {
+  const url = location.href;
+  const title = 'Apuração Sergipe 2026';
+  const text = 'Confira a apuração de Sergipe 2026';
+  try {
+    if (navigator.share) { await navigator.share({ title, text, url }); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try {
+    await navigator.clipboard.writeText(url);
+    const btn = document.getElementById('btn-compartilhar');
+    if (btn) { const t = btn.textContent; btn.textContent = 'Link copiado'; setTimeout(() => { btn.textContent = t; }, 1600); }
+  } catch (e) {
+    prompt('Copie o link:', url);
+  }
 }
 
 function bootNav() {
   const tabs = document.getElementById('nav-tabs');
-  if (tabs) tabs.addEventListener('click', e => { const a = e.target.closest('a[data-view]'); if (!a) return; e.preventDefault(); setView(a.dataset.view); });
+  if (tabs) {
+    tabs.setAttribute('role', 'tablist');
+    tabs.addEventListener('click', e => { const a = e.target.closest('a[data-view]'); if (!a) return; e.preventDefault(); setView(a.dataset.view); });
+    tabs.addEventListener('keydown', e => {
+      const links = [...tabs.querySelectorAll('a[data-view]')];
+      const i = links.indexOf(document.activeElement);
+      if (i < 0) return;
+      let n = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % links.length;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i - 1 + links.length) % links.length;
+      if (e.key === 'Home') n = 0;
+      if (e.key === 'End') n = links.length - 1;
+      if (n == null) return;
+      e.preventDefault();
+      links[n].focus();
+      setView(links[n].dataset.view);
+    });
+    linksRole(tabs);
+  }
+  function linksRole(tabs) {
+    tabs.querySelectorAll('a[data-view]').forEach(a => {
+      a.setAttribute('role', 'tab');
+      a.setAttribute('aria-selected', a.classList.contains('active') ? 'true' : 'false');
+    });
+  }
+  const _setView = setView;
+  // wrap to sync aria-selected
+  window.__syncTabs = () => {
+    document.querySelectorAll('#nav-tabs a[data-view]').forEach(a => a.setAttribute('aria-selected', a.classList.contains('active') ? 'true' : 'false'));
+  };
   const sel = document.getElementById('nav-select');
   if (sel) sel.addEventListener('change', e => setView(e.target.value));
   const btn = document.getElementById('btn-atualizar');
   if (btn) btn.addEventListener('click', () => atualizar());
+  const sh = document.getElementById('btn-compartilhar');
+  if (sh) sh.addEventListener('click', () => compartilhar());
   window.addEventListener('hashchange', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
   window.addEventListener('popstate', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
   const initial = (location.hash || '#painel').slice(1);

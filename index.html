@@ -276,6 +276,34 @@
   .card.partido .cand-body .linha { gap: 6px; }
   .card.partido .info { flex-direction: column; align-items: flex-start; }
 
+
+  .card.mapa-votacao { border-top: 3px solid #a78bfa; }
+  .card.mapa-votacao h2 { color: #c4b5fd; }
+  .mapa-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; align-items: center; }
+  .mapa-toolbar input, .mapa-toolbar select {
+    min-height: 44px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid rgba(167,139,250,0.45); background: #0f172a; color: var(--text); font-size: 0.95rem;
+  }
+  .mapa-toolbar input { flex: 1 1 200px; max-width: 100%; }
+  .mapa-toolbar select { flex: 1 1 220px; max-width: 100%; }
+  .mapa-resumo { color: var(--subtext); font-size: 0.82rem; margin-bottom: 8px; }
+  .mapa-tree { display: grid; gap: 6px; }
+  .mapa-tree details { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 10px; }
+  .mapa-tree summary {
+    cursor: pointer; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    align-items: center; min-height: 40px; font-weight: 600; list-style: none;
+  }
+  .mapa-tree summary::-webkit-details-marker { display: none; }
+  .mapa-tree .mv-sub { color: var(--subtext); font-weight: 400; font-size: 0.8rem; }
+  .mapa-tree .mv-right { text-align: right; white-space: nowrap; }
+  .mapa-tree .mv-pct { color: #c4b5fd; font-size: 0.78rem; }
+  .mapa-tree .mv-meta { color: #fcd34d; font-size: 0.75rem; font-weight: 500; }
+  .mapa-tree .mv-nested { margin: 6px 0 4px 8px; display: grid; gap: 4px; }
+  .mapa-busca-nivel { width: 100%; margin: 4px 0 8px; min-height: 40px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid rgba(148,163,184,0.35); background: #0f172a; color: var(--text); }
+  .mapa-empty { color: var(--subtext); padding: 12px 0; }
+  .ms-regs .meta-col { color: #fcd34d; }
+
 </style>
 </head>
 <body>
@@ -926,16 +954,17 @@ function renderCusto() {
   custoCard = card; return card;
 }
 let custoCard = null;
-let metaSenadoCard = null;
+let metaSenadoCard = null; // rebuild when labels change
+metaSenadoCard = null;
 function renderMetaSenado() {
   if (metaSenadoCard) return metaSenadoCard;   // conteúdo fixo: monta uma vez (preserva regiões abertas)
   const card = el('section', 'card meta-senado');
-  card.appendChild(el('h2', null, 'Meta de votação - Senado 2026 por município'));
+  card.appendChild(el('h2', null, 'Mapa de Votação - Senado (meta da campanha × município)'));
   card.appendChild(el('div', 'meta', 'Relatório de meta da campanha (não é dado do TSE). Comparativo com os votos obtidos em 2018, por região de Sergipe. Clique na região para ver as cidades.'));
   const t2018 = META_SENADO.reduce((a, r) => a + r.v2018, 0), tMeta = META_SENADO.reduce((a, r) => a + r.meta, 0);
   const nMun = META_SENADO.reduce((a, r) => a + r.mun.length, 0);
   const tot = el('div', 'ms-tot');
-  for (const [lbl, v] of [['Municípios', nMun], ['Votos 2018', t2018], ['Meta 2026', tMeta], ['Variação', tMeta - t2018]]) {
+  for (const [lbl, v] of [['Municípios', nMun], ['Votos 2018', t2018], ['Meta', tMeta], ['Variação', tMeta - t2018]]) {
     const d = el('div'); d.appendChild(el('span', null, lbl)); const st = el('strong', null, (lbl === 'Variação' && v > 0 ? '+' : '') + fmtInt.format(v)); d.appendChild(st); tot.appendChild(d);
   }
   card.appendChild(tot);
@@ -952,10 +981,10 @@ function renderMetaSenado() {
     const det = el('details'); const sm = el('summary');
     sm.appendChild(el('span', null, r.regiao));
     const dv = r.meta - r.v2018;
-    sm.appendChild(el('span', 'sub', `2018: ${fmtInt.format(r.v2018)} · Meta: ${fmtInt.format(r.meta)} (${dv > 0 ? '+' : ''}${fmtInt.format(dv)})`));
+    sm.appendChild(el('span', 'sub', `2018: ${fmtInt.format(r.v2018)} · Meta: ${fmtInt.format(r.meta)} (${dv > 0 ? '+' : ''}${fmtInt.format(dv)}) · campanha`));
     det.appendChild(sm);
     const tb = el('table'); const hr = el('tr');
-    for (const h of ['Município', 'Votos 2018', 'Meta 2026', 'Variação']) hr.appendChild(el('th', null, h));
+    for (const h of ['Município', 'Votos 2018', 'Meta', 'Variação']) hr.appendChild(el('th', null, h));
     tb.appendChild(hr);
     for (const [m, v18, mt] of r.mun) {
       const tr = el('tr'); const v = mt - v18;
@@ -1102,6 +1131,220 @@ function renderEleitosSE() {
   return card;
 }
 
+
+let MAPA_INDEX = null;
+const mapaCache = new Map();
+
+async function loadMapaIndex() {
+  if (MAPA_INDEX) return MAPA_INDEX;
+  try { MAPA_INDEX = await getJSON('mapa/index.json'); }
+  catch (e) { console.warn('mapa/index.json', e); MAPA_INDEX = { cargos: {} }; }
+  return MAPA_INDEX;
+}
+
+async function loadMapaCand(cargo, numero) {
+  const key = `${cargo}:${numero}`;
+  if (mapaCache.has(key)) return mapaCache.get(key);
+  const data = await getJSON(`mapa/${cargo}/${numero}.json`);
+  mapaCache.set(key, data);
+  return data;
+}
+
+function mapaNodeRow(label, votos, pct, extraTxt) {
+  const sm = el('summary');
+  const left = el('span'); left.textContent = label;
+  if (extraTxt) left.appendChild(el('span', 'mv-meta', ' · ' + extraTxt));
+  sm.appendChild(left);
+  const right = el('span', 'mv-right');
+  right.appendChild(document.createTextNode(fmtInt.format(votos) + ' votos'));
+  right.appendChild(el('div', 'mv-pct', fmtPct(pct)));
+  sm.appendChild(right);
+  return sm;
+}
+
+function lazyDetails(label, votos, pct, extraTxt, buildChild) {
+  const det = el('details');
+  det.appendChild(mapaNodeRow(label, votos, pct, extraTxt));
+  const slot = el('div', 'mv-nested');
+  det.appendChild(slot);
+  let built = false;
+  det.addEventListener('toggle', () => {
+    if (det.open && !built) { built = true; slot.replaceChildren(buildChild()); }
+  });
+  return det;
+}
+
+function renderMapaLocais(locais, filtro) {
+  const wrap = el('div');
+  const q = (filtro || '').trim().toLowerCase();
+  let n = 0;
+  for (const l of locais) {
+    const lab = `${l.nm} ${l.end || ''} ${l.nr}`.toLowerCase();
+    if (q && !lab.includes(q)) continue;
+    n++;
+    const row = el('div', 'el-row');
+    row.style.gridTemplateColumns = '1fr auto';
+    const mid = el('div'); mid.appendChild(el('div', 'nm', l.nm));
+    if (l.end) mid.appendChild(el('div', 'sub', l.end));
+    mid.appendChild(el('div', 'sub', 'Colégio eleitoral nº ' + l.nr));
+    row.appendChild(mid);
+    const v = el('div', 'votos'); v.appendChild(el('div', null, fmtInt.format(l.votos))); v.appendChild(el('div', 'sub', fmtPct(l.pct)));
+    row.appendChild(v);
+    wrap.appendChild(row);
+  }
+  if (!n) wrap.appendChild(el('div', 'mapa-empty', 'Nenhum colégio neste filtro'));
+  return wrap;
+}
+
+function renderMapaBairros(bairros, filtro) {
+  const wrap = el('div');
+  const q = (filtro || '').trim().toLowerCase();
+  for (const b of bairros) {
+    const hit = !q || b.nm.toLowerCase().includes(q) || (b.locais || []).some(l => ((l.nm||'')+' '+(l.end||'')).toLowerCase().includes(q));
+    if (!hit) continue;
+    wrap.appendChild(lazyDetails('Bairro: ' + b.nm, b.votos, b.pct, null, () => renderMapaLocais(b.locais || [], q && !b.nm.toLowerCase().includes(q) ? q : '')));
+  }
+  if (!wrap.children.length) wrap.appendChild(el('div', 'mapa-empty', 'Nenhum bairro neste filtro'));
+  return wrap;
+}
+
+function renderMapaZonas(zonas, filtro) {
+  const wrap = el('div');
+  for (const z of zonas) {
+    wrap.appendChild(lazyDetails('Zona ' + z.nr, z.votos, z.pct, null, () => renderMapaBairros(z.bairros || [], filtro)));
+  }
+  return wrap;
+}
+
+function munMatches(m, q) {
+  if (!q) return { self: true, deep: false };
+  const self = (m.nm || '').toLowerCase().includes(q);
+  if (self) return { self: true, deep: false };
+  for (const z of m.zonas || []) for (const b of z.bairros || []) {
+    if ((b.nm || '').toLowerCase().includes(q)) return { self: false, deep: true };
+    for (const l of b.locais || []) if (((l.nm||'')+' '+(l.end||'')).toLowerCase().includes(q)) return { self: false, deep: true };
+  }
+  return { self: false, deep: false };
+}
+
+function renderMapaMunicipios(municipios, filtro) {
+  const wrap = el('div', 'mapa-tree');
+  const q = (filtro || '').trim().toLowerCase();
+  let shown = 0;
+  for (const m of municipios) {
+    const hit = munMatches(m, q);
+    if (q && !hit.self && !hit.deep) continue;
+    shown++;
+    let extra = '';
+    if (m.meta != null) {
+      const d = m.diff_meta != null ? m.diff_meta : (m.votos - m.meta);
+      extra = `Meta ${fmtInt.format(m.meta)} (${d >= 0 ? '+' : ''}${fmtInt.format(d)})`;
+    }
+    const det = lazyDetails(m.nm, m.votos, m.pct, extra, () => renderMapaZonas(m.zonas || [], hit.self ? '' : q));
+    if (q) { det.open = true; det.dispatchEvent(new Event('toggle')); }
+    wrap.appendChild(det);
+  }
+  if (!shown) wrap.appendChild(el('div', 'mapa-empty', 'Nenhum município encontrado'));
+  return wrap;
+}
+
+function renderMapaEstados(estados) {
+  const wrap = el('div', 'mapa-tree');
+  for (const e of estados) {
+    const det = el('details');
+    det.appendChild(mapaNodeRow(e.uf, e.votos, e.pct));
+    if (e.uf !== 'SE') det.appendChild(el('div', 'mapa-empty', 'Detalhe municipal disponível para Sergipe. Demais UFs: total do estado (TSE).'));
+    else det.appendChild(el('div', 'meta', 'O detalhe de Sergipe está na seção abaixo.'));
+    wrap.appendChild(det);
+  }
+  return wrap;
+}
+
+function renderMapaPanel(cargoCodigo, titulo) {
+  const card = el('section', 'card mapa-votacao span-all');
+  card.appendChild(el('h2', null, titulo || 'Mapa de Votação'));
+  card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro e colégio eleitoral. Fonte: votação por seção 2026 + locais de votação 2026.'));
+  const toolbar = el('div', 'mapa-toolbar');
+  const buscaCand = el('input'); buscaCand.type = 'search'; buscaCand.placeholder = 'Buscar candidato (nome ou número)';
+  buscaCand.setAttribute('aria-label', 'Buscar candidato no mapa');
+  const sel = el('select'); sel.setAttribute('aria-label', 'Candidato');
+  sel.appendChild(new Option('Carregando candidatos…', ''));
+  toolbar.appendChild(buscaCand); toolbar.appendChild(sel);
+  card.appendChild(toolbar);
+  const resumo = el('div', 'mapa-resumo', 'Escolha um candidato para ver o mapa.');
+  card.appendChild(resumo);
+  const filtroGeo = el('input', 'mapa-busca-nivel');
+  filtroGeo.type = 'search'; filtroGeo.placeholder = 'Filtrar município, bairro ou colégio…';
+  filtroGeo.hidden = true;
+  card.appendChild(filtroGeo);
+  const body = el('div');
+  card.appendChild(body);
+
+  let lista = [];
+  let atual = null;
+
+  const paintLista = () => {
+    const q = buscaCand.value.trim().toLowerCase();
+    const filtered = lista.filter(c => !q || c.nome.toLowerCase().includes(q) || String(c.numero).includes(q));
+    const prev = sel.value;
+    sel.replaceChildren();
+    if (!filtered.length) { sel.appendChild(new Option('Nenhum candidato', '')); return; }
+    sel.appendChild(new Option('Selecione um candidato…', ''));
+    for (const c of filtered) {
+      const label = `${c.numero} — ${c.nome}${c.partido ? ' (' + c.partido + ')' : ''} · ${fmtInt.format(c.total)} votos`;
+      sel.appendChild(new Option(label, c.numero));
+    }
+    if (prev && filtered.some(c => String(c.numero) === String(prev))) sel.value = prev;
+  };
+
+  const showCand = async (numero) => {
+    body.replaceChildren(el('div', 'mapa-empty', 'Carregando mapa…'));
+    filtroGeo.hidden = false;
+    try {
+      const data = await loadMapaCand(cargoCodigo, numero);
+      atual = data;
+      const partes = [
+        `${data.nome || ('Nº ' + numero)}`,
+        data.total != null ? `${fmtInt.format(data.total)} votos` : null,
+        data.total_se != null ? `SE: ${fmtInt.format(data.total_se)}` : null,
+      ].filter(Boolean);
+      resumo.textContent = partes.join(' · ');
+      const tree = el('div');
+      if (Number(cargoCodigo) === 1) {
+        tree.appendChild(el('h3', null, 'Por estado'));
+        tree.appendChild(renderMapaEstados(data.estados || []));
+        tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+        if (data.nota_se) tree.appendChild(el('div', 'meta', data.nota_se));
+        const host = el('div');
+        host.appendChild(renderMapaMunicipios(data.municipios_se || [], filtroGeo.value));
+        tree.appendChild(host);
+        filtroGeo.oninput = () => { host.replaceChildren(renderMapaMunicipios(data.municipios_se || [], filtroGeo.value)); };
+      } else {
+        tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+        const host = el('div');
+        host.appendChild(renderMapaMunicipios(data.municipios || [], filtroGeo.value));
+        tree.appendChild(host);
+        filtroGeo.oninput = () => { host.replaceChildren(renderMapaMunicipios(data.municipios || [], filtroGeo.value)); };
+      }
+      body.replaceChildren(tree);
+    } catch (e) {
+      console.error(e);
+      body.replaceChildren(el('div', 'aviso-card erro', 'Não foi possível carregar o mapa deste candidato.'));
+    }
+  };
+
+  loadMapaIndex().then(idx => {
+    lista = (idx.cargos && idx.cargos[String(cargoCodigo)]) || [];
+    paintLista();
+    // auto-select first (most voted) for convenience
+    if (lista.length) { sel.value = lista[0].numero; showCand(lista[0].numero); }
+  });
+  buscaCand.addEventListener('input', paintLista);
+  sel.addEventListener('change', () => { if (sel.value) showCand(sel.value); });
+  return card;
+}
+
+
 function setView(name, pushHash) {
   if (!VIEWS.includes(name)) name = 'painel';
   viewAtual = name;
@@ -1194,13 +1437,16 @@ function renderTudo() {
   const est = CONFIG.cargos.find(c => c.codigo === 7);
 
   const gp = document.getElementById('grid-painel');
-  if (gp) gp.replaceChildren(renderAlese(), renderSenado81(), renderEleitosSE(), ...(gov ? [renderCard(gov)] : []));
+  if (gp) gp.replaceChildren(renderAlese(), renderSenado81(), renderEleitosSE(), ...(gov ? [renderCard(gov), renderMapaPanel(3, 'Mapa de Votação — Governador')] : []));
 
   const gpr = document.getElementById('grid-presidente');
-  if (gpr) gpr.replaceChildren(...pres.map(renderCard));
+  if (gpr) {
+    const nodes = [...pres.map(renderCard), renderMapaPanel(1, 'Mapa de Votação — Presidente')];
+    gpr.replaceChildren(...nodes);
+  }
 
   const gs = document.getElementById('grid-senadores');
-  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado());
+  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado(), renderMapaPanel(5, 'Mapa de Votação — Senadores'));
 
   const gf = document.getElementById('grid-federais');
   if (gf) {
@@ -1211,6 +1457,7 @@ function renderTudo() {
     nodes.push(renderTopPartidos('5 mais votados do PL · Federal', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }]));
     nodes.push(renderTopPartidos('7 mais votados por partido · Federal', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [6] }))));
     nodes.push(renderEleitos());
+    nodes.push(renderMapaPanel(6, 'Mapa de Votação — Deputados Federais'));
     nodes.push(renderCusto());
     gf.replaceChildren(...nodes);
   }
@@ -1223,6 +1470,7 @@ function renderTudo() {
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
     nodes.push(renderTopPartidos('5 mais votados do PL · Estadual', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]));
     nodes.push(renderTopPartidos('7 mais votados por partido · Estadual', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [7] }))));
+    nodes.push(renderMapaPanel(7, 'Mapa de Votação — Deputados Estaduais'));
     ge.replaceChildren(...nodes);
   }
 

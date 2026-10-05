@@ -1,0 +1,391 @@
+{
+  "cargos": {
+    "3": [
+      {
+        "numero": "55",
+        "nome": "FABIO CRUZ MITIDIERI",
+        "total": 727291,
+        "arquivo": "mapa/3/55.json"
+      },
+      {
+        "numero": "10",
+        "nome": "VALMIR DOS SANTOS COSTA",
+        "total": 459908,
+        "arquivo": "mapa/3/10.json"
+      }
+    ],
+    "5": [
+      {
+        "numero": "131",
+        "nome": "ROGERIO CARVALHO SANTOS",
+        "total": 511142,
+        "arquivo": "mapa/5/131.json"
+      },
+      {
+        "numero": "155",
+        "nome": "ALESSANDRO VIEIRA",
+        "total": 399775,
+        "arquivo": "mapa/5/155.json"
+      },
+      {
+        "numero": "101",
+        "nome": "ANDRÉ DAVID CALDAS ROSA RODRIGUES",
+        "total": 378710,
+        "arquivo": "mapa/5/101.json"
+      },
+      {
+        "numero": "444",
+        "nome": "ANDRE LUIS DANTAS FERREIRA",
+        "total": 377669,
+        "arquivo": "mapa/5/444.json"
+      }
+    ],
+    "6": [
+      {
+        "numero": "4444",
+        "nome": "YANDRA BARRETO FERREIRA",
+        "total": 115903,
+        "arquivo": "mapa/6/4444.json"
+      },
+      {
+        "numero": "4040",
+        "nome": "CLAUDIO MITIDIERI SIMÕES",
+        "total": 105865,
+        "arquivo": "mapa/6/4040.json"
+      },
+      {
+        "numero": "1311",
+        "nome": "JOAO SOMARIVA DANIEL",
+        "total": 88900,
+        "arquivo": "mapa/6/1311.json"
+      },
+      {
+        "numero": "5555",
+        "nome": "FABIO DE ALMEIDA REIS",
+        "total": 81533,
+        "arquivo": "mapa/6/5555.json"
+      },
+      {
+        "numero": "5505",
+        "nome": "KATARINA FEITOZA LIMA SANTANA",
+        "total": 71592,
+        "arquivo": "mapa/6/5505.json"
+      },
+      {
+        "numero": "1000",
+        "nome": "ICARO BARBOSA COSTA",
+        "total": 66696,
+        "arquivo": "mapa/6/1000.json"
+      },
+      {
+        "numero": "4422",
+        "nome": "SAMUEL ALVES BARRETO",
+        "total": 66342,
+        "arquivo": "mapa/6/4422.json"
+      },
+      {
+        "numero": "1177",
+        "nome": "LUIZ AUGUSTO CARVALHO RIBEIRO FILHO",
+        "total": 58289,
+        "arquivo": "mapa/6/1177.json"
+      },
+      {
+        "numero": "5515",
+        "nome": "ANDERSON MENEZES",
+        "total": 58225,
+        "arquivo": "mapa/6/5515.json"
+      }
+    ],
+    "7": [
+      {
+        "numero": "44444",
+        "nome": "CHRISTIANO ROGÉRIO RÊGO CAVALCANTE",
+        "total": 52765,
+        "arquivo": "mapa/7/44444.json"
+      },
+      {
+        "numero": "55777",
+        "nome": "JORGE ARAUJO FILHO",
+        "total": 49550,
+        "arquivo": "mapa/7/55777.json"
+      },
+      {
+        "numero": "40000",
+        "nome": "JOSE MACEDO SOBRAL",
+        "total": 44155,
+        "arquivo": "mapa/7/40000.json"
+      },
+      {
+        "numero": "55555",
+        "nome": "MAISA CRUZ MITIDIERI",
+        "total": 41559,
+        "arquivo": "mapa/7/55555.json"
+      },
+      {
+        "numero": "55123",
+        "nome": "ADAILTON MARTINS DE OLIVEIRA FILHO",
+        "total": 38977,
+        "arquivo": "mapa/7/55123.json"
+      },
+      {
+        "numero": "15555",
+        "nome": "ANTÔNIO MENEZES LEITE NETO",
+        "total": 36949,
+        "arquivo": "mapa/7/15555.json"
+      },
+      {
+        "numero": "44000",
+        "nome": "LIDIANE CECÍLIA AZEVEDO CARVALHO LUCENA",
+        "total": 33935,
+        "arquivo": "mapa/7/44000.json"
+      },
+      {
+        "numero": "43777",
+        "nome": "PAULO ROBERTO DE SANTANA JUNIOR",
+        "total": 31195,
+        "arquivo": "mapa/7/43777.json"
+      },
+      {
+        "numero": "44777",
+        "nome": "LEUDES ALVES DOS SANTOS NETO",
+        "total": 30937,
+        "arquivo": "mapa/7/44777.json"
+      },
+      {
+        "numero": "44111",
+        "nome": "MARCELO OLIVEIRA SOBRAL",
+        "total": 30788,
+        "arquivo": "mapa/7/44111.json"
+      },
+      {
+        "numero": "44555",
+        "nome": "CLAÍLTON BATISTA DOS SANTOS",
+        "total": 30419,
+        "arquivo": "mapa/7/44555.json"
+      },
+      {
+        "numero": "44222",
+        "nome": "CARLOS ALEXANDRE SANTOS COSTA",
+        "total": 29624,
+        "arquivo": "mapa/7/44222.json"
+      },
+      {
+        "numero": "55015",
+        "nome": "LUCIANO BISPO DE LIMA",
+        "total": 29088,
+        "arquivo": "mapa/7/55015.json"
+      },
+      {
+        "numero": "10000",
+        "nome": "MARCOS VINICIUS LIMA DE OLIVEIRA",
+        "total": 28839,
+        "arquivo": "mapa/7/10000.json"
+      },
+      {
+        "numero": "22123",
+        "nome": "LUCIANO AZEVEDO PIMENTEL",
+        "total": 28675,
+        "arquivo": "mapa/7/22123.json"
+      },
+      {
+        "numero": "10777",
+        "nome": "GEORGEO ANTONIO CESPEDES PASSOS",
+        "total": 28098,
+        "arquivo": "mapa/7/10777.json"
+      },
+      {
+        "numero": "55190",
+        "nome": "ALEXSANDRO RIBEIRO DE SOUZA",
+        "total": 27711,
+        "arquivo": "mapa/7/55190.json"
+      },
+      {
+        "numero": "15500",
+        "nome": "FABIO HENRIQUE SANTANA DE CARVALHO",
+        "total": 24177,
+        "arquivo": "mapa/7/15500.json"
+      },
+      {
+        "numero": "43000",
+        "nome": "IBRAIN SILVA MONTEIRO",
+        "total": 23314,
+        "arquivo": "mapa/7/43000.json"
+      },
+      {
+        "numero": "13000",
+        "nome": "CAMILO FEITOSA DANIEL",
+        "total": 23289,
+        "arquivo": "mapa/7/13000.json"
+      },
+      {
+        "numero": "10111",
+        "nome": "ANA LUIZA SILVA DE CARVALHO",
+        "total": 22886,
+        "arquivo": "mapa/7/10111.json"
+      },
+      {
+        "numero": "22200",
+        "nome": "FERNANDO RIBEIRO FRANCO NETO",
+        "total": 22483,
+        "arquivo": "mapa/7/22200.json"
+      },
+      {
+        "numero": "55111",
+        "nome": "MARCELL MOADE RIBEIRO SOUZA",
+        "total": 21728,
+        "arquivo": "mapa/7/55111.json"
+      },
+      {
+        "numero": "40400",
+        "nome": "PRISCILLA LIMA DA COSTA PINTO",
+        "total": 18829,
+        "arquivo": "mapa/7/40400.json"
+      },
+      {
+        "numero": "70456",
+        "nome": "NORBERTO SOUZA PINTO",
+        "total": 18751,
+        "arquivo": "mapa/7/70456.json"
+      },
+      {
+        "numero": "22222",
+        "nome": "CECILIA MACHADO DE JESUS MARQUES",
+        "total": 11844,
+        "arquivo": "mapa/7/22222.json"
+      },
+      {
+        "numero": "22100",
+        "nome": "FLAVIO DE OLIVEIRA RODRIGUES",
+        "total": 11659,
+        "arquivo": "mapa/7/22100.json"
+      },
+      {
+        "numero": "22789",
+        "nome": "JOSIVALDO ALVES SANTOS",
+        "total": 2525,
+        "arquivo": "mapa/7/22789.json"
+      }
+    ],
+    "1": [
+      {
+        "numero": "22",
+        "nome": "FLAVIO BOLSONARO",
+        "partido": "PL",
+        "total": 56104503,
+        "arquivo": "mapa/1/22.json"
+      },
+      {
+        "numero": "13",
+        "nome": "LULA",
+        "partido": "PT",
+        "total": 53879538,
+        "arquivo": "mapa/1/13.json"
+      },
+      {
+        "numero": "70",
+        "nome": "ESCRITOR AUGUSTO CURY",
+        "partido": "AVANTE",
+        "total": 3448569,
+        "arquivo": "mapa/1/70.json"
+      },
+      {
+        "numero": "14",
+        "nome": "RENAN SANTOS",
+        "partido": "MISSÃO",
+        "total": 2675887,
+        "arquivo": "mapa/1/14.json"
+      },
+      {
+        "numero": "55",
+        "nome": "RONALDO CAIADO",
+        "partido": "PSD",
+        "total": 2605148,
+        "arquivo": "mapa/1/55.json"
+      },
+      {
+        "numero": "30",
+        "nome": "ZEMA",
+        "partido": "NOVO",
+        "total": 326488,
+        "arquivo": "mapa/1/30.json"
+      },
+      {
+        "numero": "80",
+        "nome": "SAMARA",
+        "partido": "UP",
+        "total": 122911,
+        "arquivo": "mapa/1/80.json"
+      },
+      {
+        "numero": "16",
+        "nome": "HERTZ DIAS",
+        "partido": "PSTU",
+        "total": 43103,
+        "arquivo": "mapa/1/16.json"
+      },
+      {
+        "numero": "27",
+        "nome": "CLARIANA BARAO",
+        "partido": "DC",
+        "total": 40043,
+        "arquivo": "mapa/1/27.json"
+      },
+      {
+        "numero": "21",
+        "nome": "EDMILSON COSTA",
+        "partido": "PCB",
+        "total": 22693,
+        "arquivo": "mapa/1/21.json"
+      },
+      {
+        "numero": "35",
+        "nome": "VETERINÁRIO WILSON GRASSI",
+        "partido": "DEMOCRATA",
+        "total": 16881,
+        "arquivo": "mapa/1/35.json"
+      },
+      {
+        "numero": "29",
+        "nome": "RUI COSTA PIMENTA",
+        "partido": "PCO",
+        "total": 15024,
+        "arquivo": "mapa/1/29.json"
+      }
+    ]
+  },
+  "gerado": "2026-10-05",
+  "niveis": {
+    "1": [
+      "estado",
+      "municipio",
+      "zona",
+      "bairro",
+      "local"
+    ],
+    "3": [
+      "municipio",
+      "zona",
+      "bairro",
+      "local"
+    ],
+    "5": [
+      "municipio",
+      "zona",
+      "bairro",
+      "local"
+    ],
+    "6": [
+      "municipio",
+      "zona",
+      "bairro",
+      "local"
+    ],
+    "7": [
+      "municipio",
+      "zona",
+      "bairro",
+      "local"
+    ]
+  },
+  "nota": "Mapa de votação por candidato. Níveis: município, zona, bairro e colégio eleitoral (SE). Presidente: totais por UF + detalhe em Sergipe."
+}

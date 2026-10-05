@@ -461,6 +461,28 @@
     .chat-fab { bottom: 12px; right: 12px; z-index: 70; }
   }
 
+
+  .rel-card .rel-modes { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 8px 0 12px; }
+  .rel-card .rel-modes label, .rel-card .rel-blocks label, .rel-card .rel-opts label { font-size: 0.86rem; color: var(--text); }
+  .rel-field { display: block; margin: 8px 0; font-size: 0.86rem; }
+  .rel-field select, .rel-opts select, .rel-opts input[type=number] {
+    display: block; width: 100%; max-width: 520px; margin-top: 4px;
+    background: #0f172a; color: var(--text); border: 1px solid rgba(148,163,184,0.35);
+    border-radius: 8px; padding: 8px 10px; font: inherit;
+  }
+  .rel-blocks, .rel-opts { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 10px 0; align-items: center; }
+  .rel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .rel-preview {
+    margin: 10px 0 0; padding: 10px; border-radius: 10px; background: #0b1220;
+    border: 1px solid rgba(148,163,184,0.25); color: #cbd5e1; font-size: 0.78rem;
+    white-space: pre-wrap; max-height: 240px; overflow: auto;
+  }
+  .chat-report-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chat-report-actions a, .chat-report-actions button {
+    appearance: none; border: 1px solid rgba(56,189,248,0.45); background: rgba(56,189,248,0.14);
+    color: #7dd3fc; border-radius: 999px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; text-decoration: none;
+  }
+
 </style>
 </head>
 <body>
@@ -509,6 +531,7 @@
     <a href="#federais" data-view="federais">Deputados Federais</a>
     <a href="#estaduais" data-view="estaduais">Deputados Estaduais</a>
     <a href="#suplentes" data-view="suplentes">Suplentes</a>
+    <a href="#relatorios" data-view="relatorios">Relatórios</a>
   </div>
   <div class="nav-select-wrap">
     <select id="nav-select" class="nav-select" aria-label="Seção">
@@ -519,6 +542,7 @@
       <option value="federais">Deputados Federais</option>
       <option value="estaduais">Deputados Estaduais</option>
       <option value="suplentes">Suplentes</option>
+      <option value="relatorios">Relatórios</option>
     </select>
   </div>
 </nav>
@@ -531,6 +555,7 @@
   <section class="view" id="view-federais"><div class="grid ordered" id="grid-federais"></div></section>
   <section class="view" id="view-estaduais"><div class="grid ordered" id="grid-estaduais"></div></section>
   <section class="view" id="view-suplentes"><div class="grid ordered" id="grid-suplentes"></div></section>
+  <section class="view" id="view-relatorios"><div class="grid ordered" id="grid-relatorios"></div></section>
 </main>
 
 <footer>
@@ -556,6 +581,9 @@
   </form>
 </div>
 
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js"></script>
+<script src="relatorios.js"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -754,7 +782,7 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 let HIST = null;
 let resultadoFinal = false;
 let viewAtual = 'painel';
-const VIEWS = ['painel','governo','presidente','senadores','federais','estaduais','suplentes'];
+const VIEWS = ['painel','governo','presidente','senadores','federais','estaduais','suplentes','relatorios'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -2173,6 +2201,7 @@ function setView(name, pushHash) {
     }
   }
   if (window.__syncTabs) window.__syncTabs();
+  if (name === 'relatorios' && window.Relatorios) window.Relatorios.bootUI();
 }
 
 async function compartilhar() {
@@ -2390,7 +2419,34 @@ function bootChat() {
         addBubble('bot', data.error || 'Não foi possível obter resposta agora.', 'err');
       } else {
         const reply = data.reply || '';
-        addBubble('bot', reply);
+        const bubble = addBubble('bot', reply);
+        if (data.report && window.Relatorios) {
+          const actions = document.createElement('div');
+          actions.className = 'chat-report-actions';
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = 'Baixar relatório (PDF)';
+          btn.addEventListener('click', async () => {
+            btn.disabled = true; btn.textContent = 'Gerando…';
+            try {
+              await window.Relatorios.generateAndDownload(data.report);
+              btn.textContent = 'PDF baixado';
+            } catch (e) {
+              btn.textContent = 'Erro ao gerar';
+              console.error(e);
+            }
+          });
+          const a = document.createElement('a');
+          a.href = window.Relatorios.buildRelHash(data.report);
+          a.textContent = 'Abrir no painel';
+          a.addEventListener('click', (ev) => {
+            ev.preventDefault();
+            window.Relatorios.openInPanel(data.report);
+          });
+          actions.appendChild(btn);
+          actions.appendChild(a);
+          bubble.appendChild(actions);
+        }
         history.push({ role: 'assistant', content: reply });
         while (history.length > 8) history.shift();
       }

@@ -9,6 +9,7 @@ ESCOPO PERMITIDO:
 - Comparativos/referências a 2022 quando houver no contexto
 - Suplentes, cadeiras por partido/federação
 - Votos por município, zona, bairro e colégio quando houver no BLOCO_RETRIEVAL ou no CONTEXTO_DADOS
+- Pedidos de relatório/PDF: diga que o painel pode gerar o PDF e descreva o conteúdo; o sistema anexará o botão de download automaticamente
 
 FORA DE ESCOPO: qualquer outro tema. Recuse educadamente.
 
@@ -433,6 +434,75 @@ async function buildRetrieval(env, messages) {
   return out;
 }
 
+
+function detectReportIntent(text, retrieval) {
+  const t = String(text || '').toLowerCase();
+  const wants = /relat[oó]rio|gerar\s+pdf|baixar\s+(o\s+)?pdf|exportar\s+pdf|quero\s+o\s+relat/i.test(t);
+  if (!wants) return null;
+
+  const det = (retrieval && retrieval.detectado) || {};
+  const cands = det.candidatos || [];
+  const muns = det.municipios || [];
+
+  // parse "44321 MARCEL... (Dep. Estadual)" lines from detectado
+  const parseCand = (line) => {
+    const m = String(line).match(/^(\d+)\s+(.+?)\s+\(([^)]+)\)\s*$/);
+    if (!m) return null;
+    const cargoLabel = m[3];
+    const cargoMap = {
+      'Presidente': '1', 'Governador': '3', 'Senador': '5',
+      'Dep. Federal': '6', 'Dep. Estadual': '7',
+    };
+    return { n: m[1], nm: m[2], cargo: cargoMap[cargoLabel] || null };
+  };
+
+  if (/resumo|panorama|vis[aã]o\s+geral|elei[cç][aã]o\s+completa/i.test(t) && !/candidato|munic[ií]pio/.test(t)) {
+    return { template: 'resumo', options: { hist: true, fotos: false } };
+  }
+
+  const parsed = cands.map(parseCand).filter(Boolean);
+  const first = parsed[0];
+  const wantsCand = /candidato|votação\s+do|votacao\s+do|relat[oó]rio\s+do\s+candid/i.test(t);
+  const wantsMun = /relat[oó]rio\s+do\s+munic|munic[ií]pio\s+de\s+|na\s+cidade\s+de\s+/i.test(t);
+
+  if (wantsCand && first && first.cargo) {
+    return {
+      template: 'candidato',
+      cargo: first.cargo,
+      numero: first.n,
+      nome: first.nm,
+      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: false },
+    };
+  }
+
+  if (wantsMun || (!wantsCand && muns.length && /munic[ií]pio|cidade/.test(t))) {
+    const munName = muns[0] || null;
+    let cd = null;
+    for (const it of (retrieval.itens || [])) {
+      if (it.cd) { cd = String(it.cd); break; }
+    }
+    return {
+      template: 'municipio',
+      mun: munName || undefined,
+      cd: cd || undefined,
+      options: { topN: 10, fotos: false },
+    };
+  }
+
+  if (first && first.cargo) {
+    return {
+      template: 'candidato',
+      cargo: first.cargo,
+      numero: first.n,
+      nome: first.nm,
+      options: { hist: true, topMun: 15, detalhe: 'bairro', fotos: false },
+    };
+  }
+
+  return { template: 'resumo', options: { hist: true, fotos: false } };
+}
+
+
 export default {
   async fetch(request, env) {
     const allowed = env.ALLOWED_ORIGIN || 'https://marcelhalls-dotcom.github.io';
@@ -526,11 +596,15 @@ ${JSON.stringify(retrieval)}`;
     const answer = (((data || {}).choices || [])[0] || {}).message?.content || '';
     if (!answer.trim()) return json(502, { error: 'Resposta vazia do modelo.' }, cors);
 
+    const lastUser = [...parsed.messages].reverse().find(m => m.role === 'user')?.content || '';
+    const report = detectReportIntent(lastUser, retrieval);
+
     return json(200, {
       reply: answer.trim(),
       model: (data && data.model) || model,
       remaining: { hour: rate.remainingHour, day: rate.remainingDay },
       retrieval: retrieval.detectado || null,
+      report: report || null,
     }, cors);
   },
 };

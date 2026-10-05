@@ -91,6 +91,24 @@
   .toppart-col h3 { margin: 2px 0 4px; font-size: 1rem; }
   .toppart-col h4 { margin: 8px 0 2px; font-size: 0.82rem; color: var(--subtext); font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
   .toppart-col .rank-list { grid-template-columns: 1fr; margin-top: 2px; }
+  .toppart-col .meta-mini { color: var(--subtext); font-size: 0.78rem; margin: 0 0 6px; }
+  .card.suplentes { grid-column: 1 / -1; border-top: 3px solid #38bdf8; }
+  .card.suplentes h2 { color: #7dd3fc; }
+  .suplente-lista { margin: 10px 0 18px; }
+  .suplente-lista h3 { margin: 0 0 6px; font-size: 1rem; color: #e2e8f0; }
+  .suplente-lista .meta-mini { color: var(--subtext); font-size: 0.78rem; margin: 0 0 8px; }
+  .mapa-col-b.waiting-pick {
+    outline: 2px dashed rgba(167,139,250,0.55);
+    outline-offset: 4px;
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(167,139,250,0.06);
+  }
+  .mapa-col-b.waiting-pick .mapa-side-toolbar {
+    position: sticky; top: 8px; z-index: 2;
+    background: #0f172a; padding: 8px; border-radius: 10px;
+    border: 1px solid rgba(167,139,250,0.45);
+  }
   .card.eleitos { grid-column: 1 / -1; border-top: 3px solid #22c55e; }
   .card.eleitos h2 { color: #86efac; }
   .eleitos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 22px; margin-top: 10px; }
@@ -408,6 +426,7 @@
     <a href="#senadores" data-view="senadores">Senadores</a>
     <a href="#federais" data-view="federais">Deputados Federais</a>
     <a href="#estaduais" data-view="estaduais">Deputados Estaduais</a>
+    <a href="#suplentes" data-view="suplentes">Suplentes</a>
   </div>
   <div class="nav-select-wrap">
     <select id="nav-select" class="nav-select" aria-label="Seção">
@@ -417,6 +436,7 @@
       <option value="senadores">Senadores</option>
       <option value="federais">Deputados Federais</option>
       <option value="estaduais">Deputados Estaduais</option>
+      <option value="suplentes">Suplentes</option>
     </select>
   </div>
 </nav>
@@ -428,6 +448,7 @@
   <section class="view" id="view-senadores"><div class="grid ordered" id="grid-senadores"></div></section>
   <section class="view" id="view-federais"><div class="grid ordered" id="grid-federais"></div></section>
   <section class="view" id="view-estaduais"><div class="grid ordered" id="grid-estaduais"></div></section>
+  <section class="view" id="view-suplentes"><div class="grid ordered" id="grid-suplentes"></div></section>
 </main>
 
 <footer>
@@ -557,40 +578,58 @@ function normalizar(j) {
   const cands = new Map();
   const partidos = new Map();
   const todos = [];
+  const mapVs = (k) => (Array.isArray(k.vs) ? k.vs.map(v => ({
+    tp: v.tp || '', sqcand: v.sqcand ? String(v.sqcand) : '',
+    nome: v.nmu || v.nm || '', partido: v.sgp || '',
+  })) : []);
   const add = (k, partido) => cands.set(String(k.n), {
     vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
     nomeUrna: k.nmu || k.nm || '', partido: partido || '', sqcand: k.sqcand ? String(k.sqcand) : '',
+    vs: mapVs(k),
   });
   const listasVagas = [];
+  const listas = []; // todas as coligações/partidos com candidatos (proporcional)
   const projetados = new Set();  // deputados: vagas de cada partido/federação calculadas pelo TSE com os votos atuais (agr.vag)
-  if (Array.isArray(j.carg) && j.carg[0] && num(j.carg[0].qe) > 0) {
+  if (Array.isArray(j.carg) && j.carg[0]) {
     const qe = num(j.carg[0].qe);
     for (const a of j.carg[0].agr || []) {
-      const vag = num(a.vag); if (!vag) continue;
+      const vag = num(a.vag);
+      const pars = a.par || [];
+      const nomeLista = pars.length > 1 ? (a.com || a.nm || pars.map(p => p.sg).filter(Boolean).join(' / ')) : ((pars[0] || {}).sg || a.nm || '');
       const cs = [];
-      for (const p of a.par || []) for (const k of p.cand || []) if (!k.dvt || k.dvt === 'Válido') cs.push(k);
-      cs.sort((x, y) => num(y.vap) - num(x.vap));
-      const elis = cs.filter(k => num(k.vap) >= 0.1 * qe).slice(0, vag);
-      elis.forEach(k => projetados.add(String(k.n)));
-      const tot = (a.par || []).reduce((t, p) => t + num(p.tvtn) + num(p.tvtl), 0);
-      listasVagas.push({ nome: (a.par || []).length > 1 ? (a.com || a.nm || '') : ((a.par[0] || {}).sg || ''), vag, votos: tot, eleitos: elis.map(k => ({ n: String(k.n), nome: k.nmu || k.nm || '', vap: num(k.vap), pvap: pctNum(k.pvap), oficial: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' })) });
+      for (const p of pars) for (const k of p.cand || []) {
+        if (k.dvt && k.dvt !== 'Válido') continue;
+        cs.push({
+          n: String(k.n), nome: k.nmu || k.nm || '', partido: p.sg || '',
+          vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
+          sqcand: k.sqcand ? String(k.sqcand) : '', vs: mapVs(k),
+        });
+      }
+      cs.sort((x, y) => y.vap - x.vap || x.n.localeCompare(y.n));
+      const tot = pars.reduce((t, p) => t + num(p.tvtn) + num(p.tvtl), 0);
+      if (cs.length) listas.push({ nome: nomeLista, vag, votos: tot, cands: cs, partidos: pars.map(p => p.sg).filter(Boolean) });
+      if (qe > 0 && vag > 0) {
+        const elis = cs.filter(k => k.vap >= 0.1 * qe).slice(0, vag);
+        elis.forEach(k => projetados.add(String(k.n)));
+        listasVagas.push({ nome: nomeLista, vag, votos: tot, eleitos: elis.map(k => ({ n: k.n, nome: k.nome, vap: k.vap, pvap: k.pvap, oficial: k.eleito, sqcand: k.sqcand })) });
+      }
     }
   }
   if (Array.isArray(j.carg)) {                       // formato "-u.json"
     for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || []) {
       partidos.set(String(p.n), { sigla: p.sg, nominais: num(p.tvtn), legenda: num(p.tvtl), vagas: num(a.vag), agrupamento: (a.par || []).length > 1 ? (a.com || a.nm || '') : '' });
       for (const k of p.cand || []) add(k, p.sg);
-      for (const k of p.cand || []) todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: p.sg, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' });
+      for (const k of p.cand || []) todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: p.sg, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '', vs: mapVs(k) });
     }
   } else if (Array.isArray(j.cand)) {                // formato "-r.json"
-    for (const k of j.cand) { const pa = (k.cc || '').split(' - ')[0]; add(k, pa); todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: pa, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' }); }
+    for (const k of j.cand) { const pa = (k.cc || '').split(' - ')[0]; add(k, pa); todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: pa, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '', vs: mapVs(k) }); }
   }
   const s = j.s || j;
   return {
     pst: pctNum(s.pst), st: num(s.st), ts: num(s.ts),
     dt: j.dt || '', ht: j.ht || '', dg: j.dg || '', hg: j.hg || '',
     totalFinal: j.tf === 's', votosValidos: num((j.v || j).vv), cands, partidos, todos,
-    projetados, listasVagas, qe: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].qe) : 0, eleitoresFaltando: num((j.e || {}).esnt), comparecimento: num((j.e || {}).est) > 0 ? num((j.e || {}).c) / num((j.e || {}).est) : 1, votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
+    projetados, listasVagas, listas, qe: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].qe) : 0, eleitoresFaltando: num((j.e || {}).esnt), comparecimento: num((j.e || {}).est) > 0 ? num((j.e || {}).c) / num((j.e || {}).est) : 1, votosValidosCalc: num((j.v || {}).vvc) || num((j.v || j).vv),
     vagas: Array.isArray(j.carg) && j.carg[0] ? num(j.carg[0].nv) : 0,
   };
 }
@@ -615,7 +654,7 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 let HIST = null;
 let resultadoFinal = false;
 let viewAtual = 'painel';
-const VIEWS = ['painel','governo','presidente','senadores','federais','estaduais'];
+const VIEWS = ['painel','governo','presidente','senadores','federais','estaduais','suplentes'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -892,6 +931,7 @@ function renderRanking(rk) {
 
 
 function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Brasil e PL', partidos = CONFIG.topPorPartido) {
+  // legado (ainda usado se chamado); preferir renderTopTodosPartidos
   const card = el('section', 'card toppart');
   card.appendChild(el('h2', null, titulo));
   const algum = [6, 7].map(c => estado[c]?.dados).find(Boolean);
@@ -927,6 +967,177 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
   card.appendChild(g);
   return card;
 }
+
+function appendRankCand(wrap, c, i, d, cod, meus) {
+  const stl = (c.st || '').toLowerCase();
+  const proj = !c.eleito && !stl.startsWith('eleito') && d.projetados && d.projetados.has(c.n) && !d.totalFinal;
+  const it = el('div', 'rank-item' + (c.eleito || stl.startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+  it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
+  it.appendChild(el('span', 'pos', `${i + 1}º`));
+  const nm = el('div');
+  const title = el('div');
+  if (meus.has(c.n)) title.appendChild(el('span', 'mark-star', '★'));
+  if (c.eleito || stl.startsWith('eleito') || proj) title.appendChild(el('span', 'mark-ok', '✓'));
+  title.appendChild(document.createTextNode(c.nome));
+  nm.appendChild(title);
+  const sb = el('div', 'sub', `${c.n} · ${c.partido || ''}${c.st ? ' · ' + c.st : ''}`);
+  if (proj) sb.appendChild(el('span', 'tag-proj', ' · PROJEÇÃO'));
+  nm.appendChild(sb);
+  const hx = histOf(cod, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
+  it.appendChild(nm);
+  const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
+  it.appendChild(v);
+  wrap.appendChild(it);
+  return it;
+}
+
+function renderTopTodosPartidos(codigo, titulo) {
+  const d = estado[codigo]?.dados;
+  const cargo = CONFIG.cargos.find(c => c.codigo === codigo);
+  const card = el('section', 'card toppart span-all');
+  card.appendChild(el('h2', null, titulo || (`Mais votados por partido/federação · ${cargo ? cargo.titulo : ''}`)));
+  card.appendChild(el('div', 'meta', d
+    ? `Urnas apuradas: ${fmtPct(d.pst)} • Todos os partidos/federações com candidatos. Top 7 por lista (federação = uma lista). Ordenado por cadeiras (vagas TSE) e depois votos totais. Verde = eleito; ★ amarelo = acompanhados. Use “Ver todos” para expandir.`
+    : 'Aguardando TSE'));
+  if (!d || d.pst === 0) {
+    card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE começar a divulgar votos'));
+    return card;
+  }
+  const meus = new Set((cargo?.candidatos || []).map(c => String(c.numero)));
+  const listas = [...(d.listas || [])].filter(l => (l.cands || []).length)
+    .sort((a, b) => (b.vag || 0) - (a.vag || 0) || (b.votos || 0) - (a.votos || 0) || String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+  const g = el('div', 'toppart-grid');
+  const lim = 7;
+  listas.forEach((l, idx) => {
+    const col = el('div', 'toppart-col');
+    const h = el('h3', null, l.nome || 'Lista'); h.style.color = corLista(l.nome, idx); col.appendChild(h);
+    col.appendChild(el('div', 'meta-mini', `${l.vag || 0} cadeira(s) · ${fmtInt.format(l.votos || 0)} votos · ${l.cands.length} candidato(s)`));
+    const wrap = el('div', 'rank-list');
+    const rows = [];
+    l.cands.forEach((c, i) => {
+      const it = appendRankCand(wrap, c, i, d, codigo, meus);
+      if (i >= lim) it.hidden = true;
+      rows.push(it);
+    });
+    col.appendChild(wrap);
+    if (rows.length > lim) {
+      const btn = el('button', 'toggle-mais');
+      btn.type = 'button';
+      let aberto = false;
+      const sync = () => {
+        btn.textContent = aberto ? 'Ver menos' : `Ver todos (${rows.length})`;
+        rows.forEach((r, i) => { if (i >= lim) r.hidden = !aberto; });
+      };
+      sync();
+      btn.addEventListener('click', () => { aberto = !aberto; sync(); });
+      col.appendChild(btn);
+    }
+    g.appendChild(col);
+  });
+  if (!listas.length) card.appendChild(el('div', 'aviso-card espera', 'Nenhuma lista com candidatos'));
+  else card.appendChild(g);
+  return card;
+}
+
+function renderSuplentes() {
+  const wrapNodes = [];
+  // --- Proporcionais ---
+  for (const codigo of [6, 7]) {
+    const d = estado[codigo]?.dados;
+    const cargo = CONFIG.cargos.find(c => c.codigo === codigo);
+    const card = el('section', 'card suplentes');
+    card.appendChild(el('h2', null, `Suplentes · ${cargo ? cargo.titulo : ('Cargo ' + codigo)}`));
+    card.appendChild(el('div', 'meta', d
+      ? `Urnas: ${fmtPct(d.pst)} • 1º/2º/3º suplente = candidatos com situação oficial “Suplente” no TSE, por partido/federação que elegeu (uma lista por federação), ordenados por votos.`
+      : 'Aguardando TSE'));
+    if (!d || !d.listas) {
+      card.appendChild(el('div', 'aviso-card espera', 'Aguardando dados do TSE'));
+      wrapNodes.push(card);
+      continue;
+    }
+    const listas = [...d.listas].filter(l => (l.vag || 0) > 0 || (l.cands || []).some(c => c.eleito || (c.st || '').toLowerCase().startsWith('eleito')))
+      .sort((a, b) => (b.vag || 0) - (a.vag || 0) || (b.votos || 0) - (a.votos || 0));
+    if (!listas.length) {
+      card.appendChild(el('div', 'aviso-card espera', 'Ainda sem partidos/federações com cadeiras'));
+      wrapNodes.push(card);
+      continue;
+    }
+    const meus = new Set((cargo?.candidatos || []).map(c => String(c.numero)));
+    for (const l of listas) {
+      const block = el('div', 'suplente-lista');
+      block.appendChild(el('h3', null, l.nome));
+      block.appendChild(el('div', 'meta-mini', `${l.vag || 0} eleito(s) · próximos suplentes oficiais do TSE`));
+      const supl = (l.cands || []).filter(c => (c.st || '') === 'Suplente').slice(0, 3);
+      const rl = el('div', 'rank-list');
+      if (!supl.length) {
+        rl.appendChild(el('div', 'mapa-empty', 'Sem suplentes listados pelo TSE nesta lista'));
+      } else {
+        supl.forEach((c, i) => {
+          const it = el('div', 'rank-item' + (meus.has(c.n) ? ' meu' : ''));
+          it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
+          it.appendChild(el('span', 'pos', `${i + 1}º supl.`));
+          const nm = el('div');
+          const title = el('div');
+          if (meus.has(c.n)) title.appendChild(el('span', 'mark-star', '★'));
+          title.appendChild(document.createTextNode(c.nome));
+          nm.appendChild(title);
+          nm.appendChild(el('div', 'sub', `${c.n} · ${c.partido || ''}${c.st ? ' · ' + c.st : ''}`));
+          it.appendChild(nm);
+          const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
+          it.appendChild(v);
+          rl.appendChild(it);
+        });
+      }
+      block.appendChild(rl);
+      card.appendChild(block);
+    }
+    wrapNodes.push(card);
+  }
+
+  // --- Senado (vs do TSE no JSON do eleito) ---
+  const senCard = el('section', 'card suplentes');
+  senCard.appendChild(el('h2', null, 'Suplentes · Senado'));
+  const sd = estado[5]?.dados;
+  senCard.appendChild(el('div', 'meta', sd
+    ? `Urnas: ${fmtPct(sd.pst)} • 1º e 2º suplentes oficiais vinculados a cada senador eleito (campo vs do TSE). Sem votos próprios.`
+    : 'Aguardando TSE'));
+  if (!sd) {
+    senCard.appendChild(el('div', 'aviso-card espera', 'Aguardando dados do TSE'));
+  } else {
+    const eleitos = (sd.todos || []).filter(c => c.eleito || (c.st || '').toLowerCase() === 'eleito')
+      .sort((a, b) => b.vap - a.vap);
+    let any = false;
+    for (const sen of eleitos) {
+      const vs = (sen.vs || []).filter(v => v.tp === 's1' || v.tp === 's2' || v.sqcand);
+      if (!vs.length) continue;
+      any = true;
+      const block = el('div', 'suplente-lista');
+      block.appendChild(el('h3', null, `Senador ${sen.nome} (${sen.n} · ${sen.partido || ''})`));
+      block.appendChild(el('div', 'meta-mini', `${fmtInt.format(sen.vap)} votos · suplentes da chapa (TSE)`));
+      const rl = el('div', 'rank-list');
+      const ordered = [...vs].sort((a, b) => String(a.tp).localeCompare(String(b.tp)));
+      ordered.forEach((v, i) => {
+        const label = v.tp === 's1' ? '1º supl.' : (v.tp === 's2' ? '2º supl.' : `${i + 1}º supl.`);
+        const it = el('div', 'rank-item');
+        it.appendChild(makeAvatar(v.sqcand, v.nome, CONFIG.uf, codigoEleicao, true));
+        it.appendChild(el('span', 'pos', label));
+        const nm = el('div');
+        nm.appendChild(el('div', null, v.nome || '—'));
+        nm.appendChild(el('div', 'sub', `${v.partido || '—'} · chapa do senador ${sen.n}`));
+        it.appendChild(nm);
+        const vv = el('div', 'v'); vv.appendChild(el('div', 'sub', 'sem votos próprios'));
+        it.appendChild(vv);
+        rl.appendChild(it);
+      });
+      block.appendChild(rl);
+      senCard.appendChild(block);
+    }
+    if (!any) senCard.appendChild(el('div', 'aviso-card espera', 'Suplentes de senador ainda não disponíveis no JSON do TSE'));
+  }
+  wrapNodes.push(senCard);
+  return wrapNodes;
+}
+
 
 const CORES_LISTA = { 'PSD': '#22c55e', 'PP / UNIÃO': '#3b82f6', 'PCDOB / PT / PV': '#ef4444', 'REPUBLICANOS': '#8b5cf6', 'PL': '#facc15', 'MDB': '#14b8a6', 'PSB': '#f472b6', 'AVANTE': '#f97316', 'PSOL / REDE': '#eab308', 'PDT': '#fb7185', 'PSDB / CIDADANIA': '#38bdf8', 'NOVO': '#fdba74', 'UNIÃO': '#3b82f6', 'PT': '#ef4444', 'PP': '#64748b', 'PODE': '#a78bfa', 'REDE': '#84cc16', 'PSDB': '#38bdf8', 'PSC': '#f97316' };
 const PALETA_EXTRA = ['#a3e635', '#c084fc', '#2dd4bf', '#fca5a5', '#93c5fd', '#fde68a'];
@@ -1609,7 +1820,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   const candPart = (c) => c.sg || c.partido || '';
   const candTot = (c) => (c.t != null ? c.t : c.total) || 0;
 
-  const paintSelect = (sel, lista, buscaEl, prevPrefer) => {
+  const paintSelect = (sel, lista, buscaEl, prevPrefer, emptyLabel) => {
     const q = (buscaEl.value || '').trim().toLowerCase();
     const filtered = lista.filter(c => {
       if (!q) return true;
@@ -1618,7 +1829,8 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     const prev = prevPrefer != null ? String(prevPrefer) : sel.value;
     sel.replaceChildren();
     if (!filtered.length) { sel.appendChild(new Option('Nenhum candidato', '')); return; }
-    sel.appendChild(new Option(`Selecione (${filtered.length} de ${lista.length})…`, ''));
+    const ph = emptyLabel || `Selecione (${filtered.length} de ${lista.length})…`;
+    sel.appendChild(new Option(ph, ''));
     for (const c of filtered) {
       const part = candPart(c);
       const label = `${candKey(c)} — ${candNome(c)}${part ? ' (' + part + ')' : ''} · ${fmtInt.format(candTot(c))} votos`;
@@ -1715,6 +1927,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   const showB = async (numero) => {
     if (!numero) return;
     numB = String(numero);
+    colB.classList.remove('waiting-pick');
     bodyB.replaceChildren(el('div', 'mapa-empty', 'Carregando mapa B…'));
     try {
       dataB = await loadMapaCand(cargoB, numero);
@@ -1749,15 +1962,21 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     btnClose.hidden = false;
     setMobileMode('ambos');
     // listas já populadas no boot (evitar await indexReady aqui — deadlock)
-    paintSelect(selB, listaB, buscaB, numB);
-    if (!numB) {
-      const pick = listaB.find(c => candKey(c) !== numA) || listaB[0];
-      if (pick) { selB.value = candKey(pick); await showB(candKey(pick)); }
-    } else if (listaB.some(c => candKey(c) === String(numB))) {
+    if (numB && listaB.some(c => candKey(c) === String(numB))) {
+      colB.classList.remove('waiting-pick');
+      paintSelect(selB, listaB, buscaB, numB);
       selB.value = numB;
       await showB(numB);
     } else {
-      bodyB.replaceChildren(el('div', 'mapa-empty', 'Candidato B não encontrado neste cargo.'));
+      // NÃO auto-escolhe candidato: mostra seletor B vazio
+      numB = '';
+      dataB = null;
+      colB.classList.add('waiting-pick');
+      paintSelect(selB, listaB, buscaB, '', 'Escolha o candidato para comparar');
+      selB.value = '';
+      headB.textContent = 'Candidato B';
+      resumoB.textContent = 'Escolha o candidato para comparar';
+      bodyB.replaceChildren(el('div', 'mapa-empty', 'Escolha o candidato para comparar (nome, número ou partido).'));
     }
     paintDiff();
     pushHash();
@@ -1767,6 +1986,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     compareOn = false;
     compareWrap.classList.remove('on', 'show-a', 'show-b');
     card.classList.remove('comparing');
+    colB.classList.remove('waiting-pick');
     colB.hidden = true;
     btnCompare.setAttribute('aria-pressed', 'false');
     btnCompare.textContent = 'Comparar';
@@ -1796,9 +2016,12 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   selCargoB.addEventListener('change', async () => {
     await loadListaB(selCargoB.value);
     numB = ''; dataB = null;
-    bodyB.replaceChildren(el('div', 'mapa-empty', 'Escolha o candidato B.'));
-    resumoB.textContent = 'Escolha o candidato B.';
+    colB.classList.add('waiting-pick');
+    paintSelect(selB, listaB, buscaB, '', 'Escolha o candidato para comparar');
+    bodyB.replaceChildren(el('div', 'mapa-empty', 'Escolha o candidato para comparar.'));
+    resumoB.textContent = 'Escolha o candidato para comparar';
     paintDiff();
+    pushHash();
   });
   btnCompare.addEventListener('click', () => { if (compareOn) closeCompare(); else openCompare(); });
   btnClose.addEventListener('click', closeCompare);
@@ -1988,8 +2211,8 @@ function renderTudo() {
     if (fed) nodes.push(renderCard(fed));
     (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [6], titulo: pd.titulo.replace(' - Votação do partido', ' · Federal') })));
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
-    nodes.push(renderTopPartidos('5 mais votados do PL · Federal', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }]));
-    nodes.push(renderTopPartidos('7 mais votados por partido · Federal', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [6] }))));
+    // PL top 5 dedicado removido (redundante com o bloco de todos os partidos/federações abaixo)
+    nodes.push(renderTopTodosPartidos(6, 'Mais votados por partido/federação · Deputado Federal'));
     nodes.push(renderEleitos());
     nodes.push(renderMapaPanel(6, 'Mapa de Votação — Deputados Federais', 'federais'));
     nodes.push(renderCusto());
@@ -2002,11 +2225,14 @@ function renderTudo() {
     if (est) nodes.push(renderCard(est));
     (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [7], titulo: pd.titulo.replace(' - Votação do partido', ' · Estadual') })));
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
-    nodes.push(renderTopPartidos('5 mais votados do PL · Estadual', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]));
-    nodes.push(renderTopPartidos('7 mais votados por partido · Estadual', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [7] }))));
+    // PL top 5 dedicado removido (redundante com o bloco de todos os partidos/federações abaixo)
+    nodes.push(renderTopTodosPartidos(7, 'Mais votados por partido/federação · Deputado Estadual'));
     nodes.push(renderMapaPanel(7, 'Mapa de Votação — Deputados Estaduais', 'estaduais'));
     ge.replaceChildren(...nodes);
   }
+
+  const gsu = document.getElementById('grid-suplentes');
+  if (gsu) gsu.replaceChildren(...renderSuplentes());
 
   const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === 'se').map(c => estado[chaveDe(c)]?.dados).find(Boolean);
   document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';

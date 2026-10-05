@@ -171,7 +171,7 @@
   .hdr-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .btn { appearance: none; border: 1px solid rgba(56,189,248,0.45); background: rgba(56,189,248,0.12); color: var(--accent); border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; cursor: pointer; }
   .btn:hover { background: rgba(56,189,248,0.22); }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #e2e8f0; overflow: hidden; flex: none; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #e2e8f0; overflow: hidden; flex: none; position: relative; }
   .avatar.sm { width: 36px; height: 36px; font-size: 0.65rem; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cand { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: start; }
@@ -286,7 +286,7 @@
     border: 1px solid rgba(167,139,250,0.45); background: #0f172a; color: var(--text); font-size: 0.95rem;
   }
   .mapa-toolbar input { flex: 1 1 200px; max-width: 100%; }
-  .mapa-toolbar select { flex: 1 1 220px; max-width: 100%; }
+  .mapa-toolbar select { flex: 1 1 280px; max-width: 100%; font-size: 0.9rem; }
   .mapa-resumo { color: var(--subtext); font-size: 0.82rem; margin-bottom: 8px; }
   .mapa-tree { display: grid; gap: 6px; }
   .mapa-tree details { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 10px; }
@@ -602,11 +602,31 @@ function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   if (!url) return wrap;
   const img = document.createElement('img');
   img.alt = nome ? ('Foto de ' + nome) : 'Foto do candidato';
-  img.loading = 'lazy'; img.decoding = 'async'; img.src = url;
-  img.style.display = 'none';
+  // eager: display:none + loading=lazy impede o Chrome de baixar a foto
+  img.loading = 'eager';
+  img.decoding = 'async';
+  img.style.opacity = '0';
+  img.style.position = 'absolute';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  img.style.inset = '0';
+  const reveal = () => {
+    if (img.dataset.shown === '1') return;
+    if (!img.naturalWidth) return;
+    img.dataset.shown = '1';
+    wrap.textContent = '';
+    wrap.removeAttribute('aria-hidden');
+    img.style.opacity = '1';
+    img.style.position = 'static';
+    if (!img.parentNode) wrap.appendChild(img);
+  };
   img.addEventListener('error', () => { img.remove(); });
-  img.addEventListener('load', () => { wrap.textContent = ''; wrap.removeAttribute('aria-hidden'); img.style.display = 'block'; wrap.appendChild(img); });
+  img.addEventListener('load', reveal);
+  wrap.style.position = wrap.style.position || 'relative';
   wrap.appendChild(img);
+  img.src = url; // after listeners — cache pode disparar load síncrono
+  if (img.complete) reveal();
   return wrap;
 }
 function prefersReducedMotion() {
@@ -1154,6 +1174,7 @@ function renderEleitosSE() {
 
 
 let MAPA_INDEX = null;
+let MAPA_GEO = null;
 const mapaCache = new Map();
 
 async function loadMapaIndex() {
@@ -1163,10 +1184,87 @@ async function loadMapaIndex() {
   return MAPA_INDEX;
 }
 
+async function loadMapaGeo() {
+  if (MAPA_GEO) return MAPA_GEO;
+  const idx = await loadMapaIndex();
+  const path = (idx && idx.geo) || 'mapa/geo-se.json';
+  try { MAPA_GEO = await getJSON(path); }
+  catch (e) { console.warn('mapa geo', e); MAPA_GEO = { mun: [], loc: [] }; }
+  return MAPA_GEO;
+}
+
+function expandMapaCompact(raw, geo) {
+  const mun = geo.mun || [];
+  const loc = geo.loc || [];
+  const isPres = Number(raw.c) === 1;
+  const totalRef = isPres ? (raw.tse || 0) : (raw.t || 0);
+  const tree = new Map();
+  for (const pair of raw.v || []) {
+    const li = pair[0], v = pair[1];
+    const L = loc[li];
+    if (!L || !v) continue;
+    let M = tree.get(L.m);
+    if (!M) { M = { votos: 0, zonas: new Map() }; tree.set(L.m, M); }
+    M.votos += v;
+    let Z = M.zonas.get(L.z);
+    if (!Z) { Z = { votos: 0, bairros: new Map() }; M.zonas.set(L.z, Z); }
+    Z.votos += v;
+    const bKey = L.b || 'Sem bairro';
+    let B = Z.bairros.get(bKey);
+    if (!B) { B = { votos: 0, locais: [] }; Z.bairros.set(bKey, B); }
+    B.votos += v;
+    B.locais.push({
+      nm: L.nm, end: L.e || '', nr: L.nl,
+      votos: v, pct: totalRef ? v / totalRef : 0
+    });
+  }
+  const meta = raw.meta || {};
+  const municipios = [...tree.entries()].map(([mi, M]) => {
+    const nm = (mun[mi] && mun[mi].nm) || ('Município ' + mi);
+    const zonas = [...M.zonas.entries()].map(([nr, Z]) => ({
+      nr, votos: Z.votos, pct: totalRef ? Z.votos / totalRef : 0,
+      bairros: [...Z.bairros.entries()].map(([bnm, B]) => ({
+        nm: bnm, votos: B.votos, pct: totalRef ? B.votos / totalRef : 0,
+        locais: B.locais.slice().sort((a, b) => b.votos - a.votos)
+      })).sort((a, b) => b.votos - a.votos)
+    })).sort((a, b) => b.votos - a.votos);
+    const out = { nm, votos: M.votos, pct: totalRef ? M.votos / totalRef : 0, zonas };
+    const miMeta = meta[String(mi)];
+    if (miMeta && miMeta.meta != null) {
+      out.meta = miMeta.meta;
+      out.diff_meta = M.votos - miMeta.meta;
+    }
+    return out;
+  }).sort((a, b) => b.votos - a.votos);
+
+  const data = {
+    nome: raw.nm || '',
+    partido: raw.sg || '',
+    numero: String(raw.n || ''),
+    total: raw.t,
+  };
+  if (isPres) {
+    data.total_se = raw.tse || 0;
+    const et = raw.t || 1;
+    data.estados = (raw.e || []).map(x => ({ uf: x.u, votos: x.v, pct: x.v / et }));
+    data.municipios_se = municipios;
+    if (!municipios.length) data.nota_se = 'Sem votos nominais em Sergipe neste arquivo.';
+  } else {
+    data.municipios = municipios;
+  }
+  return data;
+}
+
 async function loadMapaCand(cargo, numero) {
   const key = `${cargo}:${numero}`;
   if (mapaCache.has(key)) return mapaCache.get(key);
-  const data = await getJSON(`mapa/${cargo}/${numero}.json`);
+  const [raw, geo] = await Promise.all([
+    getJSON(`mapa/${cargo}/${numero}.json`),
+    loadMapaGeo()
+  ]);
+  const data = (raw && raw.v && !raw.municipios && !raw.municipios_se)
+    ? expandMapaCompact(raw, geo)
+    : raw;
   mapaCache.set(key, data);
   return data;
 }
@@ -1286,8 +1384,8 @@ function renderMapaPanel(cargoCodigo, titulo) {
   card.appendChild(el('h2', null, titulo || 'Mapa de Votação'));
   card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro e colégio eleitoral. Fonte: votação por seção 2026 + locais de votação 2026.'));
   const toolbar = el('div', 'mapa-toolbar');
-  const buscaCand = el('input'); buscaCand.type = 'search'; buscaCand.placeholder = 'Buscar candidato (nome ou número)';
-  buscaCand.setAttribute('aria-label', 'Buscar candidato no mapa');
+  const buscaCand = el('input'); buscaCand.type = 'search'; buscaCand.placeholder = 'Buscar nome, número ou partido';
+  buscaCand.setAttribute('aria-label', 'Buscar candidato no mapa por nome, número ou partido');
   const sel = el('select'); sel.setAttribute('aria-label', 'Candidato');
   sel.appendChild(new Option('Carregando candidatos…', ''));
   toolbar.appendChild(buscaCand); toolbar.appendChild(sel);
@@ -1304,18 +1402,29 @@ function renderMapaPanel(cargoCodigo, titulo) {
   let lista = [];
   let atual = null;
 
+  const candKey = (c) => String(c.n != null ? c.n : c.numero);
+  const candNome = (c) => c.nm || c.nome || '';
+  const candPart = (c) => c.sg || c.partido || '';
+  const candTot = (c) => (c.t != null ? c.t : c.total) || 0;
   const paintLista = () => {
     const q = buscaCand.value.trim().toLowerCase();
-    const filtered = lista.filter(c => !q || c.nome.toLowerCase().includes(q) || String(c.numero).includes(q));
+    const filtered = lista.filter(c => {
+      if (!q) return true;
+      return candNome(c).toLowerCase().includes(q)
+        || candKey(c).includes(q)
+        || candPart(c).toLowerCase().includes(q);
+    });
     const prev = sel.value;
     sel.replaceChildren();
     if (!filtered.length) { sel.appendChild(new Option('Nenhum candidato', '')); return; }
-    sel.appendChild(new Option('Selecione um candidato…', ''));
+    const opt0 = new Option(`Selecione (${filtered.length} de ${lista.length})…`, '');
+    sel.appendChild(opt0);
     for (const c of filtered) {
-      const label = `${c.numero} — ${c.nome}${c.partido ? ' (' + c.partido + ')' : ''} · ${fmtInt.format(c.total)} votos`;
-      sel.appendChild(new Option(label, c.numero));
+      const part = candPart(c);
+      const label = `${candKey(c)} — ${candNome(c)}${part ? ' (' + part + ')' : ''} · ${fmtInt.format(candTot(c))} votos`;
+      sel.appendChild(new Option(label, candKey(c)));
     }
-    if (prev && filtered.some(c => String(c.numero) === String(prev))) sel.value = prev;
+    if (prev && filtered.some(c => candKey(c) === String(prev))) sel.value = prev;
   };
 
   const showCand = async (numero) => {
@@ -1326,6 +1435,7 @@ function renderMapaPanel(cargoCodigo, titulo) {
       atual = data;
       const partes = [
         `${data.nome || ('Nº ' + numero)}`,
+        data.partido ? data.partido : null,
         data.total != null ? `${fmtInt.format(data.total)} votos` : null,
         data.total_se != null ? `SE: ${fmtInt.format(data.total_se)}` : null,
       ].filter(Boolean);
@@ -1356,9 +1466,13 @@ function renderMapaPanel(cargoCodigo, titulo) {
 
   loadMapaIndex().then(idx => {
     lista = (idx.cargos && idx.cargos[String(cargoCodigo)]) || [];
+    // já vem ordenado por votos no index compact-v2
     paintLista();
-    // auto-select first (most voted) for convenience
-    if (lista.length) { sel.value = lista[0].numero; showCand(lista[0].numero); }
+    if (lista.length) {
+      const n0 = candKey(lista[0]);
+      sel.value = n0;
+      showCand(n0);
+    }
   });
   buscaCand.addEventListener('input', paintLista);
   sel.addEventListener('change', () => { if (sel.value) showCand(sel.value); });

@@ -304,11 +304,28 @@
   .mapa-empty { color: var(--subtext); padding: 12px 0; }
   .ms-regs .meta-col { color: #fcd34d; }
 
+
+  header { position: relative; }
+  .visit-counter {
+    position: absolute; top: 8px; right: 0;
+    display: none; align-items: center; gap: 6px;
+    background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.35);
+    color: var(--subtext); padding: 4px 10px; border-radius: 999px;
+    font-size: 0.78rem; white-space: nowrap; line-height: 1.2;
+  }
+  .visit-counter.show { display: inline-flex; }
+  @media (max-width: 560px) {
+    header { padding-top: 36px; }
+    .visit-counter { top: 4px; right: 4px; left: auto; font-size: 0.72rem; padding: 4px 8px; }
+    h1 { font-size: 1.45rem; }
+  }
+
 </style>
 </head>
 <body>
 
 <header>
+  <div id="visit-counter" class="visit-counter" hidden aria-label="Contador de acessos"></div>
   <h1>Apuração Sergipe 2026</h1>
   <div id="status" class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="status-texto">Conectando ao TSE…</span></div>
   <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
@@ -1384,6 +1401,33 @@ async function compartilhar() {
   }
 }
 
+
+async function atualizarContadorAcessos() {
+  const el = document.getElementById('visit-counter');
+  if (!el) return;
+  const FLAG = 'apuracao-se-visit-hit';
+  const base = 'https://abacus.jasoncameron.dev';
+  const ns = 'apuracao-se';
+  const key = 'visits';
+  try {
+    const already = sessionStorage.getItem(FLAG) === '1';
+    const url = already ? `${base}/get/${ns}/${key}` : `${base}/hit/${ns}/${key}`;
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return;
+    const data = await r.json();
+    const n = Number(data && data.value);
+    if (!Number.isFinite(n)) return;
+    if (!already) sessionStorage.setItem(FLAG, '1');
+    el.textContent = `👁 ${fmtInt.format(n)} acessos`;
+    el.hidden = false;
+    el.classList.add('show');
+  } catch (e) {
+    // silencioso: esconde o pill
+    el.hidden = true;
+    el.classList.remove('show');
+  }
+}
+
 function bootNav() {
   const tabs = document.getElementById('nav-tabs');
   if (tabs) {
@@ -1528,6 +1572,7 @@ async function atualizar() {
 bootNav();
 renderTudo();
 atualizar();
+atualizarContadorAcessos();
 setInterval(() => {
   if (buscando) return;
   segundos--;

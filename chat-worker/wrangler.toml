@@ -12,6 +12,7 @@ MAX_HISTORY = "8"
 MAX_TOKENS = "1800"
 RATE_HOUR = "20"
 RATE_DAY = "60"
+PAGES_BASE = "https://marcelhalls-dotcom.github.io/apuracao-se"
 
 [[kv_namespaces]]
 binding = "RATE"

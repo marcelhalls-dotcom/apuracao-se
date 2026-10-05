@@ -425,6 +425,7 @@
   .chat-suggest {
     display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px;
   }
+  .chat-suggest[hidden] { display: none !important; }
   .chat-suggest button {
     appearance: none; border: 1px solid rgba(167,139,250,0.4); background: rgba(167,139,250,0.1);
     color: #ddd6fe; border-radius: 999px; padding: 6px 10px; font-size: 0.75rem; cursor: pointer; text-align: left;
@@ -2299,10 +2300,18 @@ function bootChat() {
       if (!msgs.childElementCount) {
         addBubble('bot', 'Olá! Posso responder sobre as eleições de Sergipe 2026 (e referências a 2022), incluindo Presidente no Brasil/SE. Fonte: TSE.');
       }
+      syncSuggest();
       setTimeout(() => input.focus(), 50);
     } else if (lastFocus && lastFocus.focus) {
       lastFocus.focus();
     }
+  };
+
+  const syncSuggest = () => {
+    // chips só na abertura sem conversa (além da saudação do bot, conta mensagens user)
+    const hasUser = history.some(m => m.role === 'user')
+      || !!msgs.querySelector('.chat-bubble.user');
+    suggest.hidden = hasUser;
   };
 
   CHAT_SUGGEST.forEach(q => {
@@ -2315,6 +2324,7 @@ function bootChat() {
     });
     suggest.appendChild(b);
   });
+  syncSuggest();
 
   fab.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
   closeBtn.addEventListener('click', () => setOpen(false));
@@ -2338,6 +2348,7 @@ function bootChat() {
     addBubble('user', text);
     history.push({ role: 'user', content: text });
     while (history.length > 8) history.shift();
+    syncSuggest();
 
     busy = true;
     send.disabled = true;

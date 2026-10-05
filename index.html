@@ -497,6 +497,15 @@
   .rel-photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(148,163,184,.35); background: #0f172a; }
   .rel-maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin: 12px 0; }
   .rel-maps svg { width: 100%; height: auto; background: #f8fafc; border-radius: 8px; border: 1px solid rgba(148,163,184,.25); }
+  .rel-exec-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 8px 0 12px; }
+  .rel-cand-card { display: flex; gap: 12px; padding: 12px; border-radius: 10px; background: rgba(15,23,42,.55); border: 1px solid rgba(148,163,184,.28); }
+  .rel-cand-photo { width: 72px; height: 96px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(148,163,184,.4); flex-shrink: 0; background: #0f172a; }
+  .rel-cand-fallback { display: flex; align-items: center; justify-content: center; font-weight: 700; color: #e2e8f0; }
+  .rel-cand-tag { font-size: 0.75rem; color: #7dd3fc; margin-bottom: 2px; }
+  .rel-cand-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .rel-cand-meta { font-size: 0.82rem; line-height: 1.35; color: #cbd5e1; }
+  .rel-cand-hist { color: #94a3b8; margin-top: 4px; }
+  .rel-stats { font-size: 0.8rem; color: #94a3b8; margin: 4px 0; }
   .rel-drill details { margin: 4px 0 4px 8px; }
   .rel-drill summary { cursor: pointer; padding: 4px 0; }
   .rel-esc { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin: 4px 0 8px; }
@@ -2669,6 +2678,7 @@ function syncRelGlobals() {
   window.fmtPct = fmtPct;
   window.chaveDe = chaveDe;
   window.setView = setView;
+  window.buscarCargo = typeof buscarCargo === 'function' ? buscarCargo : window.buscarCargo;
 }
 
 syncRelGlobals();

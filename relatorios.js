@@ -130,24 +130,103 @@
     return [...dados.todos].sort((a, b) => (b.vap || 0) - (a.vap || 0) || String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
   }
 
+  function situacaoFmt(me) {
+    if (!me) return '—';
+    const st = String(me.st || '').trim();
+    if (st) return st;
+    if (me.eleito) return 'Eleito';
+    return '—';
+  }
+
+  function rankFromMapaIndex(cargo, numero) {
+    const raw = (((global.MAPA_INDEX || {}).cargos || {})[String(cargo)] || []);
+    // candidatos com nº de urna (exclui legendas 1–2 dígitos quando houver misturados)
+    const list = raw.filter(c => String(c.n || '').length >= 3 || Number(c.t) > 0)
+      .slice()
+      .sort((a, b) => (b.t || 0) - (a.t || 0) || String(a.n).localeCompare(String(b.n)));
+    const idx = list.findIndex(c => String(c.n) === String(numero));
+    if (idx < 0) return { rank: null, total: list.length, vap: 0, partido: '', partyRank: null, partyTotal: 0 };
+    const me = list[idx];
+    const party = list.filter(c => (c.sg || '') === (me.sg || ''));
+    const partyRank = party.findIndex(c => String(c.n) === String(numero)) + 1;
+    return {
+      rank: idx + 1, total: list.length, vap: me.t || 0, partido: me.sg || '',
+      partyRank: partyRank || null, partyTotal: party.length,
+    };
+  }
+
   function candState(cargo, numero) {
     const { dados } = cargoDados(Number(cargo));
     const all = sortedTodos(dados);
     const me = all.find(k => String(k.n) === String(numero));
-    const rank = me ? all.findIndex(k => String(k.n) === String(numero)) + 1 : null;
     const meta = metaCand(cargo, numero);
-    const partyList = all.filter(k => (k.partido || '') === (me && me.partido || meta.sg || ''));
-    const partyRank = me ? partyList.findIndex(k => String(k.n) === String(numero)) + 1 : null;
+    const fb = rankFromMapaIndex(cargo, numero);
+    let rank = me ? all.findIndex(k => String(k.n) === String(numero)) + 1 : fb.rank;
+    let total = all.length || fb.total;
+    const partyKey = (me && me.partido) || meta.sg || fb.partido || '';
+    const partyList = all.length
+      ? all.filter(k => (k.partido || '') === partyKey)
+      : [];
+    let partyRank = me && partyList.length
+      ? partyList.findIndex(k => String(k.n) === String(numero)) + 1
+      : fb.partyRank;
+    let partyTotal = partyList.length || fb.partyTotal;
+    const vap = me ? me.vap : (fb.vap || meta.t || 0);
+    let pvap = me ? me.pvap : null;
+    if (pvap == null && dados && dados.votosValidos) {
+      pvap = dados.votosValidos > 0 ? (100 * vap / dados.votosValidos) : null;
+    }
+    if (pvap == null && all.length) {
+      const sum = all.reduce((s, k) => s + (k.vap || 0), 0);
+      if (sum > 0) pvap = 100 * vap / sum;
+    }
     return {
-      meta, me, rank, total: all.length, partyRank, partyTotal: partyList.length,
-      vap: me ? me.vap : (meta.t || 0),
-      pvap: me ? me.pvap : null,
-      st: me ? (me.eleito ? 'Eleito' : (me.st || '—')) : '—',
+      meta, me, rank, total, partyRank, partyTotal,
+      vap, pvap,
+      st: situacaoFmt(me),
       eleito: !!(me && me.eleito),
       hist: histOf(Number(cargo), numero),
-      nome: meta.nu || meta.nm || (me && me.nome) || String(numero),
-      partido: meta.sg || (me && me.partido) || '',
+      nome: (me && me.nome) || meta.nu || meta.nm || String(numero),
+      nomeCompleto: meta.nm || (me && me.nome) || '',
+      partido: partyKey || meta.sg || (me && me.partido) || '',
+      numero: String(numero),
     };
+  }
+
+  async function ensureCargoEstado(cargo) {
+    const code = Number(cargo);
+    let { dados } = cargoDados(code);
+    if (dados && Array.isArray(dados.todos) && dados.todos.length) return dados;
+    // espera o painel terminar de puxar o TSE
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 250));
+      dados = cargoDados(code).dados;
+      if (dados && Array.isArray(dados.todos) && dados.todos.length) return dados;
+    }
+    // tenta buscar direto
+    try {
+      if (typeof global.buscarCargo === 'function' && global.CONFIG) {
+        const cfg = (global.CONFIG.cargos || []).find(c => c.codigo === code && (!c.uf || c.uf === 'se' || c.uf === global.CONFIG.uf));
+        if (cfg) {
+          const norm = await global.buscarCargo(cfg);
+          const key = global.chaveDe ? global.chaveDe(cfg) : code;
+          if (!global.estado) global.estado = {};
+          global.estado[key] = { dados: norm, erro: null, recebidoEm: Date.now() };
+          if (typeof global.syncRelGlobals === 'function') global.syncRelGlobals();
+          return norm;
+        }
+      }
+    } catch (e) { console.warn('ensureCargoEstado fetch', e); }
+    return cargoDados(code).dados;
+  }
+
+  function computeKeyStats(tree, cmpRows, side) {
+    const munComVoto = tree.munList.filter(m => m.v > 0).length;
+    const top5 = tree.munList.slice(0, 5);
+    const top3Sum = tree.munList.slice(0, 3).reduce((s, m) => s + m.v, 0);
+    const conc = tree.total > 0 ? (100 * top3Sum / tree.total) : 0;
+    const wins = (cmpRows || []).filter(r => r.winner === side).length;
+    return { munComVoto, top5, conc, wins, totalMun: (cmpRows || []).length || tree.munList.length };
   }
 
   /** Build nested tree: mun -> zona -> bairro -> escola */
@@ -206,24 +285,50 @@
     return rows;
   }
 
-  /* ---------- Choropleth ---------- */
-  // Sequential YlOrRd-like: least -> most
-  const SEQ = ['#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#cc4c02', '#993404', '#662506'];
+  /* ---------- Choropleth (quantile + win margin) ---------- */
+  const SEQ = ['#fff7bc', '#fee391', '#fec44f', '#fe9929', '#ec7014', '#cc4c02', '#8c2d04'];
 
-  function colorScale(t) {
-    const x = Math.max(0, Math.min(1, t));
-    const i = Math.min(SEQ.length - 1, Math.floor(x * (SEQ.length - 1)));
-    return SEQ[i];
+  function quantileBreaks(values, nClasses) {
+    const sorted = values.filter(v => Number.isFinite(v) && v > 0).slice().sort((a, b) => a - b);
+    const n = Math.max(2, Math.min(nClasses || 7, SEQ.length));
+    if (!sorted.length) return { breaks: [0, 1], colors: SEQ.slice(0, n) };
+    const breaks = [];
+    for (let i = 0; i <= n; i++) {
+      if (i === 0) { breaks.push(sorted[0]); continue; }
+      if (i === n) { breaks.push(sorted[sorted.length - 1]); continue; }
+      const pos = (i / n) * (sorted.length - 1);
+      const lo = Math.floor(pos), hi = Math.ceil(pos);
+      const v = lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+      breaks.push(Math.round(v));
+    }
+    // garantir monotonia estrita o quanto possível
+    for (let i = 1; i < breaks.length; i++) {
+      if (breaks[i] <= breaks[i - 1]) breaks[i] = breaks[i - 1] + 1;
+    }
+    return { breaks, colors: SEQ.slice(0, n) };
   }
 
-  function legendRanges(minV, maxV) {
-    const ranges = [];
-    for (let i = 0; i < SEQ.length; i++) {
-      const a = minV + (maxV - minV) * (i / SEQ.length);
-      const b = minV + (maxV - minV) * ((i + 1) / SEQ.length);
-      ranges.push({ color: SEQ[i], from: Math.round(a), to: Math.round(b) });
+  function classForValue(v, breaks) {
+    if (!v || v <= 0) return -1;
+    for (let i = 0; i < breaks.length - 1; i++) {
+      if (i === breaks.length - 2) {
+        if (v >= breaks[i] && v <= breaks[i + 1]) return i;
+      } else if (v >= breaks[i] && v < breaks[i + 1]) return i;
     }
-    return ranges;
+    return breaks.length - 2;
+  }
+
+  function featureCentroid(f, proj) {
+    let sx = 0, sy = 0, n = 0;
+    function walk(c) {
+      if (typeof c[0] === 'number') {
+        const [x, y] = proj(c[0], c[1]);
+        sx += x; sy += y; n++;
+      } else c.forEach(walk);
+    }
+    walk(f.geometry.coordinates);
+    if (!n) return null;
+    return [sx / n, sy / n];
   }
 
   function bboxOf(geojson) {
@@ -265,72 +370,85 @@
     const W = (opts && opts.w) || 560, H = (opts && opts.h) || 420;
     const title = (opts && opts.title) || '';
     const mode = (opts && opts.mode) || 'seq'; // seq | win
+    const munNames = (opts && opts.munNames) || null;
+    const legendH = mode === 'seq' ? 56 : 42;
     const bb = bboxOf(geojson);
-    const proj = projectFactory(bb, W, H - (mode === 'seq' ? 48 : 36), 10);
-    let minV = Infinity, maxV = -Infinity;
+    const proj = projectFactory(bb, W, H - legendH, 10);
+
     const vals = [];
-    for (const f of geojson.features) {
-      const i = f.properties.i;
-      const v = valueByI.get(i) || 0;
-      vals.push(v);
-      if (v < minV) minV = v;
-      if (v > maxV) maxV = v;
-    }
-    if (!Number.isFinite(minV)) { minV = 0; maxV = 1; }
-    if (minV === maxV) maxV = minV + 1;
+    for (const f of geojson.features) vals.push(valueByI.get(f.properties.i) || 0);
+    const { breaks, colors } = quantileBreaks(vals, 7);
 
     let paths = '';
+    const labelCandidates = [];
     for (const f of geojson.features) {
       const i = f.properties.i;
       let fill = '#e2e8f0';
+      const v = valueByI.get(i) || 0;
       if (mode === 'win') {
-        const w = valueByI.get(i); // 'a' | 'b' | 'empate' | null via side channel
         const winMap = (opts && opts.winByI) || new Map();
         const winner = winMap.get(i);
         const va = ((opts && opts.aByI) || new Map()).get(i) || 0;
         const vb = ((opts && opts.bByI) || new Map()).get(i) || 0;
-        if (winner === 'a') fill = '#2563eb';
-        else if (winner === 'b') fill = '#dc2626';
-        else if (winner === 'empate') fill = '#94a3b8';
-        else fill = '#e2e8f0';
-        // fade by margin
         const tot = va + vb;
-        if (tot > 0 && (winner === 'a' || winner === 'b')) {
-          const margin = Math.abs(va - vb) / tot;
-          const alpha = 0.35 + 0.65 * margin;
-          fill = winner === 'a' ? `rgba(37,99,235,${alpha.toFixed(2)})` : `rgba(220,38,38,${alpha.toFixed(2)})`;
+        if (winner === 'empate') fill = '#94a3b8';
+        else if (winner === 'a' || winner === 'b') {
+          const margin = tot > 0 ? Math.abs(va - vb) / tot : 0;
+          const t = 0.28 + 0.72 * margin; // intensidade pela margem
+          if (winner === 'a') fill = `rgba(37,99,235,${t.toFixed(2)})`;
+          else fill = `rgba(220,38,38,${t.toFixed(2)})`;
         }
       } else {
-        const v = valueByI.get(i) || 0;
-        fill = colorScale((v - minV) / (maxV - minV));
+        const ci = classForValue(v, breaks);
+        fill = ci < 0 ? '#f1f5f9' : colors[ci];
       }
       const d = geomPath(f.geometry, proj);
-      const tip = (f.properties.nm || '') + ': ' + fmtN(valueByI.get(i) || 0);
-      paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="0.4" data-i="${i}"><title>${tip.replace(/"/g, '')}</title></path>`;
+      const tip = (f.properties.nm || '') + ': ' + fmtN(v);
+      paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="0.45" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></path>`;
+      if (mode === 'seq' && v > 0) {
+        const c = featureCentroid(f, proj);
+        if (c) labelCandidates.push({ i, v, nm: f.properties.nm || (munNames && munNames.get(i)) || '', x: c[0], y: c[1] + (title ? 8 : 0) });
+      }
+    }
+
+    let labels = '';
+    if (mode === 'seq') {
+      labelCandidates.sort((a, b) => b.v - a.v);
+      for (const L of labelCandidates.slice(0, 5)) {
+        const short = String(L.nm || '').split(' ')[0].slice(0, 12);
+        labels += `<g>
+          <text x="${L.x.toFixed(1)}" y="${L.y.toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#0f172a" stroke="#f8fafc" stroke-width="2.5" paint-order="stroke">${short}</text>
+          <text x="${L.x.toFixed(1)}" y="${(L.y + 9).toFixed(1)}" text-anchor="middle" font-size="7" fill="#334155" stroke="#f8fafc" stroke-width="2" paint-order="stroke">${fmtN(L.v)}</text>
+        </g>`;
+      }
     }
 
     let legend = '';
     if (mode === 'seq') {
-      const ranges = legendRanges(minV, maxV);
-      const lw = W - 20, lh = 14, lx = 10, ly = H - 32;
-      const cw = lw / ranges.length;
-      legend = `<text x="10" y="${H - 40}" font-size="10" fill="#334155">Menos votos → Mais votos</text>`;
-      ranges.forEach((r, i) => {
-        legend += `<rect x="${lx + i * cw}" y="${ly}" width="${cw}" height="${lh}" fill="${r.color}" stroke="#94a3b8" stroke-width="0.3"/>`;
+      const n = colors.length;
+      const lw = W - 20, lh = 12, lx = 10, ly = H - 28;
+      const cw = lw / n;
+      legend = `<text x="10" y="${H - 42}" font-size="10" fill="#334155">Classes (quantis) — menos → mais votos</text>`;
+      colors.forEach((c, i) => {
+        const from = breaks[i], to = breaks[i + 1];
+        const lab = i === n - 1 ? (fmtN(from) + '–' + fmtN(to)) : (fmtN(from) + '–' + fmtN(Math.max(from, to - 1)));
+        legend += `<rect x="${lx + i * cw}" y="${ly}" width="${cw - 1}" height="${lh}" fill="${c}" stroke="#94a3b8" stroke-width="0.3"/>`;
+        legend += `<text x="${lx + i * cw + cw / 2}" y="${ly + lh + 10}" font-size="7.5" fill="#475569" text-anchor="middle">${lab}</text>`;
       });
-      legend += `<text x="${lx}" y="${ly + lh + 11}" font-size="9" fill="#64748b">${fmtN(minV)}</text>`;
-      legend += `<text x="${lx + lw}" y="${ly + lh + 11}" font-size="9" fill="#64748b" text-anchor="end">${fmtN(maxV)}</text>`;
     } else {
-      legend = `<text x="10" y="${H - 18}" font-size="10" fill="#334155">■ A vence  ■ B vence  ■ Empate</text>`;
-      legend = `<rect x="10" y="${H - 30}" width="12" height="10" fill="#2563eb"/><text x="26" y="${H - 21}" font-size="10" fill="#334155">A vence</text>`
-        + `<rect x="100" y="${H - 30}" width="12" height="10" fill="#dc2626"/><text x="116" y="${H - 21}" font-size="10" fill="#334155">B vence</text>`
-        + `<rect x="190" y="${H - 30}" width="12" height="10" fill="#94a3b8"/><text x="206" y="${H - 21}" font-size="10" fill="#334155">Empate</text>`;
+      legend = `<rect x="10" y="${H - 34}" width="14" height="10" fill="rgba(37,99,235,0.95)"/>`
+        + `<text x="28" y="${H - 25}" font-size="10" fill="#334155">A vence</text>`
+        + `<rect x="100" y="${H - 34}" width="14" height="10" fill="rgba(220,38,38,0.95)"/>`
+        + `<text x="118" y="${H - 25}" font-size="10" fill="#334155">B vence</text>`
+        + `<rect x="190" y="${H - 34}" width="14" height="10" fill="#94a3b8"/>`
+        + `<text x="208" y="${H - 25}" font-size="10" fill="#334155">Empate</text>`
+        + `<text x="10" y="${H - 10}" font-size="8.5" fill="#64748b">Intensidade = margem de vitória no município (clara → forte)</text>`;
     }
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
       <rect width="100%" height="100%" fill="#f8fafc"/>
-      ${title ? `<text x="10" y="16" font-size="12" font-weight="700" fill="#0f172a">${title.replace(/</g, '')}</text>` : ''}
-      <g transform="translate(0,${title ? 8 : 0})">${paths}</g>
+      ${title ? `<text x="10" y="16" font-size="12" font-weight="700" fill="#0f172a">${title.replace(/[<>]/g, '')}</text>` : ''}
+      <g transform="translate(0,${title ? 8 : 0})">${paths}${labels}</g>
       ${legend}
     </svg>`;
   }
@@ -380,10 +498,13 @@
     try { if (doc.outline && doc.outline.add) doc.outline.add(null, title, { pageNumber: page }); } catch (e) {}
   }
 
-  function sectionTitle(doc, title, y, bookmarks, anchorId) {
+  function sectionTitle(doc, title, y, bookmarks, anchorId, minBelow) {
     const m = margins();
     const { w, h } = pageSize(doc);
-    if (y > h - 90) { doc.addPage(); y = m.t; }
+    // jsPDF text usa baseline: deixa folga acima para não invadir tabela anterior
+    if (y > m.t + 2) y += 12;
+    const need = 22 + (minBelow || 0);
+    if (y + need > h - m.b) { doc.addPage(); y = m.t; }
     const page = doc.internal.getCurrentPageInfo().pageNumber;
     doc.setFont('NotoSans', 'bold'); doc.setFontSize(13); doc.setTextColor(20, 40, 80);
     doc.text(title, m.l, y);
@@ -393,6 +514,96 @@
     if (bookmarks) bookmarks.push({ title, page, id: anchorId || title });
     addBookmark(doc, title, page);
     return y + 22;
+  }
+
+  const MM = 2.834645669;
+
+  function drawInitialsAvatar(doc, x, y, w, h, nome) {
+    doc.setFillColor(30, 41, 59);
+    doc.roundedRect(x, y, w, h, 3, 3, 'F');
+    const parts = String(nome || '?').trim().split(/\s+/).filter(Boolean);
+    const ini = !parts.length ? '?' : (parts.length === 1 ? parts[0].slice(0, 2) : (parts[0][0] + parts[parts.length - 1][0])).toUpperCase();
+    doc.setFont('NotoSans', 'bold'); doc.setFontSize(14); doc.setTextColor(248, 250, 252);
+    doc.text(ini, x + w / 2, y + h / 2 + 5, { align: 'center' });
+    doc.setTextColor(0);
+  }
+
+  /** Card A/B: foto 30×40mm + metadados. Retorna y final. */
+  function writeCandCard(doc, x, y, cardW, st, photo, tag) {
+    const phW = 30 * MM, phH = 40 * MM;
+    const pad = 8;
+    const lines = [];
+    lines.push(tag + ' · nº ' + st.numero + (st.partido ? ' · ' + st.partido : ''));
+    lines.push(st.nome);
+    if (st.nomeCompleto && st.nomeCompleto !== st.nome) lines.push(st.nomeCompleto);
+    lines.push('Votos: ' + fmtN(st.vap) + (st.pvap != null ? '  (' + fmtP(st.pvap) + ' dos válidos)' : ''));
+    lines.push('Ranking cargo: ' + (st.rank ? st.rank + 'º de ' + st.total : '—'));
+    lines.push('Ranking partido/fed.: ' + (st.partyRank ? st.partyRank + 'º de ' + st.partyTotal : '—'));
+    lines.push('Situação: ' + (st.st || '—'));
+    lines.push('Histórico: ' + histLine(st.hist));
+
+    doc.setFont('NotoSans', 'normal'); doc.setFontSize(8.5);
+    const textW = cardW - pad * 2 - phW - 8;
+    let textH = 0;
+    const wrapped = [];
+    for (const raw of lines) {
+      const ls = doc.splitTextToSize(raw, textW);
+      wrapped.push(ls);
+      textH += ls.length * 11;
+    }
+    const cardH = Math.max(phH + pad * 2, textH + pad * 2 + 4);
+
+    doc.setDrawColor(148, 163, 184);
+    doc.setFillColor(248, 250, 252);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(x, y, cardW, cardH, 5, 5, 'FD');
+
+    const imgX = x + pad, imgY = y + pad;
+    if (photo) {
+      try {
+        doc.addImage(photo, 'JPEG', imgX, imgY, phW, phH);
+      } catch (e) {
+        try { doc.addImage(photo, 'PNG', imgX, imgY, phW, phH); }
+        catch (_) { drawInitialsAvatar(doc, imgX, imgY, phW, phH, st.nome); }
+      }
+      doc.setDrawColor(100, 116, 139);
+      doc.rect(imgX, imgY, phW, phH);
+    } else {
+      drawInitialsAvatar(doc, imgX, imgY, phW, phH, st.nome);
+    }
+
+    let ty = y + pad + 10;
+    const tx = imgX + phW + 8;
+    wrapped.forEach((ls, idx) => {
+      doc.setFont('NotoSans', idx <= 1 ? 'bold' : 'normal');
+      doc.setFontSize(idx === 1 ? 10 : 8.2);
+      doc.setTextColor(idx === 0 ? 30 : 15, idx === 0 ? 64 : 23, idx === 0 ? 120 : 42);
+      for (const line of ls) {
+        doc.text(line, tx, ty);
+        ty += 11;
+      }
+    });
+    doc.setTextColor(0);
+    return y + cardH;
+  }
+
+  function writeKeyStatsBlock(doc, y, label, stats, munNames) {
+    const top = (stats.top5 || []).map((m, i) => (i + 1) + '. ' + (munNames.get(m.i) || m.i) + ' (' + fmtN(m.v) + ')').join(' · ');
+    const txt = [
+      label + ' — municípios com voto: ' + stats.munComVoto + ' de ' + stats.totalMun
+        + ' · vence o confronto em ' + stats.wins + ' município(s)',
+      'Concentração (top 3 municípios): ' + fmtP(stats.conc),
+      'Top 5: ' + (top || '—'),
+    ].join('\n');
+    return bodyText(doc, txt, y);
+  }
+
+  function placeMapImage(doc, y, png, mapW, mapH) {
+    const m = margins();
+    const { h } = pageSize(doc);
+    if (y + mapH > h - m.b) { doc.addPage(); y = m.t; }
+    doc.addImage(png, 'PNG', m.l, y, mapW, mapH);
+    return y + mapH + 10;
   }
 
   function bodyText(doc, text, y) {
@@ -440,21 +651,45 @@
     doc.setTextColor(0);
   }
 
-  function writeToc(doc, bookmarks, tocPage) {
-    doc.setPage(tocPage);
+  function writeToc(doc, bookmarks, tocPage, tocPageCount) {
     const m = margins(); const { w, h } = pageSize(doc);
+    const linesPer = Math.max(20, Math.floor((h - m.t - m.b - 22) / 14));
+    const need = Math.max(1, Math.ceil((bookmarks.length + 1) / linesPer));
+    const reserved = Math.max(1, tocPageCount || need);
+    let pageIdx = 0;
+    doc.setPage(tocPage);
     let y = m.t;
     doc.setFont('NotoSans', 'bold'); doc.setFontSize(14); doc.text('Sumário', m.l, y); y += 22;
-    doc.setFont('NotoSans', 'normal'); doc.setFontSize(10);
+    doc.setFont('NotoSans', 'normal'); doc.setFontSize(9.5);
     for (const b of bookmarks) {
-      if (y > h - m.b) { doc.addPage(); y = m.t; }
-      doc.setTextColor(20, 60, 120); doc.text(b.title.slice(0, 70), m.l, y);
+      if (y > h - m.b) {
+        pageIdx++;
+        if (pageIdx < reserved) {
+          doc.setPage(tocPage + pageIdx);
+        } else {
+          // overflow raro: anexa ao fim (evita quebrar conteúdo já paginado)
+          doc.addPage();
+        }
+        y = m.t;
+      }
+      const title = b.title.length > 78 ? b.title.slice(0, 76) + '…' : b.title;
+      doc.setTextColor(20, 60, 120); doc.text(title, m.l, y);
       doc.setTextColor(80); doc.text(String(b.page), w - m.r, y, { align: 'right' });
       try { doc.link(m.l, y - 9, w - m.l - m.r, 12, { pageNumber: b.page }); } catch (e) {}
-      y += 14;
+      y += 13;
     }
     doc.setTextColor(0);
     addBookmark(doc, 'Sumário', tocPage);
+  }
+
+  function reserveTocPages(doc, approxEntries) {
+    const m = margins(); const { h } = pageSize(doc);
+    const linesPer = Math.max(20, Math.floor((h - m.t - m.b - 22) / 13));
+    const need = Math.max(2, Math.ceil((approxEntries + 2) / linesPer));
+    doc.addPage();
+    const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
+    for (let i = 1; i < need; i++) doc.addPage();
+    return { tocPage, tocPageCount: need };
   }
 
   function backLink(doc, y, tocPage) {
@@ -471,6 +706,7 @@
     const cargo = String(spec.cargo || spec.c || '7');
     const numero = String(spec.numero || spec.n || spec.a || '');
     const opts = Object.assign({ landscape: false }, spec.options || {});
+    await ensureCargoEstado(cargo);
     const st = candState(cargo, numero);
     const photo = await loadImageDataUrl(fotoPath(cargo, numero));
     const doc = newDoc(opts); await ensureFonts(doc);
@@ -478,35 +714,31 @@
     const scope = (CARGO_NOME[cargo] || cargo) + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '');
     await writeCover(doc, title, scope, 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola.', photo ? [photo] : []);
 
-    doc.addPage(); const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
+    const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
     const bookmarks = [];
     doc.addPage(); let y = margins().t;
+    const m0 = margins();
+    const cardW0 = pageSize(doc).w - m0.l - m0.r;
 
-    y = sectionTitle(doc, 'Resumo executivo', y, bookmarks);
-    if (photo) { try { doc.addImage(photo, 'JPEG', pageSize(doc).w - margins().r - 72, y - 10, 64, 64); } catch (e) {} }
-    y = bodyText(doc, [
-      'Nome: ' + st.nome + (st.meta.nm && st.meta.nu && st.meta.nm !== st.meta.nu ? ' (' + st.meta.nm + ')' : ''),
-      'Partido: ' + st.partido,
-      'Votos (SE): ' + fmtN(st.vap) + (st.pvap != null ? ' (' + fmtP(st.pvap) + ')' : ''),
-      'Ranking no cargo: ' + (st.rank ? st.rank + 'º de ' + st.total : '—'),
-      'Ranking no partido: ' + (st.partyRank ? st.partyRank + 'º de ' + st.partyTotal : '—'),
-      'Situação: ' + st.st,
-      'Histórico: ' + histLine(st.hist),
-    ].join('\n'), y);
+    y = sectionTitle(doc, 'Resumo executivo', y, bookmarks, 'resumo', 150);
+    y = writeCandCard(doc, m0.l, y, cardW0, st, photo, 'Candidato') + 8;
 
-    // Map
-    y = sectionTitle(doc, 'Mapa por município (votos)', y, bookmarks);
     const geojson = await loadGeoMun();
     const geo = await loadGeoLoc();
     const cand = await loadCandFile(cargo, numero);
     const tree = buildVoteTree(geo, cand || { v: [] });
     const valueByI = new Map([...tree.byI.entries()].map(([i, n]) => [i, n.v]));
-    const svg = buildChoroplethSVG(geojson, valueByI, { w: 520, h: 400, title: st.nome, mode: 'seq' });
+    const munIdx0 = await loadMunIndex();
+    const munNames0 = new Map((munIdx0.muns || []).map(mm => [mm.i, mm.nm]));
+    const stats0 = computeKeyStats(tree, null, 'a');
+    stats0.wins = 0; stats0.totalMun = tree.munList.length;
+    y = writeKeyStatsBlock(doc, y, st.nome, stats0, munNames0);
+
+    y = sectionTitle(doc, 'Mapa por município (votos)', y, bookmarks, 'mapa', 408);
+    const svg = buildChoroplethSVG(geojson, valueByI, { w: 520, h: 400, title: st.nome + ' (quantis)', mode: 'seq', munNames: munNames0 });
     try {
       const png = await svgToPngDataUrl(svg, 1040, 800);
-      if (y > pageSize(doc).h - 320) { doc.addPage(); y = margins().t; }
-      doc.addImage(png, 'PNG', margins().l, y, 520, 400);
-      y += 410;
+      y = placeMapImage(doc, y, png, 520, 400);
     } catch (e) {
       y = bodyText(doc, 'Não foi possível renderizar o mapa: ' + (e.message || e), y);
     }
@@ -547,12 +779,12 @@
             styles: { font: 'NotoSans', fontSize: 7, cellPadding: 2 },
             headStyles: { fillColor: [51, 65, 85], textColor: 255, fontSize: 7 },
             margin: { left: margins().l + 8, right: margins().r },
-          }) + 6;
+          }) + 12;
         }
       }
     }
 
-    writeToc(doc, bookmarks, tocPage);
+    writeToc(doc, bookmarks, tocPage, tocPageCount);
     addFooterAll(doc, { subtitle: title });
     return { doc, tree, st, svg };
   }
@@ -562,6 +794,7 @@
     const aN = String(spec.a || spec.numero || '');
     const bN = String(spec.b || '');
     const opts = Object.assign({ landscape: false }, spec.options || {});
+    await ensureCargoEstado(cargo);
     const stA = candState(cargo, aN);
     const stB = candState(cargo, bN);
     const photoA = await loadImageDataUrl(fotoPath(cargo, aN));
@@ -571,26 +804,20 @@
     const scope = (CARGO_NOME[cargo] || cargo) + ' · ' + aN + ' vs ' + bN;
     await writeCover(doc, title, scope, 'Comparativo zoneado completo (município → zona → bairro → escola). Fotos do repositório local.', [photoA, photoB].filter(Boolean));
 
-    doc.addPage(); const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
+    const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
     const bookmarks = [];
     doc.addPage(); let y = margins().t;
+    const m = margins();
+    const pageW = pageSize(doc).w;
+    const gap = 10;
+    const cardW = (pageW - m.l - m.r - gap) / 2;
 
-    y = sectionTitle(doc, 'Resumo executivo', y, bookmarks);
-    // side by side photos
-    let px = margins().l;
-    for (const ph of [photoA, photoB]) {
-      if (!ph) continue;
-      try { doc.addImage(ph, 'JPEG', px, y, 56, 56); } catch (e) {}
-      px += 64;
-    }
-    y += 64;
-    y = bodyText(doc, [
-      'A: ' + stA.nome + ' (' + aN + ' · ' + stA.partido + ') — ' + fmtN(stA.vap) + ' votos' + (stA.pvap != null ? ' (' + fmtP(stA.pvap) + ')' : '') + ' · ranking ' + (stA.rank || '—') + 'º · ' + stA.st,
-      '   Histórico: ' + histLine(stA.hist),
-      'B: ' + stB.nome + ' (' + bN + ' · ' + stB.partido + ') — ' + fmtN(stB.vap) + ' votos' + (stB.pvap != null ? ' (' + fmtP(stB.pvap) + ')' : '') + ' · ranking ' + (stB.rank || '—') + 'º · ' + stB.st,
-      '   Histórico: ' + histLine(stB.hist),
-      'Diferença A−B (estado): ' + fmtN(stA.vap - stB.vap),
-    ].join('\n'), y);
+    y = sectionTitle(doc, 'Resumo executivo', y, bookmarks, 'resumo', 160);
+    const yCardA = writeCandCard(doc, m.l, y, cardW, stA, photoA, 'A');
+    const yCardB = writeCandCard(doc, m.l + cardW + gap, y, cardW, stB, photoB, 'B');
+    y = Math.max(yCardA, yCardB) + 10;
+    y = bodyText(doc, 'Diferença A−B (estado): ' + fmtN(stA.vap - stB.vap)
+      + (stA.pvap != null && stB.pvap != null ? '  ·  Δ pp: ' + fmtP(stA.pvap - stB.pvap) : ''), y);
 
     const geojson = await loadGeoMun();
     const geo = await loadGeoLoc();
@@ -599,36 +826,40 @@
     const treeA = buildVoteTree(geo, candA || { v: [] });
     const treeB = buildVoteTree(geo, candB || { v: [] });
     const munIdx = await loadMunIndex();
-    const munNames = new Map((munIdx.muns || []).map(m => [m.i, m.nm]));
+    const munNames = new Map((munIdx.muns || []).map(mm => [mm.i, mm.nm]));
     const cmpRows = mergeCompareTrees(treeA, treeB, munNames);
 
     const aByI = new Map([...treeA.byI.entries()].map(([i, n]) => [i, n.v]));
     const bByI = new Map([...treeB.byI.entries()].map(([i, n]) => [i, n.v]));
     const winByI = new Map(cmpRows.map(r => [r.i, r.winner]));
 
-    y = sectionTitle(doc, 'Mapa A — ' + stA.nome, y, bookmarks);
-    try {
-      const svgA = buildChoroplethSVG(geojson, aByI, { w: 520, h: 390, title: 'Votos por município — A', mode: 'seq' });
-      const pngA = await svgToPngDataUrl(svgA, 1040, 780);
-      if (y > pageSize(doc).h - 300) { doc.addPage(); y = margins().t; }
-      doc.addImage(pngA, 'PNG', margins().l, y, 520, 390); y += 400;
-    } catch (e) { y = bodyText(doc, 'Mapa A indisponível: ' + e.message, y); }
+    const statsA = computeKeyStats(treeA, cmpRows, 'a');
+    const statsB = computeKeyStats(treeB, cmpRows, 'b');
+    y = writeKeyStatsBlock(doc, y, 'A (' + stA.nome + ')', statsA, munNames);
+    y = writeKeyStatsBlock(doc, y, 'B (' + stB.nome + ')', statsB, munNames);
 
-    y = sectionTitle(doc, 'Mapa B — ' + stB.nome, y, bookmarks);
+    const mapW = 520, mapH = 390;
+    // Mapa A — heading stays with map
+    y = sectionTitle(doc, 'Mapa A — ' + stA.nome, y, bookmarks, 'mapa-a', mapH + 8);
     try {
-      const svgB = buildChoroplethSVG(geojson, bByI, { w: 520, h: 390, title: 'Votos por município — B', mode: 'seq' });
-      const pngB = await svgToPngDataUrl(svgB, 1040, 780);
-      if (y > pageSize(doc).h - 300) { doc.addPage(); y = margins().t; }
-      doc.addImage(pngB, 'PNG', margins().l, y, 520, 390); y += 400;
-    } catch (e) { y = bodyText(doc, 'Mapa B indisponível: ' + e.message, y); }
+      const svgA = buildChoroplethSVG(geojson, aByI, { w: mapW, h: mapH, title: 'Votos por município — A (quantis)', mode: 'seq', munNames });
+      const pngA = await svgToPngDataUrl(svgA, mapW * 2, mapH * 2);
+      y = placeMapImage(doc, y, pngA, mapW, mapH);
+    } catch (e) { y = bodyText(doc, 'Mapa A indisponível: ' + (e.message || e), y); }
 
-    y = sectionTitle(doc, 'Mapa comparativo (quem venceu o município)', y, bookmarks);
+    y = sectionTitle(doc, 'Mapa B — ' + stB.nome, y, bookmarks, 'mapa-b', mapH + 8);
     try {
-      const svgC = buildChoroplethSVG(geojson, aByI, { w: 520, h: 390, title: 'Vencedor por município', mode: 'win', winByI, aByI, bByI });
-      const pngC = await svgToPngDataUrl(svgC, 1040, 780);
-      if (y > pageSize(doc).h - 300) { doc.addPage(); y = margins().t; }
-      doc.addImage(pngC, 'PNG', margins().l, y, 520, 390); y += 400;
-    } catch (e) { y = bodyText(doc, 'Mapa comparativo indisponível: ' + e.message, y); }
+      const svgB = buildChoroplethSVG(geojson, bByI, { w: mapW, h: mapH, title: 'Votos por município — B (quantis)', mode: 'seq', munNames });
+      const pngB = await svgToPngDataUrl(svgB, mapW * 2, mapH * 2);
+      y = placeMapImage(doc, y, pngB, mapW, mapH);
+    } catch (e) { y = bodyText(doc, 'Mapa B indisponível: ' + (e.message || e), y); }
+
+    y = sectionTitle(doc, 'Mapa comparativo (quem venceu o município)', y, bookmarks, 'mapa-cmp', mapH + 8);
+    try {
+      const svgC = buildChoroplethSVG(geojson, aByI, { w: mapW, h: mapH, title: 'Vencedor por município (intensidade = margem)', mode: 'win', winByI, aByI, bByI, munNames });
+      const pngC = await svgToPngDataUrl(svgC, mapW * 2, mapH * 2);
+      y = placeMapImage(doc, y, pngC, mapW, mapH);
+    } catch (e) { y = bodyText(doc, 'Mapa comparativo indisponível: ' + (e.message || e), y); }
 
     y = sectionTitle(doc, 'Todos os municípios (A, B, diferença)', y, bookmarks, 'idx-mun');
     y = autoTable(doc, {
@@ -638,11 +869,11 @@
       styles: { font: 'NotoSans', fontSize: 7, cellPadding: 2 },
       headStyles: { fillColor: [30, 64, 120], textColor: 255 },
       margin: { left: margins().l, right: margins().r },
-    }) + 8;
+    }) + 14;
 
     // Full drill-down per município
     for (const r of cmpRows) {
-      y = sectionTitle(doc, r.nm + ' — A ' + fmtN(r.a) + ' · B ' + fmtN(r.b) + ' · Δ ' + fmtN(r.d), y, bookmarks, 'mun-' + r.i);
+      y = sectionTitle(doc, r.nm + ' — A ' + fmtN(r.a) + ' · B ' + fmtN(r.b) + ' · Δ ' + fmtN(r.d), y, bookmarks, 'mun-' + r.i, 70);
       y = backLink(doc, y, tocPage);
 
       // union of zonas
@@ -708,12 +939,12 @@
             styles: { font: 'NotoSans', fontSize: 6.5, cellPadding: 1.5 },
             headStyles: { fillColor: [51, 65, 85], textColor: 255, fontSize: 7 },
             margin: { left: margins().l + 6, right: margins().r },
-          }) + 5;
+          }) + 12;
         }
       }
     }
 
-    writeToc(doc, bookmarks, tocPage);
+    writeToc(doc, bookmarks, tocPage, tocPageCount);
     addFooterAll(doc, { subtitle: title });
     return { doc, stA, stB, treeA, treeB, cmpRows, aByI, bByI, winByI, geojson };
   }
@@ -919,24 +1150,44 @@
     const mun = root.querySelector('#rel-mun'); if (mun) mun.innerHTML = munHtml;
   }
 
+  function candCardHtml(tag, st, cargo, numero) {
+    const rank = st.rank ? (st.rank + 'º de ' + st.total) : '—';
+    const pr = st.partyRank ? (st.partyRank + 'º de ' + st.partyTotal) : '—';
+    return '<article class="rel-cand-card">'
+      + '<img class="rel-cand-photo" src="' + fotoPath(cargo, numero) + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'rel-cand-photo rel-cand-fallback\',textContent:\'' + (st.nome || '?').slice(0, 2).toUpperCase().replace(/'/g, '') + '\'}))"/>'
+      + '<div class="rel-cand-meta">'
+      + '<div class="rel-cand-tag">' + tag + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '') + '</div>'
+      + '<div class="rel-cand-name">' + st.nome + '</div>'
+      + '<div>Votos: <strong>' + fmtN(st.vap) + '</strong>' + (st.pvap != null ? ' (' + fmtP(st.pvap) + ')' : '') + '</div>'
+      + '<div>Ranking cargo: <strong>' + rank + '</strong></div>'
+      + '<div>Ranking partido/fed.: <strong>' + pr + '</strong></div>'
+      + '<div>Situação: <strong>' + (st.st || '—') + '</strong></div>'
+      + '<div class="rel-cand-hist">2022: ' + histLine(st.hist) + '</div>'
+      + '</div></article>';
+  }
+
   function renderWebPreview(root, spec, built) {
     const box = root.querySelector('#rel-preview');
     if (!box) return;
     if (!built) { box.innerHTML = '<pre class="rel-preview-pre">Prévia:\n' + JSON.stringify(spec, null, 2) + '</pre>'; return; }
 
     if (spec.template === 'comparar' || (spec.a && spec.b)) {
-      const { stA, stB, cmpRows, aByI, bByI, winByI, geojson, treeA, treeB } = built;
-      const svgA = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'A — ' + stA.nome, mode: 'seq' });
-      const svgB = buildChoroplethSVG(geojson, bByI, { w: 480, h: 360, title: 'B — ' + stB.nome, mode: 'seq' });
-      const svgC = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'Vencedor por município', mode: 'win', winByI, aByI, bByI });
+      const { stA, stB, cmpRows, aByI, bByI, winByI, geojson, treeA, treeB, munNames } = built;
+      const names = munNames || new Map();
+      const svgA = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'A — ' + stA.nome + ' (quantis)', mode: 'seq', munNames: names });
+      const svgB = buildChoroplethSVG(geojson, bByI, { w: 480, h: 360, title: 'B — ' + stB.nome + ' (quantis)', mode: 'seq', munNames: names });
+      const svgC = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'Vencedor (intensidade = margem)', mode: 'win', winByI, aByI, bByI, munNames: names });
+      const statsA = computeKeyStats(treeA, cmpRows, 'a');
+      const statsB = computeKeyStats(treeB, cmpRows, 'b');
+      const topLine = (stats, label) => {
+        const top = (stats.top5 || []).map((m, i) => (i + 1) + '. ' + (names.get(m.i) || m.i) + ' (' + fmtN(m.v) + ')').join(' · ');
+        return '<p class="rel-stats"><strong>' + label + '</strong>: ' + stats.munComVoto + ' mun. com voto · vence em '
+          + stats.wins + ' · concentração top 3: ' + fmtP(stats.conc) + '<br/>Top 5: ' + top + '</p>';
+      };
       let html = '<div class="rel-preview-rich">';
-      html += '<div class="rel-exec"><div class="rel-photos">';
-      html += '<img src="' + fotoPath(spec.cargo, spec.a) + '" alt="" onerror="this.style.display=\'none\'"/>';
-      html += '<img src="' + fotoPath(spec.cargo, spec.b) + '" alt="" onerror="this.style.display=\'none\'"/>';
-      html += '</div><div>';
-      html += '<p><strong>A:</strong> ' + stA.nome + ' (' + spec.a + ') — <strong>' + fmtN(stA.vap) + '</strong> · ' + stA.st + '</p>';
-      html += '<p><strong>B:</strong> ' + stB.nome + ' (' + spec.b + ') — <strong>' + fmtN(stB.vap) + '</strong> · ' + stB.st + '</p>';
-      html += '<p>Δ A−B: <strong>' + fmtN(stA.vap - stB.vap) + '</strong></p></div></div>';
+      html += '<div class="rel-exec-cards">' + candCardHtml('A', stA, spec.cargo, spec.a) + candCardHtml('B', stB, spec.cargo, spec.b) + '</div>';
+      html += '<p>Δ A−B: <strong>' + fmtN(stA.vap - stB.vap) + '</strong></p>';
+      html += topLine(statsA, 'A') + topLine(statsB, 'B');
       html += '<div class="rel-maps">' + svgA + svgB + svgC + '</div>';
       html += '<h3>Municípios (' + cmpRows.length + ')</h3><div class="rel-drill">';
       for (const r of cmpRows) {
@@ -1028,6 +1279,7 @@
           history.replaceState(null, '', buildRelHash(spec));
           let built = null;
           if (spec.template === 'comparar' && spec.a && spec.b) {
+            await ensureCargoEstado(spec.cargo);
             const geojson = await loadGeoMun();
             const geo = await loadGeoLoc();
             const treeA = buildVoteTree(geo, await loadCandFile(spec.cargo, spec.a) || { v: [] });
@@ -1037,7 +1289,7 @@
             const cmpRows = mergeCompareTrees(treeA, treeB, munNames);
             built = {
               stA: candState(spec.cargo, spec.a), stB: candState(spec.cargo, spec.b),
-              cmpRows, treeA, treeB, geojson,
+              cmpRows, treeA, treeB, geojson, munNames,
               aByI: new Map([...treeA.byI.entries()].map(([i, n]) => [i, n.v])),
               bByI: new Map([...treeB.byI.entries()].map(([i, n]) => [i, n.v])),
               winByI: new Map(cmpRows.map(r => [r.i, r.winner])),

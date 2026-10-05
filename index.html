@@ -303,6 +303,46 @@
   .mapa-busca-nivel { width: 100%; margin: 4px 0 8px; min-height: 40px; padding: 8px 10px; border-radius: 8px;
     border: 1px solid rgba(148,163,184,0.35); background: #0f172a; color: var(--text); }
   .mapa-empty { color: var(--subtext); padding: 12px 0; }
+  .mapa-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; align-items: center; }
+  .btn-mapa {
+    appearance: none; border: 1px solid rgba(167,139,250,0.5); background: rgba(167,139,250,0.14);
+    color: #c4b5fd; border-radius: 999px; padding: 10px 16px; min-height: 44px; font-size: 0.85rem; cursor: pointer;
+  }
+  .btn-mapa:hover { background: rgba(167,139,250,0.28); }
+  .btn-mapa[aria-pressed="true"] { background: rgba(167,139,250,0.32); border-color: #c4b5fd; }
+  .mapa-mobile-toggle { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .mapa-compare-wrap { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .mapa-compare-wrap.on { grid-template-columns: 1fr 1fr; }
+  .mapa-col { min-width: 0; }
+  .mapa-col-head {
+    font-weight: 700; color: #c4b5fd; margin: 0 0 8px; font-size: 0.95rem;
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline;
+  }
+  .mapa-col-head .sub { font-weight: 500; color: var(--subtext); font-size: 0.8rem; }
+  .mapa-side-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .mapa-side-toolbar input, .mapa-side-toolbar select {
+    min-height: 44px; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid rgba(167,139,250,0.45); background: #0f172a; color: var(--text); font-size: 0.9rem;
+  }
+  .mapa-side-toolbar input { flex: 1 1 160px; }
+  .mapa-side-toolbar select { flex: 1 1 180px; }
+  .mapa-diff-wrap { margin: 8px 0 12px; overflow-x: auto; }
+  .mapa-diff-wrap h3 { font-size: 0.95rem; margin: 0 0 6px; color: #c4b5fd; }
+  .mapa-diff-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .mapa-diff-table th, .mapa-diff-table td {
+    padding: 7px 8px; text-align: right; border-bottom: 1px solid rgba(148,163,184,0.2); vertical-align: top;
+  }
+  .mapa-diff-table th:first-child, .mapa-diff-table td:first-child { text-align: left; }
+  .mapa-diff-table th { color: var(--subtext); font-weight: 600; }
+  .mapa-diff-pos { color: #4ade80; font-weight: 600; }
+  .mapa-diff-neg { color: #f87171; font-weight: 600; }
+  .mapa-diff-zero { color: var(--subtext); }
+  @media (max-width: 900px) {
+    .mapa-compare-wrap.on { grid-template-columns: 1fr; }
+    .mapa-votacao.comparing .mapa-mobile-toggle { display: flex; }
+    .mapa-compare-wrap.on.show-a .mapa-col-b { display: none; }
+    .mapa-compare-wrap.on.show-b .mapa-col-a { display: none; }
+  }
   .ms-regs .meta-col { color: #fcd34d; }
 
 
@@ -1281,14 +1321,17 @@ function mapaNodeRow(label, votos, pct, extraTxt) {
   return sm;
 }
 
-function lazyDetails(label, votos, pct, extraTxt, buildChild) {
+function lazyDetails(label, votos, pct, extraTxt, buildChild, opts) {
   const det = el('details');
+  const o = opts || {};
+  if (o.key) det.dataset.mvKey = o.key;
   det.appendChild(mapaNodeRow(label, votos, pct, extraTxt));
   const slot = el('div', 'mv-nested');
   det.appendChild(slot);
   let built = false;
   det.addEventListener('toggle', () => {
     if (det.open && !built) { built = true; slot.replaceChildren(buildChild()); }
+    if (o.onToggle) o.onToggle(det);
   });
   return det;
 }
@@ -1315,22 +1358,32 @@ function renderMapaLocais(locais, filtro) {
   return wrap;
 }
 
-function renderMapaBairros(bairros, filtro) {
+function renderMapaBairros(bairros, filtro, parentKey, syncOpts) {
   const wrap = el('div');
   const q = (filtro || '').trim().toLowerCase();
   for (const b of bairros) {
     const hit = !q || b.nm.toLowerCase().includes(q) || (b.locais || []).some(l => ((l.nm||'')+' '+(l.end||'')).toLowerCase().includes(q));
     if (!hit) continue;
-    wrap.appendChild(lazyDetails('Bairro: ' + b.nm, b.votos, b.pct, null, () => renderMapaLocais(b.locais || [], q && !b.nm.toLowerCase().includes(q) ? q : '')));
+    const key = (parentKey || '') + '|b:' + b.nm;
+    wrap.appendChild(lazyDetails(
+      'Bairro: ' + b.nm, b.votos, b.pct, null,
+      () => renderMapaLocais(b.locais || [], q && !b.nm.toLowerCase().includes(q) ? q : ''),
+      { key, onToggle: syncOpts && syncOpts.onToggle }
+    ));
   }
   if (!wrap.children.length) wrap.appendChild(el('div', 'mapa-empty', 'Nenhum bairro neste filtro'));
   return wrap;
 }
 
-function renderMapaZonas(zonas, filtro) {
+function renderMapaZonas(zonas, filtro, parentKey, syncOpts) {
   const wrap = el('div');
   for (const z of zonas) {
-    wrap.appendChild(lazyDetails('Zona ' + z.nr, z.votos, z.pct, null, () => renderMapaBairros(z.bairros || [], filtro)));
+    const key = (parentKey || '') + '|z:' + z.nr;
+    wrap.appendChild(lazyDetails(
+      'Zona ' + z.nr, z.votos, z.pct, null,
+      () => renderMapaBairros(z.bairros || [], filtro, key, syncOpts),
+      { key, onToggle: syncOpts && syncOpts.onToggle }
+    ));
   }
   return wrap;
 }
@@ -1346,7 +1399,7 @@ function munMatches(m, q) {
   return { self: false, deep: false };
 }
 
-function renderMapaMunicipios(municipios, filtro) {
+function renderMapaMunicipios(municipios, filtro, syncOpts) {
   const wrap = el('div', 'mapa-tree');
   const q = (filtro || '').trim().toLowerCase();
   let shown = 0;
@@ -1359,7 +1412,12 @@ function renderMapaMunicipios(municipios, filtro) {
       const d = m.diff_meta != null ? m.diff_meta : (m.votos - m.meta);
       extra = `Meta ${fmtInt.format(m.meta)} (${d >= 0 ? '+' : ''}${fmtInt.format(d)})`;
     }
-    const det = lazyDetails(m.nm, m.votos, m.pct, extra, () => renderMapaZonas(m.zonas || [], hit.self ? '' : q));
+    const key = 'm:' + m.nm;
+    const det = lazyDetails(
+      m.nm, m.votos, m.pct, extra,
+      () => renderMapaZonas(m.zonas || [], hit.self ? '' : q, key, syncOpts),
+      { key, onToggle: syncOpts && syncOpts.onToggle }
+    );
     if (q) { det.open = true; det.dispatchEvent(new Event('toggle')); }
     wrap.appendChild(det);
   }
@@ -1379,105 +1437,395 @@ function renderMapaEstados(estados) {
   return wrap;
 }
 
-function renderMapaPanel(cargoCodigo, titulo) {
+const MAPA_CARGO_LABEL = {
+  '1': 'Presidente', '3': 'Governador', '5': 'Senador', '6': 'Dep. Federal', '7': 'Dep. Estadual'
+};
+const MAPA_VIEW_CARGO = { presidente: '1', governo: '3', senadores: '5', federais: '6', estaduais: '7', painel: '3' };
+
+function parseLocationHash() {
+  const raw = (location.hash || '#painel').slice(1);
+  const q = raw.indexOf('?');
+  const viewPart = (q >= 0 ? raw.slice(0, q) : raw) || 'painel';
+  const qs = q >= 0 ? raw.slice(q + 1) : '';
+  const view = VIEWS.includes(viewPart) ? viewPart : 'painel';
+  const p = new URLSearchParams(qs);
+  return { view, a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
+}
+
+function buildLocationHash(view, params) {
+  const p = new URLSearchParams();
+  if (params && params.a) p.set('a', params.a);
+  if (params && params.b) p.set('b', params.b);
+  if (params && params.ac) p.set('ac', String(params.ac));
+  if (params && params.bc) p.set('bc', String(params.bc));
+  const qs = p.toString();
+  return '#' + view + (qs ? '?' + qs : '');
+}
+
+function munListOf(data) {
+  if (!data) return [];
+  if (data.municipios_se && data.municipios_se.length) return data.municipios_se;
+  return data.municipios || [];
+}
+
+function renderMapaDiffTable(dataA, dataB, labelA, labelB, filtro) {
+  const wrap = el('div', 'mapa-diff-wrap');
+  wrap.appendChild(el('h3', null, 'Comparativo por município (A − B)'));
+  const table = document.createElement('table');
+  table.className = 'mapa-diff-table';
+  table.setAttribute('aria-label', 'Comparativo de votos por município');
+  const thead = document.createElement('thead');
+  const hr = document.createElement('tr');
+  for (const t of ['Município', labelA || 'A', labelB || 'B', 'Diferença']) {
+    const th = document.createElement('th'); th.textContent = t; hr.appendChild(th);
+  }
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  const mapA = new Map(munListOf(dataA).map(m => [m.nm, m.votos || 0]));
+  const mapB = new Map(munListOf(dataB).map(m => [m.nm, m.votos || 0]));
+  const names = [...new Set([...mapA.keys(), ...mapB.keys()])];
+  const q = (filtro || '').trim().toLowerCase();
+  const rows = names
+    .filter(nm => !q || nm.toLowerCase().includes(q))
+    .map(nm => ({ nm, a: mapA.get(nm) || 0, b: mapB.get(nm) || 0 }))
+    .map(r => ({ ...r, d: r.a - r.b }))
+    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d) || y.a - x.a || x.nm.localeCompare(y.nm, 'pt-BR'));
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td'); td0.textContent = r.nm; tr.appendChild(td0);
+    const td1 = document.createElement('td'); td1.textContent = fmtInt.format(r.a); tr.appendChild(td1);
+    const td2 = document.createElement('td'); td2.textContent = fmtInt.format(r.b); tr.appendChild(td2);
+    const td3 = document.createElement('td');
+    const sign = r.d > 0 ? '+' : '';
+    td3.textContent = sign + fmtInt.format(r.d);
+    td3.className = r.d > 0 ? 'mapa-diff-pos' : (r.d < 0 ? 'mapa-diff-neg' : 'mapa-diff-zero');
+    tr.appendChild(td3);
+    tbody.appendChild(tr);
+  }
+  if (!rows.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td'); td.colSpan = 4; td.textContent = 'Nenhum município neste filtro'; td.className = 'mapa-empty';
+    tr.appendChild(td); tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function renderMapaPanel(cargoCodigo, titulo, viewHint) {
+  const cargoPadrao = String(cargoCodigo);
+  const panelView = viewHint || ({ '1':'presidente', '3':'governo', '5':'senadores', '6':'federais', '7':'estaduais' }[cargoPadrao]) || viewAtual;
   const card = el('section', 'card mapa-votacao span-all');
+  card.dataset.mapaCargo = cargoPadrao;
   card.appendChild(el('h2', null, titulo || 'Mapa de Votação'));
-  card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro e colégio eleitoral. Fonte: votação por seção 2026 + locais de votação 2026.'));
-  const toolbar = el('div', 'mapa-toolbar');
-  const buscaCand = el('input'); buscaCand.type = 'search'; buscaCand.placeholder = 'Buscar nome, número ou partido';
-  buscaCand.setAttribute('aria-label', 'Buscar candidato no mapa por nome, número ou partido');
-  const sel = el('select'); sel.setAttribute('aria-label', 'Candidato');
-  sel.appendChild(new Option('Carregando candidatos…', ''));
-  toolbar.appendChild(buscaCand); toolbar.appendChild(sel);
-  card.appendChild(toolbar);
-  const resumo = el('div', 'mapa-resumo', 'Escolha um candidato para ver o mapa.');
-  card.appendChild(resumo);
+  card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro e colégio eleitoral. Fonte: votação por seção 2026 + locais de votação 2026. Use Comparar para ver dois candidatos lado a lado (mesmo cargo ou outro).'));
+
+  const hash0 = parseLocationHash();
+  const viewForHash = panelView;
+
+  // --- side A controls ---
+  const toolbarA = el('div', 'mapa-toolbar');
+  const buscaA = el('input'); buscaA.type = 'search'; buscaA.placeholder = 'Buscar nome, número ou partido (A)';
+  buscaA.setAttribute('aria-label', 'Buscar candidato A por nome, número ou partido');
+  const selA = el('select'); selA.setAttribute('aria-label', 'Candidato A');
+  selA.appendChild(new Option('Carregando candidatos…', ''));
+  toolbarA.appendChild(buscaA); toolbarA.appendChild(selA);
+  card.appendChild(toolbarA);
+
+  const actions = el('div', 'mapa-actions');
+  const btnCompare = el('button', 'btn-mapa'); btnCompare.type = 'button'; btnCompare.textContent = 'Comparar';
+  btnCompare.setAttribute('aria-pressed', 'false');
+  btnCompare.setAttribute('aria-controls', 'mapa-compare-' + cargoPadrao);
+  const btnClose = el('button', 'btn-mapa'); btnClose.type = 'button'; btnClose.textContent = 'Fechar comparação';
+  btnClose.hidden = true;
+  actions.appendChild(btnCompare); actions.appendChild(btnClose);
+  card.appendChild(actions);
+
+  const mobileToggle = el('div', 'mapa-mobile-toggle');
+  mobileToggle.setAttribute('role', 'group');
+  mobileToggle.setAttribute('aria-label', 'Alternar mapa no celular');
+  const mkTog = (label, mode) => {
+    const b = el('button', 'btn-mapa'); b.type = 'button'; b.textContent = label; b.dataset.mode = mode;
+    return b;
+  };
+  const togAmbos = mkTog('Ambos', 'ambos');
+  const togA = mkTog('Só A', 'a');
+  const togB = mkTog('Só B', 'b');
+  mobileToggle.appendChild(togAmbos); mobileToggle.appendChild(togA); mobileToggle.appendChild(togB);
+  card.appendChild(mobileToggle);
+
   const filtroGeo = el('input', 'mapa-busca-nivel');
-  filtroGeo.type = 'search'; filtroGeo.placeholder = 'Filtrar município, bairro ou colégio…';
+  filtroGeo.type = 'search'; filtroGeo.placeholder = 'Filtrar município, bairro ou colégio (vale para A e B)…';
+  filtroGeo.setAttribute('aria-label', 'Filtro compartilhado de município, bairro ou colégio');
   filtroGeo.hidden = true;
   card.appendChild(filtroGeo);
-  const body = el('div');
-  card.appendChild(body);
 
-  let lista = [];
-  let atual = null;
+  const diffHost = el('div');
+  card.appendChild(diffHost);
+
+  const compareWrap = el('div', 'mapa-compare-wrap');
+  compareWrap.id = 'mapa-compare-' + cargoPadrao;
+  const colA = el('div', 'mapa-col mapa-col-a');
+  const headA = el('div', 'mapa-col-head', 'Candidato A');
+  const resumoA = el('div', 'mapa-resumo', 'Escolha um candidato para ver o mapa.');
+  const bodyA = el('div');
+  colA.appendChild(headA); colA.appendChild(resumoA); colA.appendChild(bodyA);
+
+  const colB = el('div', 'mapa-col mapa-col-b');
+  colB.hidden = true;
+  const headB = el('div', 'mapa-col-head', 'Candidato B');
+  const toolbarB = el('div', 'mapa-side-toolbar');
+  const selCargoB = el('select'); selCargoB.setAttribute('aria-label', 'Cargo do candidato B');
+  for (const [cd, lab] of Object.entries(MAPA_CARGO_LABEL)) {
+    selCargoB.appendChild(new Option(lab, cd));
+  }
+  selCargoB.value = cargoPadrao;
+  const buscaB = el('input'); buscaB.type = 'search'; buscaB.placeholder = 'Buscar B (nome, nº, partido)';
+  buscaB.setAttribute('aria-label', 'Buscar candidato B por nome, número ou partido');
+  const selB = el('select'); selB.setAttribute('aria-label', 'Candidato B');
+  selB.appendChild(new Option('Selecione…', ''));
+  toolbarB.appendChild(selCargoB); toolbarB.appendChild(buscaB); toolbarB.appendChild(selB);
+  const resumoB = el('div', 'mapa-resumo', 'Escolha o candidato B.');
+  const bodyB = el('div');
+  colB.appendChild(headB); colB.appendChild(toolbarB); colB.appendChild(resumoB); colB.appendChild(bodyB);
+
+  compareWrap.appendChild(colA); compareWrap.appendChild(colB);
+  card.appendChild(compareWrap);
+
+  let listaA = [];
+  let listaB = [];
+  let dataA = null;
+  let dataB = null;
+  let compareOn = false;
+  let syncing = false;
+  let cargoB = cargoPadrao;
+  let numA = '';
+  let numB = '';
+  let indexReady = null;
+  let hashReady = false;
 
   const candKey = (c) => String(c.n != null ? c.n : c.numero);
   const candNome = (c) => c.nm || c.nome || '';
   const candPart = (c) => c.sg || c.partido || '';
   const candTot = (c) => (c.t != null ? c.t : c.total) || 0;
-  const paintLista = () => {
-    const q = buscaCand.value.trim().toLowerCase();
+
+  const paintSelect = (sel, lista, buscaEl, prevPrefer) => {
+    const q = (buscaEl.value || '').trim().toLowerCase();
     const filtered = lista.filter(c => {
       if (!q) return true;
-      return candNome(c).toLowerCase().includes(q)
-        || candKey(c).includes(q)
-        || candPart(c).toLowerCase().includes(q);
+      return candNome(c).toLowerCase().includes(q) || candKey(c).includes(q) || candPart(c).toLowerCase().includes(q);
     });
-    const prev = sel.value;
+    const prev = prevPrefer != null ? String(prevPrefer) : sel.value;
     sel.replaceChildren();
     if (!filtered.length) { sel.appendChild(new Option('Nenhum candidato', '')); return; }
-    const opt0 = new Option(`Selecione (${filtered.length} de ${lista.length})…`, '');
-    sel.appendChild(opt0);
+    sel.appendChild(new Option(`Selecione (${filtered.length} de ${lista.length})…`, ''));
     for (const c of filtered) {
       const part = candPart(c);
       const label = `${candKey(c)} — ${candNome(c)}${part ? ' (' + part + ')' : ''} · ${fmtInt.format(candTot(c))} votos`;
       sel.appendChild(new Option(label, candKey(c)));
     }
-    if (prev && filtered.some(c => candKey(c) === String(prev))) sel.value = prev;
+    if (prev && filtered.some(c => candKey(c) === prev)) sel.value = prev;
   };
 
-  const showCand = async (numero) => {
-    body.replaceChildren(el('div', 'mapa-empty', 'Carregando mapa…'));
+  const syncOpts = {
+    onToggle: (det) => {
+      if (!compareOn || syncing || !det.dataset.mvKey) return;
+      syncing = true;
+      try {
+        const want = det.open;
+        const key = det.dataset.mvKey;
+        const roots = [colA, colB];
+        for (const root of roots) {
+          for (const other of root.querySelectorAll('details[data-mv-key]')) {
+            if (other === det) continue;
+            if (other.dataset.mvKey !== key) continue;
+            if (other.open !== want) other.open = want;
+          }
+        }
+      } finally { syncing = false; }
+    }
+  };
+
+  const paintTree = (host, data, cargo) => {
+    if (!data) { host.replaceChildren(el('div', 'mapa-empty', 'Sem dados')); return; }
+    const tree = el('div');
+    if (Number(cargo) === 1) {
+      tree.appendChild(el('h3', null, 'Por estado'));
+      tree.appendChild(renderMapaEstados(data.estados || []));
+      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+      if (data.nota_se) tree.appendChild(el('div', 'meta', data.nota_se));
+    } else {
+      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+    }
+    const hostTree = el('div');
+    hostTree.appendChild(renderMapaMunicipios(munListOf(data), filtroGeo.value, syncOpts));
+    tree.appendChild(hostTree);
+    host.replaceChildren(tree);
+  };
+
+  const paintDiff = () => {
+    diffHost.replaceChildren();
+    if (!compareOn || !dataA || !dataB) return;
+    const la = (dataA.nome || ('Nº ' + numA)).split(' ')[0];
+    const lb = (dataB.nome || ('Nº ' + numB)).split(' ')[0];
+    diffHost.appendChild(renderMapaDiffTable(dataA, dataB, la, lb, filtroGeo.value));
+  };
+
+  const pushHash = () => {
+    if (!hashReady || viewAtual !== viewForHash) return;
+    const params = { a: numA || undefined };
+    if (compareOn && numB) {
+      params.b = numB;
+      if (String(cargoB) !== cargoPadrao) params.bc = cargoB;
+    }
+    const want = buildLocationHash(viewForHash, params);
+    if (location.hash !== want) history.replaceState(null, '', want);
+  };
+
+  const setResumo = (node, data, numero) => {
+    if (!data) { node.textContent = 'Escolha um candidato.'; return; }
+    node.textContent = [
+      data.nome || ('Nº ' + numero),
+      data.partido || null,
+      data.total != null ? `${fmtInt.format(data.total)} votos` : null,
+      data.total_se != null ? `SE: ${fmtInt.format(data.total_se)}` : null,
+    ].filter(Boolean).join(' · ');
+  };
+
+  const showA = async (numero) => {
+    if (!numero) return;
+    numA = String(numero);
+    bodyA.replaceChildren(el('div', 'mapa-empty', 'Carregando mapa A…'));
     filtroGeo.hidden = false;
     try {
-      const data = await loadMapaCand(cargoCodigo, numero);
-      atual = data;
-      const partes = [
-        `${data.nome || ('Nº ' + numero)}`,
-        data.partido ? data.partido : null,
-        data.total != null ? `${fmtInt.format(data.total)} votos` : null,
-        data.total_se != null ? `SE: ${fmtInt.format(data.total_se)}` : null,
-      ].filter(Boolean);
-      resumo.textContent = partes.join(' · ');
-      const tree = el('div');
-      if (Number(cargoCodigo) === 1) {
-        tree.appendChild(el('h3', null, 'Por estado'));
-        tree.appendChild(renderMapaEstados(data.estados || []));
-        tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
-        if (data.nota_se) tree.appendChild(el('div', 'meta', data.nota_se));
-        const host = el('div');
-        host.appendChild(renderMapaMunicipios(data.municipios_se || [], filtroGeo.value));
-        tree.appendChild(host);
-        filtroGeo.oninput = () => { host.replaceChildren(renderMapaMunicipios(data.municipios_se || [], filtroGeo.value)); };
-      } else {
-        tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
-        const host = el('div');
-        host.appendChild(renderMapaMunicipios(data.municipios || [], filtroGeo.value));
-        tree.appendChild(host);
-        filtroGeo.oninput = () => { host.replaceChildren(renderMapaMunicipios(data.municipios || [], filtroGeo.value)); };
-      }
-      body.replaceChildren(tree);
+      dataA = await loadMapaCand(cargoPadrao, numero);
+      setResumo(resumoA, dataA, numero);
+      headA.replaceChildren(document.createTextNode('A · ' + (dataA.nome || numero)));
+      if (dataA.partido) headA.appendChild(el('span', 'sub', ' · ' + dataA.partido));
+      paintTree(bodyA, dataA, cargoPadrao);
+      paintDiff();
+      pushHash();
     } catch (e) {
       console.error(e);
-      body.replaceChildren(el('div', 'aviso-card erro', 'Não foi possível carregar o mapa deste candidato.'));
+      dataA = null;
+      bodyA.replaceChildren(el('div', 'aviso-card erro', 'Não foi possível carregar o mapa deste candidato.'));
     }
   };
 
-  loadMapaIndex().then(idx => {
-    lista = (idx.cargos && idx.cargos[String(cargoCodigo)]) || [];
-    // já vem ordenado por votos no index compact-v2
-    paintLista();
-    if (lista.length) {
-      const n0 = candKey(lista[0]);
-      sel.value = n0;
-      showCand(n0);
+  const showB = async (numero) => {
+    if (!numero) return;
+    numB = String(numero);
+    bodyB.replaceChildren(el('div', 'mapa-empty', 'Carregando mapa B…'));
+    try {
+      dataB = await loadMapaCand(cargoB, numero);
+      setResumo(resumoB, dataB, numero);
+      const lab = MAPA_CARGO_LABEL[String(cargoB)] || '';
+      headB.replaceChildren(document.createTextNode('B · ' + (dataB.nome || numero)));
+      headB.appendChild(el('span', 'sub', ' · ' + lab + (dataB.partido ? ' · ' + dataB.partido : '')));
+      paintTree(bodyB, dataB, cargoB);
+      paintDiff();
+      pushHash();
+    } catch (e) {
+      console.error(e);
+      dataB = null;
+      bodyB.replaceChildren(el('div', 'aviso-card erro', 'Não foi possível carregar o mapa B.'));
     }
+  };
+
+  const setMobileMode = (mode) => {
+    compareWrap.classList.remove('show-a', 'show-b');
+    if (mode === 'a') compareWrap.classList.add('show-a');
+    if (mode === 'b') compareWrap.classList.add('show-b');
+    for (const b of [togAmbos, togA, togB]) b.setAttribute('aria-pressed', b.dataset.mode === mode || (mode === 'ambos' && b === togAmbos) ? 'true' : 'false');
+  };
+
+  const openCompare = async () => {
+    compareOn = true;
+    compareWrap.classList.add('on');
+    card.classList.add('comparing');
+    colB.hidden = false;
+    btnCompare.setAttribute('aria-pressed', 'true');
+    btnCompare.textContent = 'Comparando…';
+    btnClose.hidden = false;
+    setMobileMode('ambos');
+    // listas já populadas no boot (evitar await indexReady aqui — deadlock)
+    paintSelect(selB, listaB, buscaB, numB);
+    if (!numB) {
+      const pick = listaB.find(c => candKey(c) !== numA) || listaB[0];
+      if (pick) { selB.value = candKey(pick); await showB(candKey(pick)); }
+    } else if (listaB.some(c => candKey(c) === String(numB))) {
+      selB.value = numB;
+      await showB(numB);
+    } else {
+      bodyB.replaceChildren(el('div', 'mapa-empty', 'Candidato B não encontrado neste cargo.'));
+    }
+    paintDiff();
+    pushHash();
+  };
+
+  const closeCompare = () => {
+    compareOn = false;
+    compareWrap.classList.remove('on', 'show-a', 'show-b');
+    card.classList.remove('comparing');
+    colB.hidden = true;
+    btnCompare.setAttribute('aria-pressed', 'false');
+    btnCompare.textContent = 'Comparar';
+    btnClose.hidden = true;
+    dataB = null; numB = '';
+    diffHost.replaceChildren();
+    pushHash();
+  };
+
+  const loadListaB = async (cargo) => {
+    cargoB = String(cargo);
+    const idx = await loadMapaIndex();
+    listaB = (idx.cargos && idx.cargos[cargoB]) || [];
+    paintSelect(selB, listaB, buscaB, '');
+  };
+
+  filtroGeo.addEventListener('input', () => {
+    if (dataA) paintTree(bodyA, dataA, cargoPadrao);
+    if (compareOn && dataB) paintTree(bodyB, dataB, cargoB);
+    paintDiff();
   });
-  buscaCand.addEventListener('input', paintLista);
-  sel.addEventListener('change', () => { if (sel.value) showCand(sel.value); });
+
+  buscaA.addEventListener('input', () => paintSelect(selA, listaA, buscaA, selA.value));
+  selA.addEventListener('change', () => { if (selA.value) showA(selA.value); });
+  buscaB.addEventListener('input', () => paintSelect(selB, listaB, buscaB, selB.value));
+  selB.addEventListener('change', () => { if (selB.value) showB(selB.value); });
+  selCargoB.addEventListener('change', async () => {
+    await loadListaB(selCargoB.value);
+    numB = ''; dataB = null;
+    bodyB.replaceChildren(el('div', 'mapa-empty', 'Escolha o candidato B.'));
+    resumoB.textContent = 'Escolha o candidato B.';
+    paintDiff();
+  });
+  btnCompare.addEventListener('click', () => { if (compareOn) closeCompare(); else openCompare(); });
+  btnClose.addEventListener('click', closeCompare);
+  togAmbos.addEventListener('click', () => setMobileMode('ambos'));
+  togA.addEventListener('click', () => setMobileMode('a'));
+  togB.addEventListener('click', () => setMobileMode('b'));
+
+  indexReady = loadMapaIndex().then(async idx => {
+    listaA = (idx.cargos && idx.cargos[cargoPadrao]) || [];
+    listaB = (idx.cargos && idx.cargos[cargoB]) || [];
+    const h = parseLocationHash();
+    const preferA = h.a || '';
+    paintSelect(selA, listaA, buscaA, preferA);
+    const n0 = preferA && listaA.some(c => candKey(c) === preferA) ? preferA : (listaA[0] ? candKey(listaA[0]) : '');
+    if (n0) { selA.value = n0; await showA(n0); }
+    if (h.view === viewForHash && h.b) {
+      if (h.bc) { selCargoB.value = h.bc; await loadListaB(h.bc); }
+      numB = h.b;
+      await openCompare();
+    }
+    hashReady = true;
+    pushHash();
+  });
+
   return card;
 }
+
 
 
 function setView(name, pushHash) {
@@ -1488,7 +1836,8 @@ function setView(name, pushHash) {
   const sel = document.getElementById('nav-select');
   if (sel && sel.value !== name) sel.value = name;
   if (pushHash !== false) {
-    const want = '#' + name;
+    // navegação de abas limpa params de comparação
+    const want = buildLocationHash(name, {});
     if (location.hash !== want) history.pushState(null, '', want);
   }
   const qe = document.getElementById('qe-ref-wrap');
@@ -1584,10 +1933,13 @@ function bootNav() {
   if (btn) btn.addEventListener('click', () => atualizar());
   const sh = document.getElementById('btn-compartilhar');
   if (sh) sh.addEventListener('click', () => compartilhar());
-  window.addEventListener('hashchange', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
-  window.addEventListener('popstate', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
-  const initial = (location.hash || '#painel').slice(1);
-  setView(VIEWS.includes(initial) ? initial : 'painel', false);
+  const applyHashView = () => {
+    const { view } = parseLocationHash();
+    setView(view, false);
+  };
+  window.addEventListener('hashchange', applyHashView);
+  window.addEventListener('popstate', applyHashView);
+  applyHashView();
 }
 
 
@@ -1604,7 +1956,7 @@ function renderTudo() {
     if (gov) {
       const govCard = renderCard(gov);
       govCard.classList.add('span-all');
-      nodes.push(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador'));
+      nodes.push(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador', 'painel'));
     }
     nodes.push(renderEleitosSE());
     gp.replaceChildren(...nodes);
@@ -1615,7 +1967,7 @@ function renderTudo() {
     if (gov) {
       const govCard = renderCard(gov);
       govCard.classList.add('span-all');
-      gg.replaceChildren(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador'));
+      gg.replaceChildren(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador', 'governo'));
     } else {
       gg.replaceChildren();
     }
@@ -1623,12 +1975,12 @@ function renderTudo() {
 
   const gpr = document.getElementById('grid-presidente');
   if (gpr) {
-    const nodes = [...pres.map(renderCard), renderMapaPanel(1, 'Mapa de Votação — Presidente')];
+    const nodes = [...pres.map(renderCard), renderMapaPanel(1, 'Mapa de Votação — Presidente', 'presidente')];
     gpr.replaceChildren(...nodes);
   }
 
   const gs = document.getElementById('grid-senadores');
-  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado(), renderMapaPanel(5, 'Mapa de Votação — Senadores'));
+  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado(), renderMapaPanel(5, 'Mapa de Votação — Senadores', 'senadores'));
 
   const gf = document.getElementById('grid-federais');
   if (gf) {
@@ -1639,7 +1991,7 @@ function renderTudo() {
     nodes.push(renderTopPartidos('5 mais votados do PL · Federal', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }]));
     nodes.push(renderTopPartidos('7 mais votados por partido · Federal', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [6] }))));
     nodes.push(renderEleitos());
-    nodes.push(renderMapaPanel(6, 'Mapa de Votação — Deputados Federais'));
+    nodes.push(renderMapaPanel(6, 'Mapa de Votação — Deputados Federais', 'federais'));
     nodes.push(renderCusto());
     gf.replaceChildren(...nodes);
   }
@@ -1652,7 +2004,7 @@ function renderTudo() {
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
     nodes.push(renderTopPartidos('5 mais votados do PL · Estadual', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]));
     nodes.push(renderTopPartidos('7 mais votados por partido · Estadual', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [7] }))));
-    nodes.push(renderMapaPanel(7, 'Mapa de Votação — Deputados Estaduais'));
+    nodes.push(renderMapaPanel(7, 'Mapa de Votação — Deputados Estaduais', 'estaduais'));
     ge.replaceChildren(...nodes);
   }
 

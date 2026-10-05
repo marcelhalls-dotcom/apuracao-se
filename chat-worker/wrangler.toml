@@ -1,0 +1,18 @@
+name = "apuracao-se-chat"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://marcelhalls-dotcom.github.io"
+ROUTER_BASE = "https://omniroute-iicx.srv1890264.hstgr.cloud/v1"
+ROUTER_MODEL = "cademeuvoto"
+MAX_MSG_CHARS = "500"
+MAX_HISTORY = "8"
+MAX_TOKENS = "1800"
+RATE_HOUR = "20"
+RATE_DAY = "60"
+
+[[kv_namespaces]]
+binding = "RATE"
+id = "b1cefa6127554e2ea67fd4a621391633"

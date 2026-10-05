@@ -416,6 +416,12 @@
   .chat-bubble.user { align-self: flex-end; background: rgba(56,189,248,0.2); color: #e0f2fe; }
   .chat-bubble.bot { align-self: flex-start; background: rgba(148,163,184,0.12); color: #e2e8f0; }
   .chat-bubble.err { align-self: stretch; background: rgba(248,113,113,0.12); color: #fecaca; }
+  .chat-bubble p { margin: 0 0 0.45em; }
+  .chat-bubble p:last-child { margin-bottom: 0; }
+  .chat-bubble ul, .chat-bubble ol { margin: 0.35em 0 0.5em 1.15em; padding: 0; }
+  .chat-bubble li { margin: 0.12em 0; }
+  .chat-bubble strong { font-weight: 700; color: #f8fafc; }
+  .chat-bubble em { font-style: italic; }
   .chat-suggest {
     display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px;
   }
@@ -2213,6 +2219,52 @@ const CHAT_SUGGEST = [
   'Como ficou a votação para Presidente em Sergipe?',
 ];
 
+function escapeChatHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Subconjunto seguro: escapa HTML e só então aplica **negrito**, *itálico*, listas e quebras. */
+function renderSafeChatMd(src) {
+  const inline = (t) => {
+    let s = escapeChatHtml(t);
+    s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    s = s.replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1<em>$2</em>');
+    return s;
+  };
+  const lines = String(src || '').replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let list = null; // 'ul' | 'ol'
+  const close = () => {
+    if (list === 'ul') out.push('</ul>');
+    if (list === 'ol') out.push('</ol>');
+    list = null;
+  };
+  for (const line of lines) {
+    const mUl = line.match(/^\s*[-*]\s+(.+)$/);
+    const mOl = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (mUl) {
+      if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; }
+      out.push('<li>' + inline(mUl[1]) + '</li>');
+    } else if (mOl) {
+      if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; }
+      out.push('<li>' + inline(mOl[1]) + '</li>');
+    } else {
+      close();
+      if (!line.trim()) out.push('<br>');
+      else out.push('<p>' + inline(line) + '</p>');
+    }
+  }
+  close();
+  return out.join('');
+}
+
 function bootChat() {
   const fab = document.getElementById('chat-fab');
   const panel = document.getElementById('chat-panel');
@@ -2231,7 +2283,8 @@ function bootChat() {
   const addBubble = (role, text, cls) => {
     const b = document.createElement('div');
     b.className = 'chat-bubble ' + (cls || role);
-    b.textContent = text;
+    if (role === 'bot' && cls !== 'err') b.innerHTML = renderSafeChatMd(text);
+    else b.textContent = text;
     msgs.appendChild(b);
     msgs.scrollTop = msgs.scrollHeight;
     return b;

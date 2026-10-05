@@ -503,6 +503,7 @@
     border-radius: 8px; padding: 8px 10px; font: inherit;
   }
   .rel-blocks, .rel-opts { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 10px 0; align-items: center; }
+  .rel-blocks[hidden], .rel-opts[hidden] { display: none !important; }
   .rel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
   .rel-preview {
     margin: 10px 0 0; padding: 10px; border-radius: 10px; background: #0b1220;
@@ -544,6 +545,8 @@
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     font-weight: 700; color: #e2e8f0; background: #1e293b;
   }
+  .rel-picker-fallback[hidden] { display: none !important; }
+  .rel-picker-photo[hidden] { display: none !important; }
   .rel-picker-controls { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
   .rel-picker-search, .rel-picker select, #rel-mun {
     width: 100%; min-height: 40px; padding: 8px 10px; border-radius: 8px;
@@ -697,9 +700,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261005r4"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261005r4"></script>
-<script src="relatorios.js?v=20261005r4"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261005r5"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261005r5"></script>
+<script src="relatorios.js?v=20261005r5"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.

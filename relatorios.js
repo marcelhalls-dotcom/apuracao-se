@@ -1245,24 +1245,30 @@
     const fallback = picker.querySelector('.rel-picker-fallback');
     if (!img) return;
     const info = candMetaFromValue(hidden && hidden.value);
+    const showFb = (txt) => {
+      img.hidden = true;
+      if (fallback) { fallback.hidden = false; fallback.textContent = txt || '?'; }
+    };
+    const showImg = () => {
+      img.hidden = false;
+      if (fallback) fallback.hidden = true;
+    };
     if (!info) {
-      img.removeAttribute('src'); img.hidden = true;
-      if (fallback) { fallback.hidden = false; fallback.textContent = '?'; }
+      img.removeAttribute('src');
+      showFb('?');
       return;
     }
     const src = fotoPath(info.cargo, info.numero);
-    img.onload = () => { img.hidden = false; if (fallback) fallback.hidden = true; };
-    img.onerror = () => {
-      img.hidden = true;
-      if (fallback) {
-        fallback.hidden = false;
-        const nm = info.meta.nu || info.meta.nm || info.numero;
-        const parts = String(nm).trim().split(/\s+/);
-        fallback.textContent = parts.length < 2 ? String(nm).slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      }
-    };
-    img.alt = info.meta.nu || info.meta.nm || info.numero;
+    const nm = info.meta.nu || info.meta.nm || info.numero;
+    const parts = String(nm).trim().split(/\s+/);
+    const ini = parts.length < 2 ? String(nm).slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    img.onload = showImg;
+    img.onerror = () => showFb(ini);
+    img.alt = nm;
+    // força recarregar mesmo se o src for igual (cache / onload não dispara)
+    if (img.getAttribute('src') === src) img.removeAttribute('src');
     img.src = src;
+    if (img.complete && img.naturalWidth > 0) showImg();
   }
 
   function refreshCandPhotos(root) {

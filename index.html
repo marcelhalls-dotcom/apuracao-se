@@ -313,6 +313,7 @@
   .mapa-resumo { color: var(--subtext); font-size: 0.82rem; margin-bottom: 8px; }
   .mapa-tree { display: grid; gap: 6px; }
   .mapa-tree details { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 10px; }
+  .mapa-tree details.se-mun-flash { outline: 2px solid #a78bfa; background: rgba(167,139,250,0.12); }
   .mapa-tree summary {
     cursor: pointer; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
     align-items: center; min-height: 40px; font-weight: 600; list-style: none;
@@ -360,6 +361,32 @@
   .mapa-diff-pos { color: #4ade80; font-weight: 600; }
   .mapa-diff-neg { color: #f87171; font-weight: 600; }
   .mapa-diff-zero { color: var(--subtext); }
+  .se-choropleth-slot { margin: 8px 0 12px; }
+  .se-choropleth {
+    position: relative; width: 100%;
+    background: rgba(15,23,42,0.35); border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 12px; padding: 8px; overflow: hidden;
+  }
+  .se-choropleth h4 {
+    margin: 0 0 6px; font-size: 0.85rem; color: #c4b5fd; font-weight: 650;
+  }
+  .se-choropleth svg { width: 100%; height: auto; display: block; border-radius: 8px; background: #f8fafc; }
+  .se-choropleth path { cursor: pointer; outline: none; transition: stroke-width .12s ease; }
+  .se-choropleth path:hover, .se-choropleth path:focus-visible, .se-choropleth path.se-choro-active {
+    stroke: #0f172a !important; stroke-width: 1.35px !important;
+  }
+  .se-choro-tip {
+    position: absolute; z-index: 5; max-width: min(280px, 90%);
+    padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; line-height: 1.35;
+    background: rgba(15,23,42,0.96); color: #e2e8f0; border: 1px solid rgba(148,163,184,0.45);
+    pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  .se-choro-tip[hidden] { display: none !important; }
+  .se-choro-tip strong { color: #f8fafc; }
+  .se-choropleth-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 10px;
+  }
+  .mapa-diff-wrap .se-choropleth { margin-bottom: 10px; }
   @media (max-width: 900px) {
     .mapa-compare-wrap.on { grid-template-columns: 1fr; }
     .mapa-votacao.comparing .mapa-mobile-toggle { display: flex; }
@@ -506,6 +533,23 @@
   .rel-cand-meta { font-size: 0.82rem; line-height: 1.35; color: #cbd5e1; }
   .rel-cand-hist { color: #94a3b8; margin-top: 4px; }
   .rel-stats { font-size: 0.8rem; color: #94a3b8; margin: 4px 0; }
+  .rel-picker { margin: 8px 0 12px; }
+  .rel-picker-row { display: flex; gap: 10px; align-items: stretch; }
+  .rel-picker-photo-wrap {
+    width: 56px; height: 72px; flex-shrink: 0; border-radius: 8px; overflow: hidden;
+    border: 1px solid rgba(148,163,184,.35); background: #0f172a; position: relative;
+  }
+  .rel-picker-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rel-picker-fallback {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #e2e8f0; background: #1e293b;
+  }
+  .rel-picker-controls { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .rel-picker-search, .rel-picker select, #rel-mun {
+    width: 100%; min-height: 40px; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid rgba(148,163,184,.35); background: #0f172a; color: var(--text); font-size: 0.9rem;
+  }
+  .rel-field { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 4px; }
   .rel-drill details { margin: 4px 0 4px 8px; }
   .rel-drill summary { cursor: pointer; padding: 4px 0; }
   .rel-esc { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin: 4px 0 8px; }
@@ -1636,7 +1680,7 @@ function expandMapaCompact(raw, geo) {
         locais: B.locais.slice().sort((a, b) => b.votos - a.votos)
       })).sort((a, b) => b.votos - a.votos)
     })).sort((a, b) => b.votos - a.votos);
-    const out = { nm, votos: M.votos, pct: totalRef ? M.votos / totalRef : 0, zonas };
+    const out = { i: Number(mi), nm, votos: M.votos, pct: totalRef ? M.votos / totalRef : 0, zonas };
     const miMeta = meta[String(mi)];
     if (miMeta && miMeta.meta != null) {
       out.meta = miMeta.meta;
@@ -1880,6 +1924,144 @@ function renderMapaDiffTable(dataA, dataB, labelA, labelB, filtro) {
   return wrap;
 }
 
+
+let SE_MUN_GEO = null;
+async function loadSeMunGeo() {
+  if (SE_MUN_GEO) return SE_MUN_GEO;
+  SE_MUN_GEO = await getJSON('mapa/se-mun.geojson');
+  return SE_MUN_GEO;
+}
+
+function munVotesByI(data, geojson) {
+  const list = munListOf(data);
+  const byI = new Map();
+  const byNm = new Map();
+  for (const m of list) {
+    if (m.i != null && Number.isFinite(Number(m.i))) byI.set(Number(m.i), m.votos || 0);
+    if (m.nm) byNm.set(String(m.nm).toUpperCase(), m.votos || 0);
+  }
+  const out = new Map();
+  for (const f of (geojson && geojson.features) || []) {
+    const i = f.properties.i;
+    let v = byI.has(i) ? byI.get(i) : byNm.get(String(f.properties.nm || '').toUpperCase());
+    out.set(i, v || 0);
+  }
+  return out;
+}
+
+function munNameByI(geojson) {
+  const m = new Map();
+  for (const f of (geojson && geojson.features) || []) m.set(f.properties.i, f.properties.nm || String(f.properties.i));
+  return m;
+}
+
+function openMunDrill(treeRoot, nm) {
+  if (!treeRoot || !nm) return false;
+  const key = 'm:' + nm;
+  let det = null;
+  for (const d of treeRoot.querySelectorAll('details[data-mv-key]')) {
+    if (d.dataset.mvKey === key) { det = d; break; }
+  }
+  if (!det) return false;
+  if (!det.open) {
+    det.open = true;
+    det.dispatchEvent(new Event('toggle'));
+  }
+  try { det.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) { det.scrollIntoView(true); }
+  det.classList.add('se-mun-flash');
+  setTimeout(() => det.classList.remove('se-mun-flash'), 1200);
+  return true;
+}
+
+/** Interactive SE choropleth (quantile or win). Uses Relatorios.buildChoroplethSVG. */
+async function mountSeChoropleth(host, opts) {
+  if (!host) return;
+  const o = opts || {};
+  if (!window.Relatorios || typeof window.Relatorios.buildChoroplethSVG !== 'function') {
+    host.replaceChildren(el('div', 'mapa-empty', 'Mapa gráfico indisponível.'));
+    return;
+  }
+  let geojson;
+  try { geojson = await loadSeMunGeo(); }
+  catch (e) {
+    console.warn(e);
+    host.replaceChildren(el('div', 'mapa-empty', 'Não foi possível carregar o mapa de Sergipe.'));
+    return;
+  }
+  const mode = o.mode || 'seq';
+  const valueByI = o.valueByI || new Map();
+  const total = o.total || [...valueByI.values()].reduce((s, v) => s + (v || 0), 0);
+  const names = munNameByI(geojson);
+  const title = o.title || (mode === 'win' ? 'Vencedor por município' : 'Votos por município (quantis)');
+  const svg = window.Relatorios.buildChoroplethSVG(geojson, valueByI, {
+    w: o.w || 640, h: o.h || 480, title: '', mode,
+    munNames: names, winByI: o.winByI, aByI: o.aByI, bByI: o.bByI,
+  });
+  const wrap = el('div', 'se-choropleth');
+  if (o.heading) wrap.appendChild(el('h4', null, o.heading));
+  wrap.insertAdjacentHTML('beforeend', svg);
+  const tip = el('div', 'se-choro-tip'); tip.hidden = true; tip.setAttribute('role', 'status');
+  wrap.appendChild(tip);
+  const svgEl = wrap.querySelector('svg');
+  if (svgEl) {
+    svgEl.setAttribute('role', 'img');
+    svgEl.setAttribute('aria-label', title);
+  }
+  const showTip = (path, clientX, clientY) => {
+    const i = Number(path.getAttribute('data-i'));
+    const nm = names.get(i) || String(i);
+    const v = valueByI.get(i) || 0;
+    let html = '<strong>' + nm + '</strong><br/>';
+    if (mode === 'win') {
+      const va = (o.aByI && o.aByI.get(i)) || 0;
+      const vb = (o.bByI && o.bByI.get(i)) || 0;
+      const w = (o.winByI && o.winByI.get(i)) || '';
+      const who = w === 'a' ? 'A vence' : w === 'b' ? 'B vence' : 'Empate';
+      html += 'A: ' + fmtInt.format(va) + ' · B: ' + fmtInt.format(vb) + '<br/>' + who;
+    } else {
+      html += fmtInt.format(v) + ' votos';
+      html += '<br/>' + fmtPct(total > 0 ? (100 * v / total) : 0) + ' do total do candidato';
+    }
+    tip.innerHTML = html;
+    tip.hidden = false;
+    const rect = wrap.getBoundingClientRect();
+    let left = clientX - rect.left + 12;
+    let top = clientY - rect.top + 12;
+    tip.style.left = '0px'; tip.style.top = '0px';
+    // measure then clamp
+    const tw = tip.offsetWidth || 160, th = tip.offsetHeight || 48;
+    if (left + tw > rect.width - 4) left = Math.max(4, rect.width - tw - 4);
+    if (top + th > rect.height - 4) top = Math.max(4, clientY - rect.top - th - 8);
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  };
+  const hideTip = () => { tip.hidden = true; };
+  let active = null;
+  for (const path of wrap.querySelectorAll('path[data-i]')) {
+    const i = Number(path.getAttribute('data-i'));
+    const nm = names.get(i) || String(i);
+    path.setAttribute('tabindex', '0');
+    path.setAttribute('role', 'button');
+    path.setAttribute('aria-label', nm);
+    const activate = (ev) => {
+      if (active) active.classList.remove('se-choro-active');
+      active = path; path.classList.add('se-choro-active');
+      const cx = (ev.clientX != null) ? ev.clientX : (wrap.getBoundingClientRect().left + wrap.clientWidth / 2);
+      const cy = (ev.clientY != null) ? ev.clientY : (wrap.getBoundingClientRect().top + 40);
+      showTip(path, cx, cy);
+      if (typeof o.onSelect === 'function') o.onSelect(nm, i, valueByI.get(i) || 0);
+    };
+    path.addEventListener('pointerenter', (ev) => showTip(path, ev.clientX, ev.clientY));
+    path.addEventListener('pointermove', (ev) => { if (!tip.hidden) showTip(path, ev.clientX, ev.clientY); });
+    path.addEventListener('pointerleave', hideTip);
+    path.addEventListener('click', activate);
+    path.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); activate(ev); }
+    });
+  }
+  host.replaceChildren(wrap);
+}
+
 function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   const cargoPadrao = String(cargoCodigo);
   const panelView = viewHint || ({ '1':'presidente', '3':'governo', '5':'senadores', '6':'federais', '7':'estaduais' }[cargoPadrao]) || viewAtual;
@@ -2015,8 +2197,57 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     }
   };
 
-  const paintTree = (host, data, cargo) => {
+  const ensureBodySlots = (host) => {
+    let mapSlot = host.querySelector(':scope > .se-choropleth-slot');
+    let treeSlot = host.querySelector(':scope > .mapa-tree-slot');
+    if (!mapSlot || !treeSlot) {
+      host.replaceChildren();
+      mapSlot = el('div', 'se-choropleth-slot');
+      treeSlot = el('div', 'mapa-tree-slot');
+      host.appendChild(mapSlot);
+      host.appendChild(treeSlot);
+    }
+    return { mapSlot, treeSlot };
+  };
+
+  const drillFromMap = (host, nm) => {
+    if (!nm) return;
+    // limpa filtro para garantir que o município aparece na árvore
+    if (filtroGeo.value) {
+      filtroGeo.value = '';
+      if (dataA) paintTree(bodyA, dataA, cargoPadrao, { skipMap: true });
+      if (compareOn && dataB) paintTree(bodyB, dataB, cargoB, { skipMap: true });
+      paintDiff();
+    }
+    const treeRoot = host.querySelector('.mapa-tree-slot') || host;
+    if (!openMunDrill(treeRoot, nm)) {
+      // tenta de novo após um tick (árvore recém-montada)
+      setTimeout(() => openMunDrill(treeRoot, nm), 0);
+    }
+  };
+
+  const paintSeqMap = async (mapSlot, data, label) => {
+    if (!mapSlot || !data) return;
+    mapSlot.replaceChildren(el('div', 'mapa-empty', 'Montando mapa…'));
+    try {
+      const geojson = await loadSeMunGeo();
+      const valueByI = munVotesByI(data, geojson);
+      const total = Number(data.total_se != null ? data.total_se : data.total) || [...valueByI.values()].reduce((s, v) => s + v, 0);
+      await mountSeChoropleth(mapSlot, {
+        mode: 'seq', valueByI, total,
+        heading: 'Mapa SE — ' + (label || data.nome || 'candidato') + ' (quantis)',
+        onSelect: (nm) => drillFromMap(mapSlot.parentElement, nm),
+      });
+    } catch (e) {
+      console.warn(e);
+      mapSlot.replaceChildren(el('div', 'mapa-empty', 'Mapa indisponível.'));
+    }
+  };
+
+  const paintTree = (host, data, cargo, opts) => {
+    const o = opts || {};
     if (!data) { host.replaceChildren(el('div', 'mapa-empty', 'Sem dados')); return; }
+    const { mapSlot, treeSlot } = ensureBodySlots(host);
     const tree = el('div');
     if (Number(cargo) === 1) {
       tree.appendChild(el('h3', null, 'Por estado'));
@@ -2029,7 +2260,16 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     const hostTree = el('div');
     hostTree.appendChild(renderMapaMunicipios(munListOf(data), filtroGeo.value, syncOpts));
     tree.appendChild(hostTree);
-    host.replaceChildren(tree);
+    treeSlot.replaceChildren(tree);
+    if (!o.skipMap) {
+      if (compareOn) {
+        // no modo comparar os mapas ficam no bloco comparativo (diffHost)
+        mapSlot.replaceChildren();
+      } else {
+        const label = (host === bodyA) ? ('A · ' + (data.nome || numA)) : ('B · ' + (data.nome || numB));
+        paintSeqMap(mapSlot, data, label);
+      }
+    }
   };
 
   const paintDiff = () => {
@@ -2037,7 +2277,54 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     if (!compareOn || !dataA || !dataB) return;
     const la = (dataA.nome || ('Nº ' + numA)).split(' ')[0];
     const lb = (dataB.nome || ('Nº ' + numB)).split(' ')[0];
+
+    const mapsBox = el('div', 'se-choropleth-grid');
+    const winSlot = el('div');
+    const aSlot = el('div');
+    const bSlot = el('div');
+    mapsBox.appendChild(winSlot);
+    mapsBox.appendChild(aSlot);
+    mapsBox.appendChild(bSlot);
+    diffHost.appendChild(mapsBox);
     diffHost.appendChild(renderMapaDiffTable(dataA, dataB, la, lb, filtroGeo.value));
+
+    (async () => {
+      try {
+        const geojson = await loadSeMunGeo();
+        const aByI = munVotesByI(dataA, geojson);
+        const bByI = munVotesByI(dataB, geojson);
+        const winByI = new Map();
+        for (const i of new Set([...aByI.keys(), ...bByI.keys()])) {
+          const va = aByI.get(i) || 0, vb = bByI.get(i) || 0;
+          winByI.set(i, va === vb ? 'empate' : (va > vb ? 'a' : 'b'));
+        }
+        const onWin = (nm) => {
+          // abre nos dois lados se possível
+          drillFromMap(bodyA, nm);
+          if (compareOn) drillFromMap(bodyB, nm);
+        };
+        await mountSeChoropleth(winSlot, {
+          mode: 'win', valueByI: aByI, aByI, bByI, winByI,
+          heading: 'Comparativo SE — quem venceu o município (intensidade = margem)',
+          onSelect: onWin,
+        });
+        const totA = Number(dataA.total_se != null ? dataA.total_se : dataA.total) || 0;
+        const totB = Number(dataB.total_se != null ? dataB.total_se : dataB.total) || 0;
+        await mountSeChoropleth(aSlot, {
+          mode: 'seq', valueByI: aByI, total: totA,
+          heading: 'A — ' + (dataA.nome || numA) + ' (quantis)',
+          onSelect: (nm) => drillFromMap(bodyA, nm),
+        });
+        await mountSeChoropleth(bSlot, {
+          mode: 'seq', valueByI: bByI, total: totB,
+          heading: 'B — ' + (dataB.nome || numB) + ' (quantis)',
+          onSelect: (nm) => drillFromMap(bodyB, nm),
+        });
+      } catch (e) {
+        console.warn('paintDiff maps', e);
+        mapsBox.replaceChildren(el('div', 'mapa-empty', 'Mapas comparativos indisponíveis.'));
+      }
+    })();
   };
 
   const pushHash = () => {
@@ -2135,6 +2422,9 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
       resumoB.textContent = 'Escolha o candidato para comparar';
       bodyB.replaceChildren(el('div', 'mapa-empty', 'Escolha o candidato para comparar (nome, número ou partido).'));
     }
+    // limpa mapas das colunas — o bloco comparativo assume
+    const slotA = bodyA.querySelector('.se-choropleth-slot');
+    if (slotA) slotA.replaceChildren();
     paintDiff();
     pushHash();
   };
@@ -2150,6 +2440,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     btnClose.hidden = true;
     dataB = null; numB = '';
     diffHost.replaceChildren();
+    if (dataA) paintTree(bodyA, dataA, cargoPadrao);
     pushHash();
   };
 
@@ -2161,9 +2452,18 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   };
 
   filtroGeo.addEventListener('input', () => {
-    if (dataA) paintTree(bodyA, dataA, cargoPadrao);
-    if (compareOn && dataB) paintTree(bodyB, dataB, cargoB);
-    paintDiff();
+    if (dataA) paintTree(bodyA, dataA, cargoPadrao, { skipMap: true });
+    if (compareOn && dataB) paintTree(bodyB, dataB, cargoB, { skipMap: true });
+    // tabela diff respeita filtro; mapas SE ficam completos
+    if (compareOn && dataA && dataB) {
+      // só atualiza a tabela, preservando mapas já montados se possível
+      const tableWrap = diffHost.querySelector('.mapa-diff-wrap');
+      const la = (dataA.nome || ('Nº ' + numA)).split(' ')[0];
+      const lb = (dataB.nome || ('Nº ' + numB)).split(' ')[0];
+      const fresh = renderMapaDiffTable(dataA, dataB, la, lb, filtroGeo.value);
+      if (tableWrap) tableWrap.replaceWith(fresh);
+      else paintDiff();
+    }
   });
 
   buscaA.addEventListener('input', () => paintSelect(selA, listaA, buscaA, selA.value));

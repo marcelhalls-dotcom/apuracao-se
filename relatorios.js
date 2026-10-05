@@ -998,17 +998,43 @@
     return { doc };
   }
 
-  async function generate(spec) {
-    const t = (spec && spec.template) || 'resumo';
-    if (t === 'comparar' || t === 'comparativo') return (await buildComparar(spec)).doc;
-    if (t === 'candidato') return (await buildCandidatoFull(spec)).doc;
-    if (t === 'municipio' || t === 'mun') return (await buildMunicipio(spec)).doc;
-    if (t === 'custom') {
-      if (spec.a && spec.b) return (await buildComparar(spec)).doc;
-      if (spec.cargo && (spec.numero || spec.n || spec.a)) return (await buildCandidatoFull(Object.assign({}, spec, { numero: spec.numero || spec.n || spec.a }))).doc;
-      if (spec.cd || spec.mun) return (await buildMunicipio(spec)).doc;
+  function normalizeSpec(spec) {
+    const s = Object.assign({}, spec || {});
+    let t = s.template || 'resumo';
+    if (t === 'comparativo') t = 'comparar';
+    if (t === 'mun') t = 'municipio';
+    s.template = t;
+    // Nunca misturar estado de outro modelo
+    if (t === 'candidato') {
+      delete s.b;
+      if (!s.numero && !s.n && s.a) s.numero = s.a;
+      delete s.a;
+    } else if (t === 'comparar') {
+      if (!s.a && s.numero) s.a = s.numero;
+    } else if (t === 'municipio') {
+      delete s.a; delete s.b; delete s.numero; delete s.n;
+      if (!s.cd && s.mun) s.cd = s.mun;
+    } else if (t === 'resumo') {
+      delete s.a; delete s.b; delete s.numero; delete s.n; delete s.cd;
+    } else if (t === 'custom') {
+      // custom decide abaixo em generate
     }
-    return (await buildResumo(spec)).doc;
+    return s;
+  }
+
+  async function generate(spec) {
+    const s = normalizeSpec(spec);
+    const t = s.template || 'resumo';
+    if (t === 'comparar') return (await buildComparar(s)).doc;
+    if (t === 'candidato') return (await buildCandidatoFull(s)).doc;
+    if (t === 'municipio') return (await buildMunicipio(s)).doc;
+    if (t === 'custom') {
+      if (s.a && s.b) return (await buildComparar(Object.assign({}, s, { template: 'comparar' }))).doc;
+      if (s.cargo && (s.numero || s.n || s.a)) return (await buildCandidatoFull(Object.assign({}, s, { template: 'candidato', numero: s.numero || s.n || s.a }))).doc;
+      if (s.cd || s.mun) return (await buildMunicipio(Object.assign({}, s, { template: 'municipio' }))).doc;
+      return (await buildResumo(Object.assign({}, s, { template: 'resumo' }))).doc;
+    }
+    return (await buildResumo(s)).doc;
   }
 
   function safeFilename(s) {
@@ -1016,13 +1042,15 @@
   }
 
   async function generateAndDownload(spec) {
-    const doc = await generate(spec);
-    let tag = spec.template || 'resumo';
-    if (spec.a && spec.b) tag = 'comparar_' + spec.a + '_vs_' + spec.b;
-    else if (spec.numero || spec.n) tag += '_' + (spec.numero || spec.n);
+    const s = normalizeSpec(spec);
+    const doc = await generate(s);
+    let tag = s.template || 'resumo';
+    if (s.template === 'comparar' && s.a && s.b) tag = 'comparar_' + s.a + '_vs_' + s.b;
+    else if (s.template === 'candidato' && (s.numero || s.n)) tag = 'candidato_' + (s.numero || s.n);
+    else if (s.template === 'municipio' && (s.cd || s.mun)) tag = 'municipio_' + (s.cd || s.mun);
     const fname = safeFilename('relatorio_' + tag) + '.pdf';
     doc.save(fname);
-    return { doc, filename: fname };
+    return { doc, filename: fname, spec: s };
   }
 
   /* ---------- Hash / UI ---------- */
@@ -1039,7 +1067,8 @@
     if (p.get('cd')) out.cd = p.get('cd');
     if (p.get('mun')) out.mun = p.get('mun');
     if (out.template === 'comparativo') out.template = 'comparar';
-    if ((out.a && out.b) && out.template === 'resumo') out.template = 'comparar';
+    // só promove a comparar se o hash não pediu outro modelo explicitamente
+    if ((out.a && out.b) && (out.template === 'resumo' || !p.get('t'))) out.template = 'comparar';
     return out;
   }
 
@@ -1052,12 +1081,13 @@
     if (t === 'comparar') {
       if (spec.a || spec.numero) p.set('a', String(spec.a || spec.numero));
       if (spec.b) p.set('b', String(spec.b));
-    } else {
-      if (spec.numero || spec.n) p.set('n', String(spec.numero || spec.n));
-      if (spec.a && !spec.numero) p.set('n', String(spec.a));
+    } else if (t === 'candidato') {
+      const n = spec.numero || spec.n || spec.a;
+      if (n) p.set('n', String(n));
+    } else if (t === 'municipio') {
+      if (spec.cd || spec.mun) p.set('cd', String(spec.cd || spec.mun));
     }
-    if (spec.cd) p.set('cd', String(spec.cd));
-    if (spec.mun) p.set('mun', String(spec.mun));
+    // resumo/custom: só t (+c se fizer sentido)
     return '#relatorios?' + p.toString();
   }
 
@@ -1090,17 +1120,19 @@
     } else if (mode === 'municipio') {
       spec.cd = root.querySelector('#rel-mun')?.value || '';
     } else if (mode === 'custom') {
-      const a = root.querySelector('#rel-cand-a')?.value || root.querySelector('#rel-cand')?.value;
-      const b = root.querySelector('#rel-cand-b')?.value;
+      // Personalizado: usa só o que o painel custom expõe (candidato único OU mun OU A×B se ambos setados via pickers custom)
+      const a = root.querySelector('#rel-cand-custom')?.value || '';
       const mun = root.querySelector('#rel-mun')?.value;
+      const b = root.querySelector('#rel-cand-b-custom')?.value || '';
       if (a && b) {
         const [c, n] = a.split(':'); const [, n2] = b.split(':');
         spec.template = 'comparar'; spec.cargo = c; spec.a = n; spec.b = n2;
       } else if (a) {
         const [c, n] = a.split(':'); spec.template = 'candidato'; spec.cargo = c; spec.numero = n;
       } else if (mun) { spec.template = 'municipio'; spec.cd = mun; }
+      else { spec.template = 'resumo'; }
     }
-    return spec;
+    return normalizeSpec(spec);
   }
 
   function syncModePanels(root) {
@@ -1110,33 +1142,146 @@
     if (blocks) blocks.hidden = !(mode === 'custom' || mode === 'resumo');
   }
 
+  function updateHashFromUI(root) {
+    try {
+      const spec = collectUISpec(root);
+      const hash = buildRelHash(spec);
+      if ((location.hash || '') !== hash) history.replaceState(null, '', hash);
+      return spec;
+    } catch (e) { console.warn('updateHashFromUI', e); return null; }
+  }
+
+  function onModeChange(root) {
+    syncModePanels(root);
+    const mode = (root.querySelector('input[name=rel-mode]:checked') || {}).value || 'resumo';
+    // limpa campos de outros modelos para não vazar no custom/hash
+    if (mode === 'resumo') {
+      // ok
+    } else if (mode === 'candidato') {
+      const a = root.querySelector('#rel-cand-a'); const b = root.querySelector('#rel-cand-b');
+      // mantém A como sugestão no #rel-cand se vazio
+      const cand = root.querySelector('#rel-cand');
+      if (cand && !cand.value && a && a.value) cand.value = a.value;
+    }
+    updateHashFromUI(root);
+    refreshCandPhotos(root);
+    const box = root.querySelector('#rel-preview');
+    if (box) box.textContent = 'Modelo: ' + mode + '. Atualize a prévia ou gere o PDF.';
+  }
+
   function applySpecToUI(root, spec) {
     if (!root || !spec) return;
-    let mode = spec.template || 'resumo';
-    if (mode === 'comparativo') mode = 'comparar';
-    if (mode === 'mun') mode = 'municipio';
+    const s = normalizeSpec(spec);
+    let mode = s.template || 'resumo';
     const radio = root.querySelector('input[name=rel-mode][value="' + mode + '"]');
     if (radio) radio.checked = true;
     syncModePanels(root);
-    const cargo = spec.cargo || spec.c || '7';
+    const cargo = s.cargo || s.c || '7';
+    // limpa selects irrelevantes
+    const setVal = (sel, v) => { const el = root.querySelector(sel); if (el) el.value = v || ''; };
     if (mode === 'comparar') {
-      if (spec.a) { const el = root.querySelector('#rel-cand-a'); if (el) el.value = cargo + ':' + spec.a; }
-      if (spec.b) { const el = root.querySelector('#rel-cand-b'); if (el) el.value = cargo + ':' + spec.b; }
-    } else if (spec.numero || spec.n || spec.a) {
-      const n = spec.numero || spec.n || spec.a;
-      const el = root.querySelector('#rel-cand'); if (el) el.value = cargo + ':' + n;
+      setVal('#rel-cand-a', s.a ? (cargo + ':' + s.a) : '');
+      setVal('#rel-cand-b', s.b ? (cargo + ':' + s.b) : '');
+    } else if (mode === 'candidato') {
+      const n = s.numero || s.n;
+      setVal('#rel-cand', n ? (cargo + ':' + n) : '');
+    } else if (mode === 'municipio') {
+      setVal('#rel-mun', s.cd || s.mun || '');
     }
-    if (spec.cd) { const el = root.querySelector('#rel-mun'); if (el) el.value = String(spec.cd); }
+    refreshCandPhotos(root);
+    filterCandSelects(root);
+  }
+
+  function candMetaFromValue(val) {
+    if (!val || !val.includes(':')) return null;
+    const [cg, n] = val.split(':');
+    const list = ((global.MAPA_INDEX || {}).cargos || {})[cg] || [];
+    const c = list.find(x => String(x.n) === String(n));
+    return { cargo: cg, numero: n, meta: c || { n, nm: n, nu: n, sg: '' } };
+  }
+
+  function refreshCandPhotos(root) {
+    root.querySelectorAll('.rel-picker').forEach(picker => {
+      const sel = picker.querySelector('select');
+      const img = picker.querySelector('.rel-picker-photo');
+      const fallback = picker.querySelector('.rel-picker-fallback');
+      if (!sel || !img) return;
+      const info = candMetaFromValue(sel.value);
+      if (!info) {
+        img.removeAttribute('src'); img.hidden = true;
+        if (fallback) { fallback.hidden = false; fallback.textContent = '?'; }
+        return;
+      }
+      const src = fotoPath(info.cargo, info.numero);
+      img.onload = () => { img.hidden = false; if (fallback) fallback.hidden = true; };
+      img.onerror = () => {
+        img.hidden = true;
+        if (fallback) {
+          fallback.hidden = false;
+          const nm = info.meta.nu || info.meta.nm || info.numero;
+          const parts = String(nm).trim().split(/\s+/);
+          fallback.textContent = parts.length < 2 ? String(nm).slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+      };
+      img.alt = info.meta.nu || info.meta.nm || info.numero;
+      img.src = src;
+    });
+  }
+
+  function filterCandSelects(root) {
+    root.querySelectorAll('.rel-picker').forEach(picker => {
+      const q = (picker.querySelector('.rel-picker-search')?.value || '').trim().toLowerCase();
+      const sel = picker.querySelector('select');
+      if (!sel) return;
+      const cur = sel.value;
+      for (const opt of sel.querySelectorAll('option')) {
+        if (!opt.value) { opt.hidden = false; continue; }
+        if (!q) { opt.hidden = false; continue; }
+        const hay = (opt.textContent || '').toLowerCase() + ' ' + opt.value.toLowerCase();
+        opt.hidden = !hay.includes(q);
+      }
+      for (const g of sel.querySelectorAll('optgroup')) {
+        const any = [...g.querySelectorAll('option')].some(o => !o.hidden && o.value);
+        g.hidden = q && !any;
+      }
+      // se filtro escondeu o atual, mantém valor mesmo hidden (não limpa)
+      if (cur) sel.value = cur;
+    });
+  }
+
+  function wireCandPickers(root) {
+    root.querySelectorAll('.rel-picker').forEach(picker => {
+      if (picker.dataset.wired) return;
+      picker.dataset.wired = '1';
+      const search = picker.querySelector('.rel-picker-search');
+      const sel = picker.querySelector('select');
+      if (search) search.addEventListener('input', () => filterCandSelects(root));
+      if (sel) sel.addEventListener('change', () => {
+        refreshCandPhotos(root);
+        updateHashFromUI(root);
+      });
+    });
   }
 
   async function fillSelectors(root) {
     if (!global.MAPA_INDEX && typeof global.loadMapaIndex === 'function') {
       try { await global.loadMapaIndex(); } catch (e) { console.warn('loadMapaIndex', e); }
     }
+    const preserved = {
+      mode: (root.querySelector('input[name=rel-mode]:checked') || {}).value,
+      cand: root.querySelector('#rel-cand')?.value || '',
+      a: root.querySelector('#rel-cand-a')?.value || '',
+      b: root.querySelector('#rel-cand-b')?.value || '',
+      custom: root.querySelector('#rel-cand-custom')?.value || '',
+      mun: root.querySelector('#rel-mun')?.value || '',
+    };
     const opts = ['<option value="">Escolha…</option>'];
     for (const [cg, list] of Object.entries((global.MAPA_INDEX || {}).cargos || {})) {
       if (!['1', '3', '5', '6', '7'].includes(cg)) continue;
-      const group = list.map(c => '<option value="' + cg + ':' + c.n + '">' + (c.nu || c.nm) + ' (' + c.n + ' · ' + (c.sg || '') + ')</option>').join('');
+      const group = list.map(c => {
+        const label = (c.nu || c.nm) + ' (' + c.n + ' · ' + (c.sg || '') + ')';
+        return '<option value="' + cg + ':' + c.n + '" data-nm="' + String(c.nu || c.nm || '').replace(/"/g, '') + '" data-sg="' + String(c.sg || '') + '">' + label + '</option>';
+      }).join('');
       opts.push('<optgroup label="' + (CARGO_NOME[cg] || cg) + '">' + group + '</optgroup>');
     }
     const html = opts.join('');
@@ -1148,6 +1293,26 @@
       .concat([...(idx.muns || [])].sort((a, b) => a.nm.localeCompare(b.nm, 'pt-BR')).map(m => '<option value="' + m.cd + '">' + m.nm + '</option>'))
       .join('');
     const mun = root.querySelector('#rel-mun'); if (mun) mun.innerHTML = munHtml;
+
+    // restaura seleção do usuário (não deixar o hash antigo sobrescrever após troca de modelo)
+    const setIf = (sel, v) => {
+      const el = root.querySelector(sel);
+      if (!el || !v) return;
+      if ([...el.options].some(o => o.value === v)) el.value = v;
+    };
+    if (preserved.mode) {
+      const r = root.querySelector('input[name=rel-mode][value="' + preserved.mode + '"]');
+      if (r) r.checked = true;
+    }
+    setIf('#rel-cand', preserved.cand);
+    setIf('#rel-cand-a', preserved.a);
+    setIf('#rel-cand-b', preserved.b);
+    setIf('#rel-cand-custom', preserved.custom);
+    setIf('#rel-mun', preserved.mun);
+    syncModePanels(root);
+    wireCandPickers(root);
+    filterCandSelects(root);
+    refreshCandPhotos(root);
   }
 
   function candCardHtml(tag, st, cargo, numero) {
@@ -1171,7 +1336,17 @@
     if (!box) return;
     if (!built) { box.innerHTML = '<pre class="rel-preview-pre">Prévia:\n' + JSON.stringify(spec, null, 2) + '</pre>'; return; }
 
-    if (spec.template === 'comparar' || (spec.a && spec.b)) {
+    if (spec.template === 'candidato' && built && built.kind === 'candidato') {
+      const st = built.st;
+      let html = '<div class="rel-preview-rich">';
+      html += '<div class="rel-exec-cards">' + candCardHtml('Candidato', st, spec.cargo, built.numero) + '</div>';
+      html += '<p class="meta">Prévia do relatório individual (PDF traz mapa + detalhe completo).</p>';
+      html += '</div>';
+      box.innerHTML = html;
+      return;
+    }
+
+    if (spec.template === 'comparar' && spec.a && spec.b) {
       const { stA, stB, cmpRows, aByI, bByI, winByI, geojson, treeA, treeB, munNames } = built;
       const names = munNames || new Map();
       const svgA = buildChoroplethSVG(geojson, aByI, { w: 480, h: 360, title: 'A — ' + stA.nome + ' (quantis)', mode: 'seq', munNames: names });
@@ -1237,6 +1412,20 @@
   function bootUI() {
     const root = document.getElementById('grid-relatorios');
     if (!root) return;
+
+    function pickerHtml(selId, label) {
+      return [
+        '<div class="rel-picker" data-picker="' + selId + '">',
+        '<label class="rel-field">' + label + '</label>',
+        '<div class="rel-picker-row">',
+        '<div class="rel-picker-photo-wrap"><img class="rel-picker-photo" alt="" hidden/><div class="rel-picker-fallback" aria-hidden="true">?</div></div>',
+        '<div class="rel-picker-controls">',
+        '<input type="search" class="rel-picker-search" placeholder="Buscar nome, número ou partido…" aria-label="Buscar ' + label + '"/>',
+        '<select id="' + selId + '" aria-label="' + label + '"></select>',
+        '</div></div></div>'
+      ].join('');
+    }
+
     if (!root.dataset.booted) {
       root.dataset.booted = '1';
       root.innerHTML = [
@@ -1250,13 +1439,13 @@
         '<label><input type="radio" name="rel-mode" value="municipio"> Município</label>',
         '<label><input type="radio" name="rel-mode" value="custom"> Personalizado</label>',
         '</div>',
-        '<div class="rel-mode-panel" data-mode="candidato"><label class="rel-field">Candidato <select id="rel-cand"></select></label></div>',
-        '<div class="rel-mode-panel" data-mode="comparar" hidden>',
-        '<label class="rel-field">Candidato A <select id="rel-cand-a"></select></label>',
-        '<label class="rel-field">Candidato B <select id="rel-cand-b"></select></label>',
-        '</div>',
+        '<div class="rel-mode-panel" data-mode="candidato">' + pickerHtml('rel-cand', 'Candidato') + '</div>',
+        '<div class="rel-mode-panel" data-mode="comparar" hidden>' + pickerHtml('rel-cand-a', 'Candidato A') + pickerHtml('rel-cand-b', 'Candidato B') + '</div>',
         '<div class="rel-mode-panel" data-mode="municipio" hidden><label class="rel-field">Município <select id="rel-mun"></select></label></div>',
-        '<div class="rel-mode-panel" data-mode="custom" hidden><p class="meta">Use Comparativo ou Candidato — blocos abaixo valem para Resumo.</p></div>',
+        '<div class="rel-mode-panel" data-mode="custom" hidden>',
+        '<p class="meta">Personalizado: escolha um candidato para relatório individual, ou use Resumo / Comparativo.</p>',
+        pickerHtml('rel-cand-custom', 'Candidato'),
+        '</div>',
         '<div id="rel-blocks" class="rel-blocks"><div class="meta">Blocos (resumo)</div>',
         BLOCKS.map(b => '<label><input class="rel-block" type="checkbox" value="' + b.id + '" checked> ' + b.label + '</label>').join(' '),
         '</div>',
@@ -1269,7 +1458,9 @@
         '</section>'
       ].join('');
 
-      root.querySelectorAll('input[name=rel-mode]').forEach(r => r.addEventListener('change', () => syncModePanels(root)));
+      root.querySelectorAll('input[name=rel-mode]').forEach(r => r.addEventListener('change', () => onModeChange(root)));
+      const munSel = root.querySelector('#rel-mun');
+      if (munSel) munSel.addEventListener('change', () => updateHashFromUI(root));
 
       root.querySelector('#rel-preview-btn').addEventListener('click', async () => {
         const spec = collectUISpec(root);
@@ -1294,6 +1485,10 @@
               bByI: new Map([...treeB.byI.entries()].map(([i, n]) => [i, n.v])),
               winByI: new Map(cmpRows.map(r => [r.i, r.winner])),
             };
+          } else if (spec.template === 'candidato' && (spec.numero || spec.n)) {
+            await ensureCargoEstado(spec.cargo);
+            const numero = spec.numero || spec.n;
+            built = { kind: 'candidato', st: candState(spec.cargo, numero), numero };
           }
           renderWebPreview(root, spec, built);
         } catch (e) {
@@ -1308,16 +1503,18 @@
         if (spec.template === 'comparar' && (!spec.a || !spec.b)) {
           root.querySelector('#rel-preview').textContent = 'Selecione candidatos A e B.'; return;
         }
-        if (spec.template === 'candidato' && !spec.numero) {
+        if (spec.template === 'candidato' && !(spec.numero || spec.n)) {
           root.querySelector('#rel-preview').textContent = 'Selecione um candidato.'; return;
         }
+        if (spec.template === 'municipio' && !(spec.cd || spec.mun)) {
+          root.querySelector('#rel-preview').textContent = 'Selecione um município.'; return;
+        }
         btn.disabled = true;
-        root.querySelector('#rel-preview').textContent = 'Gerando PDF (pode demorar no comparativo completo)…';
+        root.querySelector('#rel-preview').textContent = 'Gerando PDF…';
         try {
           const { filename } = await generateAndDownload(spec);
-          root.querySelector('#rel-preview').textContent = 'PDF gerado: ' + filename;
+          root.querySelector('#rel-preview').textContent = 'PDF gerado: ' + filename + ' (modelo: ' + spec.template + ')';
           history.replaceState(null, '', buildRelHash(spec));
-          // refresh rich preview too
           root.querySelector('#rel-preview-btn').click();
         } catch (e) {
           console.error(e);
@@ -1325,10 +1522,18 @@
         } finally { btn.disabled = false; }
       });
     }
-    const pending = parseRelHash();
+
+    const applyHash = !root.dataset.hashReady;
+    const pending = applyHash ? parseRelHash() : null;
     fillSelectors(root).then(() => {
-      const hs = pending || parseRelHash();
-      if (hs) applySpecToUI(root, hs);
+      if (pending) {
+        applySpecToUI(root, pending);
+        root.dataset.hashReady = '1';
+      } else {
+        updateHashFromUI(root);
+      }
+      wireCandPickers(root);
+      refreshCandPhotos(root);
     }).catch(e => console.warn('fillSelectors', e));
     syncModePanels(root);
   }
@@ -1339,8 +1544,12 @@
     const viewEl = document.getElementById('view-relatorios');
     const already = viewEl && viewEl.classList.contains('active');
     if (!already && typeof global.setView === 'function') global.setView('relatorios', false);
-    bootUI();
     const root = document.getElementById('grid-relatorios');
+    if (root) {
+      root.dataset.hashReady = ''; // força reaplicar este hash
+      delete root.dataset.hashReady;
+    }
+    bootUI();
     if (root) applySpecToUI(root, hs);
   }
 

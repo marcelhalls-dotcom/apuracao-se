@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apuração Sergipe - Destaques</title>
+<title>Apuração Sergipe 2026</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -17,9 +17,10 @@
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 24px 16px 40px;
+    margin: 0; padding: 20px 16px 40px;
     background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    overflow-x: hidden;
   }
   header { text-align: center; margin-bottom: 24px; }
   h1 { margin: 0 0 14px; font-size: 1.8rem; }
@@ -134,12 +135,61 @@
   .qe2022 .nota { font-size: 0.75rem; color: var(--subtext); margin-top: 4px; }
   footer { text-align: center; color: var(--subtext); font-size: 0.8rem; margin-top: 28px; }
   footer a { color: var(--subtext); }
+
+  body { padding-top: 0; }
+  .nav-wrap {
+    position: sticky; top: 0; z-index: 50; background: rgba(15,23,42,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(148,163,184,0.2); padding: 8px 0 8px; margin: 0 0 16px;
+  }
+  .nav { max-width: 1100px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { flex: none; text-decoration: none; color: var(--subtext); padding: 8px 12px; border-radius: 999px; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+  .nav a.active { color: #0f172a; background: var(--accent); }
+  .nav-select-wrap { display: none; max-width: 1100px; margin: 0 auto; }
+  .nav-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.4); background: var(--card); color: var(--text); font-size: 1rem; }
+  @media (max-width: 560px) { .nav { display: none; } .nav-select-wrap { display: block; } }
+  .view { display: none; } .view.active { display: block; }
+  .grid.ordered { grid-template-columns: 1fr; }
+  @media (min-width: 800px) { .grid.ordered.two { grid-template-columns: 1fr 1fr; } }
+  .span-all { grid-column: 1 / -1; }
+  .status.final { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.45); color: #86efac; }
+  .status.final .dot { animation: none; }
+  .hdr-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .btn { appearance: none; border: 1px solid rgba(56,189,248,0.45); background: rgba(56,189,248,0.12); color: var(--accent); border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; cursor: pointer; }
+  .btn:hover { background: rgba(56,189,248,0.22); }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #e2e8f0; overflow: hidden; flex: none; }
+  .avatar.sm { width: 36px; height: 36px; font-size: 0.65rem; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cand { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: start; }
+  .cand-body { min-width: 0; }
+  .hist-line, .rank-item .hist, .el-row .hist { color: #c4b5fd; font-size: 0.72rem; margin-top: 2px; }
+  .rank-item { grid-template-columns: 40px 28px 1fr auto; }
+  .hemi-wrap { display: grid; grid-template-columns: minmax(260px, 1.1fr) 1fr; gap: 16px; align-items: center; }
+  @media (max-width: 760px) { .hemi-wrap { grid-template-columns: 1fr; } .hemi-mobile { display: block; } }
+  .hemi-wrap svg { width: 100%; height: auto; max-height: 340px; }
+  .hemi-leg { display: grid; gap: 6px; font-size: 0.86rem; }
+  .hemi-leg .it { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: start; }
+  .hemi-leg .swatch { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; }
+  .hemi-leg .nomes { color: var(--subtext); font-size: 0.74rem; }
+  .hemi-leg .q { font-weight: 800; font-size: 1rem; }
+  .hemi-mobile { display: none; margin-top: 10px; }
+  .card.senado81 { grid-column: 1 / -1; border-top: 3px solid #f59e0b; }
+  .card.senado81 h2 { color: #fcd34d; }
+  .el-row { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.03); margin-bottom: 6px; }
+  .el-row .nm { font-weight: 600; } .el-row .sub { color: var(--subtext); font-size: 0.75rem; } .el-row .votos { text-align: right; font-weight: 700; }
+  .troca-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; margin-top: 8px; }
+  .troca-cols h4 { margin: 0 0 6px; font-size: 0.9rem; }
+  .troca-cols .in h4 { color: #86efac; } .troca-cols .out h4 { color: #fca5a5; }
+  .aviso-card.info { background: rgba(56, 189, 248, 0.10); color: #7dd3fc; }
+  main.grid { display: block; max-width: none; }
+  #views-root { max-width: 1200px; margin: 0 auto; }
+
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Apuração Sergipe - Destaques</h1>
+  <h1>Apuração Sergipe 2026</h1>
   <div id="status" class="status"><span class="dot"></span><span id="status-texto">Conectando ao TSE…</span></div>
   <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
   <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
@@ -156,13 +206,40 @@
     <div class="nota">Cada quociente completo = 1 cadeira direta. Na prática a 2ª cadeira costuma sair na sobra com menos votos, porque partidos que não atingem o quociente não levam vaga direta e as sobras são divididas pelas maiores médias. Sobras (cadeiras que restam): partido precisa de ≥ 80% do QE (≈ 119.162 federal / ≈ 40.548 estadual) e o candidato ≥ 20% do QE (≈ 29.790 federal / ≈ 10.137 estadual).</div>
     <div class="nota"><b>Quociente eleitoral = votos que o PARTIDO/FEDERAÇÃO precisa somar (nominais + legenda) para conquistar 1 cadeira. Não é a votação exigida de cada candidato.</b><br>Sergipe 2022 (TSE, dados abertos atuais): Federal 1.191.617 votos válidos ÷ 8 vagas. Estadual 1.216.425 votos válidos ÷ 24 vagas. O quociente de 2026 só é definido no fim da apuração.</div>
   </div>
+<div class="hdr-actions"><button type="button" class="btn" id="btn-atualizar">Atualizar agora</button></div>
 </header>
 
-<main class="grid" id="grid"></main>
+<nav class="nav-wrap" aria-label="Seções">
+  <div class="nav" id="nav-tabs">
+    <a href="#painel" data-view="painel" class="active">Painel principal</a>
+    <a href="#presidente" data-view="presidente">Presidente</a>
+    <a href="#senadores" data-view="senadores">Senadores</a>
+    <a href="#federais" data-view="federais">Deputados Federais</a>
+    <a href="#estaduais" data-view="estaduais">Deputados Estaduais</a>
+  </div>
+  <div class="nav-select-wrap">
+    <select id="nav-select" class="nav-select" aria-label="Seção">
+      <option value="painel">Painel principal</option>
+      <option value="presidente">Presidente</option>
+      <option value="senadores">Senadores</option>
+      <option value="federais">Deputados Federais</option>
+      <option value="estaduais">Deputados Estaduais</option>
+    </select>
+  </div>
+</nav>
+
+<main id="views-root">
+  <section class="view active" id="view-painel"><div class="grid ordered" id="grid-painel"></div></section>
+  <section class="view" id="view-presidente"><div class="grid ordered two" id="grid-presidente"></div></section>
+  <section class="view" id="view-senadores"><div class="grid ordered" id="grid-senadores"></div></section>
+  <section class="view" id="view-federais"><div class="grid ordered" id="grid-federais"></div></section>
+  <section class="view" id="view-estaduais"><div class="grid ordered" id="grid-estaduais"></div></section>
+</main>
 
 <footer>
   Fonte: TSE — <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a>
-  (dados oficiais de divulgação). Percentuais sobre votos válidos.
+  (dados oficiais). Fotos: CDN do TSE. Histórico 2018/2022: dados abertos do TSE.
+  Percentuais sobre votos válidos. Senado: 54 eleitos em 2026 + 27 eleitos em 2022 (partido na eleição).
 </footer>
 
 <script>
@@ -181,7 +258,8 @@ const CONFIG = {
   // A página tenta descobrir esse código sozinha no arquivo de configuração
   // do TSE; este valor é usado só se a descoberta falhar.
   codigoEleicaoPadrao: '6259',
-  intervaloSegundos: 10, // pedido do Marcel: atualizar a cada 10s
+  intervaloSegundos: 10,
+  intervaloFinalSegundos: 300,
   cargos: [
     { codigo: 3, titulo: 'Governador', matematico: 'maioria', candidatos: [
       { nome: 'Fábio Mitidieri', numero: 55 },          // PSD — na urna: "FÁBIO"
@@ -287,7 +365,7 @@ function normalizar(j) {
   const todos = [];
   const add = (k, partido) => cands.set(String(k.n), {
     vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's',
-    nomeUrna: k.nmu || k.nm || '', partido: partido || '',
+    nomeUrna: k.nmu || k.nm || '', partido: partido || '', sqcand: k.sqcand ? String(k.sqcand) : '',
   });
   const listasVagas = [];
   const projetados = new Set();  // deputados: vagas de cada partido/federação calculadas pelo TSE com os votos atuais (agr.vag)
@@ -301,17 +379,17 @@ function normalizar(j) {
       const elis = cs.filter(k => num(k.vap) >= 0.1 * qe).slice(0, vag);
       elis.forEach(k => projetados.add(String(k.n)));
       const tot = (a.par || []).reduce((t, p) => t + num(p.tvtn) + num(p.tvtl), 0);
-      listasVagas.push({ nome: (a.par || []).length > 1 ? (a.com || a.nm || '') : ((a.par[0] || {}).sg || ''), vag, votos: tot, eleitos: elis.map(k => ({ n: String(k.n), nome: k.nmu || k.nm || '', vap: num(k.vap), pvap: pctNum(k.pvap), oficial: k.e === 's' })) });
+      listasVagas.push({ nome: (a.par || []).length > 1 ? (a.com || a.nm || '') : ((a.par[0] || {}).sg || ''), vag, votos: tot, eleitos: elis.map(k => ({ n: String(k.n), nome: k.nmu || k.nm || '', vap: num(k.vap), pvap: pctNum(k.pvap), oficial: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' })) });
     }
   }
   if (Array.isArray(j.carg)) {                       // formato "-u.json"
     for (const cg of j.carg) for (const a of cg.agr || []) for (const p of a.par || []) {
       partidos.set(String(p.n), { sigla: p.sg, nominais: num(p.tvtn), legenda: num(p.tvtl), vagas: num(a.vag), agrupamento: (a.par || []).length > 1 ? (a.com || a.nm || '') : '' });
       for (const k of p.cand || []) add(k, p.sg);
-      for (const k of p.cand || []) todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: p.sg, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's' });
+      for (const k of p.cand || []) todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: p.sg, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' });
     }
   } else if (Array.isArray(j.cand)) {                // formato "-r.json"
-    for (const k of j.cand) { const pa = (k.cc || '').split(' - ')[0]; add(k, pa); todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: pa, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's' }); }
+    for (const k of j.cand) { const pa = (k.cc || '').split(' - ')[0]; add(k, pa); todos.push({ n: String(k.n), nome: k.nmu || k.nm || '', partido: pa, vap: num(k.vap), pvap: pctNum(k.pvap), st: k.st || '', eleito: k.e === 's', sqcand: k.sqcand ? String(k.sqcand) : '' }); }
   }
   const s = j.s || j;
   return {
@@ -339,6 +417,51 @@ function badgeStatus(st, eleito) {
 
 const chaveDe = cargo => cargo.chave || cargo.codigo;
 function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; }
+
+let HIST = null;
+let resultadoFinal = false;
+let viewAtual = 'painel';
+const VIEWS = ['painel','presidente','senadores','federais','estaduais'];
+
+function iniciais(nome) {
+  const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
+  if (!p.length) return '?';
+  if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+  return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+}
+function fotoUfDe(uf, eleicao) {
+  const ele = String(eleicao || codigoEleicao || CONFIG.codigoEleicaoPadrao);
+  // Fotos da eleição federal (presidente) ficam em /fotos/br/, mesmo no recorte por UF.
+  if (ele === '6257') return 'br';
+  return (uf || CONFIG.uf).toLowerCase();
+}
+function fotoUrl(sqcand, uf, eleicao) {
+  if (!sqcand) return '';
+  const ele = eleicao || codigoEleicao || CONFIG.codigoEleicaoPadrao;
+  return `${BASE}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`;
+}
+function makeAvatar(sqcand, nome, uf, eleicao, sm) {
+  const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
+  wrap.textContent = iniciais(nome);
+  const url = fotoUrl(sqcand, uf, eleicao);
+  if (!url) return wrap;
+  const img = document.createElement('img');
+  img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.src = url;
+  img.style.display = 'none';
+  img.addEventListener('error', () => { img.remove(); });
+  img.addEventListener('load', () => { wrap.textContent = ''; img.style.display = 'block'; wrap.appendChild(img); });
+  wrap.appendChild(img);
+  return wrap;
+}
+function histTexto(h) {
+  if (!h) return '';
+  return `${h.ano}: ${fmtInt.format(h.votos)} votos (${h.cargo}${h.partido ? ' · ' + h.partido : ''})`;
+}
+function histOf(codigo, numero, uf) {
+  if (!HIST || !HIST.historico) return null;
+  return HIST.historico[`${codigo}:${numero}:${(uf || 'se').toLowerCase()}`] || null;
+}
+
 
 // "Matematicamente eleito": nem que TODOS os eleitores que faltam votem e todos contra ele, o resultado muda.
 // maioria (Governador/Presidente): votos > metade do máximo possível de votos válidos (válidos atuais + eleitores que faltam).
@@ -387,14 +510,17 @@ function renderCard(cargo) {
 
   // monta as linhas; ordena por votos quando já houver apuração
   const lista = cargo.todosCandidatos
-    ? (d ? [...d.todos].sort((a, b) => b.vap - a.vap || a.nome.localeCompare(b.nome)).map(k => ({ nome: k.nome, numero: k.n })) : [])
-    : cargo.candidatos;
+    ? (d ? [...d.todos].sort((a, b) => b.vap - a.vap || a.nome.localeCompare(b.nome)).map(k => ({ nome: k.nome, numero: k.n, sqcand: k.sqcand })) : [])
+    : cargo.candidatos.map(c => ({ ...c, sqcand: (d && d.cands.get(String(c.numero)) || {}).sqcand || '' }));
   const linhas = lista.map(c => ({ c, r: d ? d.cands.get(String(c.numero)) : null }));
   const matEleitos = matematicamenteEleitos(cargo, d);
   if (d && d.pst > 0) linhas.sort((a, b) => (b.r?.vap ?? -1) - (a.r?.vap ?? -1));
 
   for (const { c, r } of linhas) {
     const row = el('div', 'cand');
+    const sq = (r && r.sqcand) || c.sqcand || '';
+    row.appendChild(makeAvatar(sq, c.nome, cargo.uf || CONFIG.uf, cargo.eleicao || codigoEleicao));
+    const body = el('div', 'cand-body');
     const l1 = el('div', 'linha');
     const nome = el('span', 'nome', c.nome);
     if (r) {
@@ -413,10 +539,10 @@ function renderCard(cargo) {
     }
     l1.appendChild(nome);
     l1.appendChild(el('span', 'pct', r ? fmtPct(r.pvap) : '—'));
-    row.appendChild(l1);
+    body.appendChild(l1);
     const barra = el('div', 'barra'); const fill = el('div');
     fill.style.width = r ? Math.min(100, r.pvap) + '%' : '0';
-    barra.appendChild(fill); row.appendChild(barra);
+    barra.appendChild(fill); body.appendChild(barra);
     const info = el('div', 'info');
     if (d && !r) {
       info.appendChild(el('span', 'naoencontrado', `Nº ${c.numero} não encontrado no TSE para ${cargo.titulo}`));
@@ -424,7 +550,10 @@ function renderCard(cargo) {
       info.appendChild(el('span', null, `${c.numero}${r && r.partido ? ' · ' + r.partido : ''}`));
       info.appendChild(el('span', null, r ? `${fmtInt.format(r.vap)} votos` : '— votos'));
     }
-    row.appendChild(info);
+    body.appendChild(info);
+    const hh = histOf(cargo.codigo, c.numero, cargo.uf || CONFIG.uf);
+    if (hh) body.appendChild(el('div', 'hist-line', histTexto(hh)));
+    row.appendChild(body);
     card.appendChild(row);
   }
   return card;
@@ -476,8 +605,10 @@ function renderRanking(rk) {
   lista.forEach((c, i) => {
     const proj = !c.eleito && !c.st.toLowerCase().startsWith('eleito') && d.projetados && d.projetados.has(c.n) && !d.totalFinal;
         const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+    it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
     it.appendChild(el('span', 'pos', `${i + 1}º`));
     const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n} · ${c.partido}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
+    const hx = histOf(rk.codigo, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
     it.appendChild(nm);
     const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
     it.appendChild(v);
@@ -508,8 +639,10 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
       lista.forEach((c, i) => {
         const proj = !c.eleito && !c.st.toLowerCase().startsWith('eleito') && d.projetados && d.projetados.has(c.n) && !d.totalFinal;
         const it = el('div', 'rank-item' + (c.eleito || c.st.toLowerCase().startsWith('eleito') || proj ? ' eleito' : '') + (meus.has(c.n) ? ' meu' : ''));
+        it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
         it.appendChild(el('span', 'pos', `${i + 1}º`));
         const nm = el('div'); nm.appendChild(el('div', null, c.nome)); const sb = el('div', 'sub', `${c.n}${c.st ? ' · ' + c.st : ''}`); if (proj) sb.appendChild(el('span', 'tag-proj', ' · ✓ ELEITO (PROJEÇÃO)')); nm.appendChild(sb);
+        const hx = histOf(cod, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
         it.appendChild(nm);
         const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap)));
         it.appendChild(v); wrap.appendChild(it);
@@ -523,7 +656,7 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
   return card;
 }
 
-const CORES_LISTA = { 'PSD': '#22c55e', 'PP / UNIÃO': '#3b82f6', 'PCDOB / PT / PV': '#ef4444', 'REPUBLICANOS': '#8b5cf6', 'PL': '#facc15', 'MDB': '#14b8a6', 'PSB': '#f472b6', 'AVANTE': '#f97316', 'PSOL / REDE': '#eab308', 'PDT': '#fb7185', 'PSDB / CIDADANIA': '#38bdf8', 'NOVO': '#fdba74' };
+const CORES_LISTA = { 'PSD': '#22c55e', 'PP / UNIÃO': '#3b82f6', 'PCDOB / PT / PV': '#ef4444', 'REPUBLICANOS': '#8b5cf6', 'PL': '#facc15', 'MDB': '#14b8a6', 'PSB': '#f472b6', 'AVANTE': '#f97316', 'PSOL / REDE': '#eab308', 'PDT': '#fb7185', 'PSDB / CIDADANIA': '#38bdf8', 'NOVO': '#fdba74', 'UNIÃO': '#3b82f6', 'PT': '#ef4444', 'PP': '#64748b', 'PODE': '#a78bfa', 'REDE': '#84cc16', 'PSDB': '#38bdf8', 'PSC': '#f97316' };
 const PALETA_EXTRA = ['#a3e635', '#c084fc', '#2dd4bf', '#fca5a5', '#93c5fd', '#fde68a'];
 function corLista(nome, i) { return CORES_LISTA[nome] || PALETA_EXTRA[i % PALETA_EXTRA.length]; }
 
@@ -552,9 +685,9 @@ function renderAlese() {
     const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.5');
     const t = document.createElementNS(ns, 'title'); t.textContent = `${l.nome}${l.eleitos[k] ? ' - ' + l.eleitos[k].nome : ''}`; c.appendChild(t); svg.appendChild(c); } });
   const tx = document.createElementNS(ns, 'text'); tx.setAttribute('x', cx); tx.setAttribute('y', cy - 8); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('fill', '#e2e8f0'); tx.setAttribute('font-size', '30'); tx.setAttribute('font-weight', '800'); tx.textContent = total; svg.appendChild(tx);
-  const wrap = el('div', 'alese-wrap'); wrap.appendChild(svg);
-  const leg = el('div', 'alese-leg');
-  listas.forEach(l => { const it = el('div', 'it'); const dot = el('span', 'dot'); dot.style.background = l.cor; it.appendChild(dot);
+  const wrap = el('div', 'hemi-wrap alese-wrap'); wrap.appendChild(svg);
+  const leg = el('div', 'hemi-leg alese-leg');
+  listas.forEach(l => { const it = el('div', 'it'); const dot = el('span', 'swatch'); dot.style.background = l.cor; it.appendChild(dot);
     const tx2 = el('div'); tx2.appendChild(el('div', null, l.nome)); tx2.appendChild(el('div', 'nomes', l.eleitos.map(e => e.nome).join(', '))); it.appendChild(tx2);
     it.appendChild(el('span', 'q', String(l.vag))); leg.appendChild(it); });
   wrap.appendChild(leg); card.appendChild(wrap);
@@ -583,8 +716,11 @@ function renderEleitos() {
       l.eleitos.forEach(c => {
         pos++;
         const it = el('div', 'rank-item eleito' + (meus.has(c.n) ? ' meu' : ''));
+        it.appendChild(makeAvatar(c.sqcand, c.nome, CONFIG.uf, codigoEleicao, true));
         it.appendChild(el('span', 'pos', `${pos}`));
-        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); nm.appendChild(el('div', 'sub', `${c.n}${c.oficial ? ' · ELEITO (TSE)' : ''}`)); it.appendChild(nm);
+        const nm = el('div'); nm.appendChild(el('div', null, c.nome)); nm.appendChild(el('div', 'sub', `${c.n}${c.oficial ? ' · ELEITO (TSE)' : ''}`));
+        const hx = histOf(cod, c.n, 'se'); if (hx) nm.appendChild(el('div', 'hist', histTexto(hx)));
+        it.appendChild(nm);
         const v = el('div', 'v'); v.appendChild(el('div', null, fmtInt.format(c.vap))); v.appendChild(el('div', 'sub', fmtPct(c.pvap))); it.appendChild(v);
         wrap.appendChild(it);
       });
@@ -661,36 +797,212 @@ function renderMetaSenado() {
   return card;
 }
 
-function renderTudo() {
-  const grid = document.getElementById('grid');
-  const mason = el('div', 'masonry');
-  mason.replaceChildren(...CONFIG.cargos.map(renderCard), ...(CONFIG.partidosDestaque || []).map(renderPartido));
-  grid.replaceChildren(renderAlese(), mason, renderEleitos(), ...(CONFIG.rankings || []).map(renderRanking), renderTopPartidos('5 mais votados do PL (22)', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }, { numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]), renderTopPartidos(), renderCusto(), renderMetaSenado());
 
-  // resumo geral: usa o primeiro cargo com dados (normalmente Governador)
-  const ref = CONFIG.cargos.filter(c => !c.uf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);
+function renderHemicicloSVG(listas, totalLabel) {
+  const total = listas.reduce((t, l) => t + l.vag, 0);
+  const fileiras = total <= 12 ? 2 : total <= 30 ? 3 : total <= 60 ? 4 : 5;
+  const R0 = 70, R1 = total > 40 ? 190 : 170, W = 420, H = total > 40 ? 230 : 210, cx = 210, cy = H - 15;
+  const raios = Array.from({ length: fileiras }, (_, i) => R0 + (R1 - R0) * (fileiras === 1 ? 1 : i / (fileiras - 1)));
+  const somaR = raios.reduce((a, b) => a + b, 0);
+  let porFileira = raios.map(r => Math.round(total * r / somaR));
+  let dif = total - porFileira.reduce((a, b) => a + b, 0); porFileira[porFileira.length - 1] += dif;
+  const pts = [];
+  raios.forEach((r, i) => { const n = porFileira[i]; for (let k = 0; k < n; k++) { const ang = Math.PI * (n === 1 ? 0.5 : k / (n - 1)); pts.push({ ang, x: cx - r * Math.cos(ang), y: cy - r * Math.sin(ang) }); } });
+  pts.sort((a, b) => a.ang - b.ang);
+  const raioCad = Math.min(total > 40 ? 11 : 17, (R1 - R0) / (fileiras * 1.15));
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  let idx = 0;
+  listas.forEach(l => { for (let k = 0; k < l.vag; k++) { const pt = pts[idx++]; if (!pt) break;
+    const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.2');
+    const t = document.createElementNS(ns, 'title'); t.textContent = `${l.nome}${l.eleitos && l.eleitos[k] ? ' - ' + l.eleitos[k] : ''}`; c.appendChild(t); svg.appendChild(c); } });
+  const tx = document.createElementNS(ns, 'text'); tx.setAttribute('x', cx); tx.setAttribute('y', cy - 6); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('fill', '#e2e8f0'); tx.setAttribute('font-size', total > 40 ? '26' : '30'); tx.setAttribute('font-weight', '800'); tx.textContent = totalLabel != null ? totalLabel : String(total); svg.appendChild(tx);
+  return svg;
+}
+
+function renderSenado81() {
+  const card = el('section', 'card senado81');
+  card.appendChild(el('h2', null, 'Senado Federal - 81 cadeiras (composição após 2026)'));
+  if (!HIST || !HIST.senado81) { card.appendChild(el('div', 'aviso-card espera', 'Carregando composição do Senado…')); return card; }
+  card.appendChild(el('div', 'meta', '54 senadores eleitos em 2026 (2 por UF) + 27 eleitos em 2022 que permanecem até 2031. Partido dos remanescentes = partido na eleição de 2022. Votos 2022 fora de SE: sem dado neste arquivo.'));
+  const byParty = new Map();
+  for (const s of HIST.senado81) {
+    const p = s.partido || '—';
+    if (!byParty.has(p)) byParty.set(p, { nome: p, vag: 0, eleitos: [], n2026: 0, n2022: 0 });
+    const g = byParty.get(p); g.vag++; if (s.ano === 2026) g.n2026++; else g.n2022++;
+    const votos = s.votos != null ? ` · ${fmtInt.format(s.votos)} votos` : (s.ano === 2022 ? ' · sem dado de votos' : '');
+    g.eleitos.push(`${s.nmu} (${s.uf}, ${s.ano}${votos})`);
+  }
+  const listas = [...byParty.values()].sort((a, b) => b.vag - a.vag || a.nome.localeCompare(b.nome)).map((l, i) => ({ ...l, cor: corLista(l.nome, i) }));
+  const wrap = el('div', 'hemi-wrap'); wrap.appendChild(renderHemicicloSVG(listas, '81'));
+  const leg = el('div', 'hemi-leg');
+  listas.forEach(l => { const it = el('div', 'it'); const sw = el('span', 'swatch'); sw.style.background = l.cor; it.appendChild(sw);
+    const tx2 = el('div'); tx2.appendChild(el('div', null, l.nome)); tx2.appendChild(el('div', 'nomes', `${l.n2026} em 2026 · ${l.n2022} remanescentes de 2022`)); it.appendChild(tx2);
+    it.appendChild(el('span', 'q', String(l.vag))); leg.appendChild(it); });
+  wrap.appendChild(leg); card.appendChild(wrap);
+  const mob = el('div', 'hemi-mobile');
+  listas.forEach(l => { const det = el('details'); const sm = el('summary'); sm.textContent = `${l.nome}: ${l.vag} cadeiras`; det.appendChild(sm);
+    const ul = el('div', 'nomes'); ul.style.marginTop = '6px'; ul.textContent = l.eleitos.join(' · '); det.appendChild(ul); mob.appendChild(det); });
+  card.appendChild(mob);
+  return card;
+}
+
+function renderEleitoRow(item) {
+  const row = el('div', 'el-row');
+  row.appendChild(makeAvatar(item.sqcand, item.nmu || item.nome, CONFIG.uf, codigoEleicao, true));
+  const mid = el('div');
+  mid.appendChild(el('div', 'nm', item.nmu || item.nome));
+  mid.appendChild(el('div', 'sub', `${item.partido || ''}${item.numero ? ' · nº ' + item.numero : ''}`));
+  if (item.hist) mid.appendChild(el('div', 'hist', histTexto(item.hist)));
+  else if (item.votos_ant != null) {
+    const txt = item.candidatou_2026 === false
+      ? `${item.ano_ant}: ${fmtInt.format(item.votos_ant)} votos · não concorreu em 2026`
+      : `${item.ano_ant}: ${fmtInt.format(item.votos_ant)} votos` + (item.votos_2026 != null ? ` · 2026: ${fmtInt.format(item.votos_2026)} (${item.st_2026 || 'não eleito'})` : '');
+    mid.appendChild(el('div', 'hist', txt));
+  }
+  row.appendChild(mid);
+  const v = el('div', 'votos');
+  if (item.votos != null) { v.appendChild(el('div', null, fmtInt.format(item.votos))); v.appendChild(el('div', 'sub', '2026')); }
+  else if (item.votos_2026 != null) { v.appendChild(el('div', null, fmtInt.format(item.votos_2026))); v.appendChild(el('div', 'sub', '2026')); }
+  else if (item.votos_ant != null) { v.appendChild(el('div', null, fmtInt.format(item.votos_ant))); v.appendChild(el('div', 'sub', String(item.ano_ant))); }
+  row.appendChild(v);
+  return row;
+}
+
+function renderEleitosSE() {
+  const card = el('section', 'card eleitos');
+  card.appendChild(el('h2', null, 'Eleitos de Sergipe'));
+  card.appendChild(el('div', 'meta', 'Senadores (2), Deputados Federais (8) e Deputados Estaduais (24). Votos 2026 = resultado oficial. Histórico = eleição anterior com match confiável por nome de urna ou nome completo. Comparativo com eleitos em 2018 (Senado) e 2022 (Câmara/Alese), sem rastrear suplências.'));
+  if (!HIST || !HIST.eleitos_se) { card.appendChild(el('div', 'aviso-card espera', 'Carregando lista de eleitos…')); return card; }
+  const blocos = [
+    { cod: '5', titulo: 'Senadores (2)', ant: '2018' },
+    { cod: '6', titulo: 'Deputados Federais (8)', ant: '2022' },
+    { cod: '7', titulo: 'Deputados Estaduais (24)', ant: '2022' },
+  ];
+  const g = el('div', 'eleitos-grid');
+  for (const b of blocos) {
+    const col = el('div'); col.appendChild(el('h3', null, b.titulo));
+    (HIST.eleitos_se[b.cod] || []).forEach(item => col.appendChild(renderEleitoRow(item)));
+    const sub = HIST.substituicoes && HIST.substituicoes[b.cod];
+    if (sub && (sub.entraram.length || sub.sairam.length)) {
+      const trocas = el('div', 'troca-cols');
+      const inn = el('div', 'in'); inn.appendChild(el('h4', null, 'Entraram'));
+      if (!sub.entraram.length) inn.appendChild(el('div', 'sub', 'Nenhum')); else sub.entraram.forEach(e => inn.appendChild(renderEleitoRow(e)));
+      const out = el('div', 'out'); out.appendChild(el('h4', null, `Saíram (eleitos em ${b.ant} que não se reelegeram)`));
+      if (!sub.sairam.length) out.appendChild(el('div', 'sub', 'Nenhum')); else sub.sairam.forEach(s => out.appendChild(renderEleitoRow(s)));
+      trocas.appendChild(inn); trocas.appendChild(out); col.appendChild(trocas);
+    } else if (b.cod === '5') {
+      col.appendChild(el('div', 'aviso-card info', 'Os dois senadores eleitos em 2018 (Delegado Alessandro Vieira e Rogério Carvalho) se reelegeram em 2026.'));
+    }
+    g.appendChild(col);
+  }
+  card.appendChild(g);
+  return card;
+}
+
+function setView(name, pushHash) {
+  if (!VIEWS.includes(name)) name = 'painel';
+  viewAtual = name;
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  document.querySelectorAll('#nav-tabs a').forEach(a => a.classList.toggle('active', a.dataset.view === name));
+  const sel = document.getElementById('nav-select');
+  if (sel && sel.value !== name) sel.value = name;
+  if (pushHash !== false) {
+    const want = '#' + name;
+    if (location.hash !== want) history.pushState(null, '', want);
+  }
+  const qe = document.querySelector('.qe2022');
+  if (qe) qe.style.display = (name === 'federais' || name === 'estaduais' || name === 'painel') ? '' : 'none';
+}
+
+function bootNav() {
+  const tabs = document.getElementById('nav-tabs');
+  if (tabs) tabs.addEventListener('click', e => { const a = e.target.closest('a[data-view]'); if (!a) return; e.preventDefault(); setView(a.dataset.view); });
+  const sel = document.getElementById('nav-select');
+  if (sel) sel.addEventListener('change', e => setView(e.target.value));
+  const btn = document.getElementById('btn-atualizar');
+  if (btn) btn.addEventListener('click', () => atualizar());
+  window.addEventListener('hashchange', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
+  window.addEventListener('popstate', () => { const h = (location.hash || '#painel').slice(1); setView(VIEWS.includes(h) ? h : 'painel', false); });
+  const initial = (location.hash || '#painel').slice(1);
+  setView(VIEWS.includes(initial) ? initial : 'painel', false);
+}
+
+
+function renderTudo() {
+  const gov = CONFIG.cargos.find(c => c.codigo === 3);
+  const pres = CONFIG.cargos.filter(c => c.codigo === 1);
+  const sen = CONFIG.cargos.find(c => c.codigo === 5);
+  const fed = CONFIG.cargos.find(c => c.codigo === 6);
+  const est = CONFIG.cargos.find(c => c.codigo === 7);
+
+  const gp = document.getElementById('grid-painel');
+  if (gp) gp.replaceChildren(renderAlese(), renderSenado81(), renderEleitosSE(), ...(gov ? [renderCard(gov)] : []));
+
+  const gpr = document.getElementById('grid-presidente');
+  if (gpr) gpr.replaceChildren(...pres.map(renderCard));
+
+  const gs = document.getElementById('grid-senadores');
+  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado());
+
+  const gf = document.getElementById('grid-federais');
+  if (gf) {
+    const nodes = [];
+    if (fed) nodes.push(renderCard(fed));
+    (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [6], titulo: pd.titulo.replace(' - Votação do partido', ' · Federal') })));
+    const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
+    nodes.push(renderTopPartidos('5 mais votados do PL · Federal', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [6], rotulo: 'PL - Deputado Federal' }]));
+    nodes.push(renderTopPartidos('7 mais votados por partido · Federal', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [6] }))));
+    nodes.push(renderEleitos());
+    nodes.push(renderCusto());
+    gf.replaceChildren(...nodes);
+  }
+
+  const ge = document.getElementById('grid-estaduais');
+  if (ge) {
+    const nodes = [];
+    if (est) nodes.push(renderCard(est));
+    (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [7], titulo: pd.titulo.replace(' - Votação do partido', ' · Estadual') })));
+    const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
+    nodes.push(renderTopPartidos('5 mais votados do PL · Estadual', [{ numero: '22', sigla: 'PL', cor: '#facc15', top: 5, cargos: [7], rotulo: 'PL - Deputado Estadual' }]));
+    nodes.push(renderTopPartidos('7 mais votados por partido · Estadual', (CONFIG.topPorPartido || []).map(p => ({ ...p, cargos: [7] }))));
+    ge.replaceChildren(...nodes);
+  }
+
+  const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === 'se').map(c => estado[chaveDe(c)]?.dados).find(Boolean);
   document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';
   const h = ref ? horaTSE(ref) : '';
   document.getElementById('atualizado-geral').textContent =
     h ? `Atualizado pelo TSE em ${h} (horário de Brasília)` : 'Aguardando divulgação do TSE';
+
+  const finals = CONFIG.cargos.map(c => estado[chaveDe(c)]?.dados).filter(Boolean);
+  resultadoFinal = finals.length > 0 && finals.every(d => d.totalFinal || d.pst >= 100);
 }
 
 function renderStatus() {
   const algumErro = CONFIG.cargos.some(c => estado[chaveDe(c)]?.erro);
   const box = document.getElementById('status');
   box.classList.toggle('erro', algumErro);
+  box.classList.toggle('final', !algumErro && resultadoFinal);
   document.getElementById('status-texto').textContent = buscando
     ? 'Atualizando…'
     : algumErro
       ? `Falha ao consultar o TSE • Nova tentativa em ${segundos}s`
-      : `Ao Vivo • Próxima atualização em ${segundos}s`;
+      : resultadoFinal
+        ? `Resultado final • Próxima verificação em ${segundos}s`
+        : `Ao Vivo • Próxima atualização em ${segundos}s`;
 }
+function intervaloAtual() { return resultadoFinal ? CONFIG.intervaloFinalSegundos : CONFIG.intervaloSegundos; }
 
 async function atualizar() {
   if (buscando) return;
   buscando = true; renderStatus();
   try {
     if (!codigoEleicao) codigoEleicao = await descobrirEleicao();
+    if (!HIST) {
+      try { HIST = await getJSON('historico.json'); }
+      catch (e) { console.warn('historico.json indisponível', e); HIST = { historico: {}, senado81: [], eleitos_se: null, substituicoes: {} }; }
+    }
     await Promise.all(CONFIG.cargos.map(async cargo => {
       const st = estado[chaveDe(cargo)] || (estado[chaveDe(cargo)] = {});
       try {
@@ -703,11 +1015,12 @@ async function atualizar() {
     }));
   } finally {
     buscando = false;
-    segundos = CONFIG.intervaloSegundos;
+    segundos = intervaloAtual();
     renderTudo(); renderStatus();
   }
 }
 
+bootNav();
 renderTudo();
 atualizar();
 setInterval(() => {

@@ -628,7 +628,7 @@
     for (let i = 1; i <= n; i++) {
       doc.setPage(i);
       doc.setFont('NotoSans', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
-      doc.text('Fonte: TSE — resultados oficiais 2026', 40, h - 22);
+      doc.text('Cadê Meu Voto · cademeuvoto.com.br · Fonte: TSE — resultados oficiais 2026', 40, h - 22);
       doc.text('p. ' + i + ' de ' + n, w - 40, h - 22, { align: 'right' });
       if (meta && meta.subtitle && i > 1) {
         doc.setFontSize(7);
@@ -772,11 +772,27 @@
 
   async function writeCover(doc, title, scope, notes, photoUrls) {
     const { w, h } = pageSize(doc); const m = margins();
+    // marca Cadê Meu Voto (desenhada em vetor)
+    try {
+      const lx = m.l, ly = 52, ls = 30, k = ls / 48;
+      doc.setFillColor(37, 99, 235); doc.roundedRect(lx, ly, ls, ls, 12 * k, 12 * k, 'F');
+      doc.setFillColor(248, 250, 252); doc.roundedRect(lx + 9 * k, ly + 9 * k, 30 * k, 14 * k, 3.5 * k, 3.5 * k, 'F');
+      doc.setDrawColor(22, 163, 74); doc.setLineWidth(3.2 * k); doc.setLineCap('round'); doc.setLineJoin('round');
+      doc.lines([[3.6 * k, 3.4 * k], [7.4 * k, -7.3 * k]], lx + 18 * k, ly + 16.3 * k, [1, 1], 'S', false);
+      doc.setFillColor(219, 234, 254);
+      for (const [kx, ky] of [[9, 27], [20, 27], [31, 27], [9, 34.5], [20, 34.5]]) doc.roundedRect(lx + kx * k, ly + ky * k, 8 * k, 5 * k, 1.6 * k, 1.6 * k, 'F');
+      doc.setFillColor(34, 197, 94); doc.roundedRect(lx + 31 * k, ly + 34.5 * k, 8 * k, 5 * k, 1.6 * k, 1.6 * k, 'F');
+      doc.setLineWidth(1); doc.setLineCap('butt'); doc.setDrawColor(0);
+      doc.setFont('NotoSans', 'bold'); doc.setFontSize(16); doc.setTextColor(15, 23, 42);
+      doc.text('Cadê Meu Voto', lx + ls + 10, ly + 14);
+      doc.setFont('NotoSans', 'normal'); doc.setFontSize(9); doc.setTextColor(71, 85, 105);
+      doc.text('cademeuvoto.com.br · dados oficiais do TSE até a seção eleitoral', lx + ls + 10, ly + 27);
+    } catch (e) {}
     doc.setFont('NotoSans', 'bold'); doc.setFontSize(22); doc.setTextColor(15, 23, 42);
-    doc.text('Apuração Sergipe 2026', m.l, 90);
+    doc.text('Eleições 2026 · Sergipe', m.l, 110);
     doc.setFontSize(15); doc.setTextColor(30, 64, 120);
     const lines = doc.splitTextToSize(title, w - m.l - m.r - ((photoUrls && photoUrls.length) ? 130 : 0));
-    doc.text(lines, m.l, 125);
+    doc.text(lines, m.l, 135);
     // photos on cover
     if (photoUrls && photoUrls.length) {
       let px = w - m.r - 110;
@@ -789,7 +805,7 @@
       }
     }
     doc.setFont('NotoSans', 'normal'); doc.setFontSize(11); doc.setTextColor(50);
-    const base = 125 + lines.length * 18 + 10;
+    const base = 135 + lines.length * 18 + 10;
     doc.text('Escopo: ' + scope, m.l, base);
     doc.text('Gerado em: ' + nowMaceio(), m.l, base + 18);
     doc.setFontSize(9); doc.setTextColor(90);

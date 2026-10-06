@@ -1,6 +1,6 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente oficial do painel "Apuração Sergipe" (marcelhalls-dotcom.github.io/apuracao-se).
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE.
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
@@ -543,12 +543,16 @@ function detectReportIntent(text, retrieval) {
 
 export default {
   async fetch(request, env) {
-    const allowed = env.ALLOWED_ORIGIN || 'https://marcelhalls-dotcom.github.io';
+    // ALLOWED_ORIGIN aceita lista separada por vírgula; o header CORS reflete a origem permitida que fez a chamada.
+    const allowList = String(env.ALLOWED_ORIGIN || 'https://marcelhalls-dotcom.github.io')
+      .split(',').map(s => s.trim().replace(/\/$/, '')).filter(Boolean);
     const origin = request.headers.get('Origin') || '';
+    const originOk = !origin || allowList.includes(origin);
+    const allowed = origin && originOk ? origin : allowList[0];
     const cors = corsHeaders(allowed);
 
     if (request.method === 'OPTIONS') {
-      if (origin && origin !== allowed) return new Response('CORS', { status: 403, headers: cors });
+      if (!originOk) return new Response('CORS', { status: 403, headers: cors });
       return new Response(null, { status: 204, headers: cors });
     }
 
@@ -567,7 +571,7 @@ export default {
     }
 
     if (request.method !== 'POST') return json(405, { error: 'Use POST /chat' }, cors);
-    if (origin && origin !== allowed) return json(403, { error: 'Origem não permitida.' }, cors);
+    if (!originOk) return json(403, { error: 'Origem não permitida.' }, cors);
 
     const url = new URL(request.url);
     if (url.pathname !== '/' && url.pathname !== '/chat') return json(404, { error: 'Não encontrado' }, cors);

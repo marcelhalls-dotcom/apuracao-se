@@ -2,26 +2,33 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon-16.png" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="favicon.ico">
-<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
-<title>Apuração Sergipe 2026</title>
-<meta name="description" content="Apuração oficial de Sergipe 2026: governador, senado, deputados e presidente. Cadeiras da Alese e do Senado Federal, eleitos e histórico.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" href="favicon.svg?v=20261006b1" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=20261006b1" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png?v=20261006b1" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="favicon.ico?v=20261006b1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006b1" sizes="180x180">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#0A1428">
+<link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
+<title>Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral</title>
+<meta name="description" content="Resultados oficiais do TSE das Eleições 2026 em Sergipe: governador, senado, presidente e deputados. Mapa de votação até a seção eleitoral, comparativos e relatórios em PDF.">
+<!-- CANONICAL: trocar para https://cademeuvoto.com.br/ quando o domínio estiver ativo (ver rebrand/setup-domain.sh) -->
+<link rel="canonical" href="https://marcelhalls-dotcom.github.io/apuracao-se/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:title" content="Apuração Sergipe 2026">
-<meta property="og:description" content="Resultados oficiais do TSE em Sergipe: Alese, Senado, eleitos e votação por cargo.">
+<meta property="og:site_name" content="Cadê Meu Voto">
+<meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
+<meta property="og:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:url" content="https://marcelhalls-dotcom.github.io/apuracao-se/">
-<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png">
+<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b1">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Apuração Sergipe 2026">
-<meta name="twitter:description" content="Resultados oficiais do TSE em Sergipe: Alese, Senado, eleitos e votação por cargo.">
-<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png">
+<meta name="twitter:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
+<meta name="twitter:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
+<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b1">
 <style>
   :root {
     --bg: #0f172a;
@@ -181,9 +188,6 @@
   .nav::-webkit-scrollbar { display: none; }
   .nav a { flex: none; text-decoration: none; color: var(--subtext); padding: 8px 12px; border-radius: 999px; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
   .nav a.active { color: #0f172a; background: var(--accent); }
-  .nav-select-wrap { display: none; max-width: 1100px; margin: 0 auto; }
-  .nav-select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(56,189,248,0.4); background: var(--card); color: var(--text); font-size: 1rem; }
-  @media (max-width: 560px) { .nav { display: none; } .nav-select-wrap { display: block; } }
   .view { display: none; } .view.active { display: block; }
   .grid.ordered { grid-template-columns: 1fr !important; }
   #grid-painel > .card { grid-column: 1 / -1; }
@@ -614,21 +618,398 @@
   .rel-esc th, .rel-esc td { border: 1px solid rgba(148,163,184,.25); padding: 2px 4px; text-align: left; }
   .rel-esc th { background: rgba(30,64,120,.35); }
 
+  /* =====================================================================
+     Cadê Meu Voto — camada de marca (fase 3)
+     ===================================================================== */
+  @font-face {
+    font-family: 'Inter';
+    src: url('fonts/InterVariable.woff2') format('woff2');
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+  :root {
+    --bg: #0A1428; --bg-2: #0D1A33; --card: #111E3A; --card-2: #162447;
+    --line: rgba(148,163,184,.16); --line-2: rgba(148,163,184,.28);
+    --accent: #60A5FA; --brand: #2563EB; --brand-2: #1D4ED8;
+    --confirma: #22C55E; --corrige: #F59E0B;
+    --text: #F1F5F9; --subtext: #94A3B8; --muted: #CBD5E1;
+    --maxw: 1200px; --bn-h: 0px;
+  }
+  html { scroll-padding-top: 128px; -webkit-text-size-adjust: 100%; }
+  body {
+    padding: 0 0 var(--bn-h); line-height: 1.5;
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    background:
+      radial-gradient(900px 500px at 85% -120px, rgba(37,99,235,.20), transparent 70%),
+      radial-gradient(700px 400px at -10% 0, rgba(34,197,94,.06), transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  [hidden] { display: none !important; }
+  .skip-link { position: absolute; left: 8px; top: -60px; z-index: 100; background: var(--brand); color: #fff; padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+  .skip-link:focus { top: 8px; }
+  a { color: var(--accent); }
+
+  /* ---------- header ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 55; text-align: left; margin: 0; padding: 0 !important;
+    background: rgba(10,20,40,.86); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    border-bottom: 1px solid var(--line);
+  }
+  .hdr-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 16px; height: 64px; display: flex; align-items: center; gap: 18px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); flex: none; }
+  .brand svg { width: 34px; height: 34px; display: block; flex: none; }
+  .brand-word { font-size: 1.14rem; letter-spacing: -.02em; white-space: nowrap; line-height: 1; }
+  .brand-word .b1 { font-weight: 500; color: var(--muted); }
+  .brand-word .b2 { font-weight: 800; color: var(--text); }
+  .primary-nav { display: flex; gap: 2px; margin-left: 6px; }
+  .primary-nav a { color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 500; padding: 8px 12px; border-radius: 8px; white-space: nowrap; }
+  .primary-nav a:hover { color: #fff; background: rgba(148,163,184,.10); }
+  .primary-nav a.active { color: #fff; background: rgba(96,165,250,.16); }
+  .hdr-tools { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .status-wrap { position: relative; }
+  .site-header #status.status {
+    min-height: 36px; padding: 6px 12px; gap: 8px; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+    background: rgba(96,165,250,.10); border: 1px solid rgba(96,165,250,.35); color: #BFDBFE; border-radius: 999px; white-space: nowrap;
+  }
+  .site-header #status.status.final { background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.40); color: #86EFAC; }
+  .site-header #status.status.erro { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); color: #FCA5A5; }
+  .site-header #status .dot { width: 8px; height: 8px; }
+  .status-pop {
+    position: absolute; right: 0; top: calc(100% + 10px); width: min(340px, calc(100vw - 24px)); z-index: 70;
+    background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 14px; padding: 14px;
+    box-shadow: 0 18px 50px rgba(2,6,23,.6); font-size: .86rem; color: var(--muted);
+  }
+  .status-pop .pop-title { font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .status-pop .pop-line { margin: 4px 0; }
+  .status-pop .pop-line strong { color: var(--text); }
+  .status-pop .atualizado { margin-top: 4px; font-size: .8rem; color: var(--subtext); }
+  .status-pop .pop-actions { display: grid; gap: 8px; margin-top: 12px; }
+  .status-pop .btn { width: 100%; justify-content: flex-start; border-radius: 10px; font: inherit; font-size: .84rem; }
+  .btn { background: rgba(96,165,250,.10); border-color: rgba(96,165,250,.35); color: #BFDBFE; }
+  .btn-cta {
+    display: inline-flex; align-items: center; min-height: 36px; padding: 6px 16px; border-radius: 999px;
+    background: var(--confirma); color: #052E16; font-weight: 700; font-size: .86rem; text-decoration: none; white-space: nowrap;
+  }
+  .btn-cta:hover { background: #4ADE80; }
+  .btn-cta.active { box-shadow: 0 0 0 2px rgba(34,197,94,.35); }
+  .hamburger {
+    display: none; appearance: none; border: 1px solid var(--line-2); background: transparent; color: var(--text);
+    width: 42px; height: 42px; border-radius: 10px; cursor: pointer; align-items: center; justify-content: center; padding: 0;
+  }
+  .hamburger svg { width: 22px; height: 22px; }
+  .section-nav { border-top: 1px solid var(--line); }
+  .section-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 8px; }
+  .section-nav .nav { max-width: none; margin: 0; gap: 0; display: flex; }
+  .section-nav .nav a {
+    min-height: 44px; padding: 0 14px; border-radius: 0; background: transparent; color: var(--subtext);
+    font-size: .87rem; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .section-nav .nav a:hover { color: var(--text); }
+  .section-nav .nav a.active { color: var(--text); background: transparent; border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* drawer */
+  .nav-drawer { position: fixed; inset: 0; z-index: 90; }
+  .drawer-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,.62); }
+  .drawer-panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(330px, 88vw); overflow-y: auto;
+    background: var(--bg-2); border-left: 1px solid var(--line-2); padding: 14px 16px 28px;
+    box-shadow: -20px 0 60px rgba(2,6,23,.5); animation: drawerIn .18s ease;
+  }
+  @keyframes drawerIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .drawer-close { appearance: none; border: 0; background: transparent; color: var(--muted); font-size: 1.7rem; width: 44px; height: 44px; cursor: pointer; }
+  .drawer-panel h3 { margin: 18px 0 4px; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--subtext); }
+  .drawer-panel a { display: flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; }
+  .drawer-panel a:hover { background: rgba(148,163,184,.10); }
+  .drawer-panel a.active { background: rgba(96,165,250,.16); color: #fff; }
+
+  /* bottom nav (mobile) */
+  .bottom-nav { display: none; }
+
+  /* ---------- layout ---------- */
+  #views-root { max-width: var(--maxw); margin: 0 auto; padding: 22px 16px 40px; }
+  .view.active { animation: viewIn .22s ease; }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .qe2022-wrap { margin: 0 0 16px; max-width: none; }
+  .page-head { margin: 6px 0 22px; }
+  .page-head.center { text-align: center; }
+  .page-head.center p { margin-left: auto; margin-right: auto; }
+  .eyebrow { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  .page-head h1 { margin: 6px 0 8px; font-size: clamp(1.6rem, 3.2vw, 2.25rem); letter-spacing: -.025em; line-height: 1.15; font-weight: 800; }
+  .page-head p { margin: 0; color: var(--subtext); max-width: 760px; font-size: 1rem; }
+  .page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .page-head .legenda { justify-content: flex-start; margin: 14px 0 0; padding: 0; max-width: none; }
+  .btn-primary, .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px;
+    border-radius: 10px; font: inherit; font-weight: 600; font-size: .92rem; text-decoration: none; cursor: pointer; border: 1px solid transparent;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 6px 20px rgba(37,99,235,.35); }
+  .btn-primary:hover { background: var(--brand-2); }
+  .btn-ghost { background: rgba(148,163,184,.08); border-color: var(--line-2); color: var(--text); }
+  .btn-ghost:hover { background: rgba(148,163,184,.16); }
+  .block { width: 100%; }
+
+  /* cards */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent 40%), var(--card);
+    border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 10px 30px rgba(2,6,23,.30);
+  }
+  .card h2 { font-size: 1.06rem; letter-spacing: -.01em; font-weight: 700; }
+  .card.mapa-votacao { border-top: 1px solid var(--line); }
+  .card.mapa-votacao h2 { color: var(--text); font-size: 1.15rem; }
+  .mapa-toolbar input, .mapa-toolbar select, .mapa-side-toolbar input, .mapa-side-toolbar select, .mapa-busca-nivel,
+  .ms-busca, .rel-picker-input, .rel-field select, .rel-opts select { background: var(--bg); border-color: var(--line-2); font-family: inherit; }
+  .barra { background: rgba(148,163,184,.18); }
+  .el-row, .rank-item:nth-child(odd) { background: rgba(255,255,255,.025); }
+
+  /* ---------- início ---------- */
+  .hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: center; padding: 18px 0 8px; }
+  .hero h1 { margin: 12px 0 14px; font-size: clamp(2rem, 4.6vw, 3.25rem); line-height: 1.06; letter-spacing: -.035em; font-weight: 800; }
+  .hero h1 em { font-style: normal; background: linear-gradient(90deg, #60A5FA, #34D399); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lead { margin: 0; color: var(--muted); font-size: 1.08rem; max-width: 620px; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 14px; }
+  .hero-status { color: var(--subtext); font-size: .84rem; display: flex; align-items: center; gap: 8px; }
+  .hero-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--confirma); flex: none; }
+  .hero-panel { background: linear-gradient(160deg, rgba(37,99,235,.18), rgba(17,30,58,.9) 55%); border: 1px solid rgba(96,165,250,.28); border-radius: 18px; padding: 20px; box-shadow: 0 20px 50px rgba(2,6,23,.45); }
+  .hp-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 700; margin-bottom: 14px; }
+  .hp-title span { font-size: .72rem; color: var(--subtext); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; }
+  .hp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .hp-grid div { background: rgba(10,20,40,.55); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .hp-grid strong { display: block; font-size: clamp(1.1rem, 2.2vw, 1.45rem); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .hp-grid span { color: var(--subtext); font-size: .76rem; }
+  .hp-foot { color: var(--subtext); font-size: .72rem; margin-top: 12px; }
+  .sec-title { display: flex; align-items: center; gap: 12px; margin: 38px 0 14px; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--subtext); font-weight: 700; }
+  .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 14px; }
+  .kpi, .feat {
+    display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; background: var(--card);
+    border: 1px solid var(--line); color: var(--text); text-decoration: none; text-align: left; font: inherit;
+    transition: border-color .15s ease, transform .15s ease, background .15s ease; cursor: pointer;
+  }
+  .kpi:hover, .feat:hover { border-color: rgba(96,165,250,.55); transform: translateY(-2px); background: var(--card-2); }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .kpi-label { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--subtext); font-weight: 700; }
+  .kpi-go { color: var(--accent); font-size: .82rem; font-weight: 600; white-space: nowrap; }
+  .kpi-row { display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center; }
+  .kpi-row .nm { font-weight: 650; font-size: .92rem; line-height: 1.25; }
+  .kpi-row .sub { color: var(--subtext); font-size: .76rem; }
+  .kpi-row .v { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .kpi-row .v small { display: block; font-weight: 500; color: var(--subtext); font-size: .72rem; }
+  .kpi-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: .66rem; font-weight: 700; vertical-align: middle; }
+  .kpi-tag.ok { background: rgba(34,197,94,.18); color: #86EFAC; }
+  .kpi-tag.t2 { background: rgba(245,158,11,.18); color: #FCD34D; }
+  .kpi-big { font-size: 1.9rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+  .kpi-big small { font-size: .9rem; font-weight: 500; color: var(--subtext); letter-spacing: 0; margin-left: 6px; }
+  .kpi-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kpi-chips span { background: rgba(148,163,184,.10); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; font-size: .76rem; color: var(--muted); }
+  .kpi-chips b { color: var(--text); }
+  .kpi-empty { color: var(--subtext); font-size: .86rem; }
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; }
+  .feat-ic { width: 42px; height: 42px; border-radius: 12px; background: rgba(37,99,235,.18); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+  .feat-ic svg { width: 22px; height: 22px; }
+  .feat h3 { margin: 4px 0 0; font-size: 1.02rem; letter-spacing: -.01em; }
+  .feat p { margin: 0; color: var(--subtext); font-size: .88rem; flex: 1; }
+  .feat-go { color: var(--accent); font-weight: 600; font-size: .86rem; }
+  .cta-band {
+    margin: 40px 0 8px; padding: 26px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap;
+    background: linear-gradient(120deg, rgba(37,99,235,.38), rgba(34,197,94,.16)); border: 1px solid rgba(96,165,250,.35);
+  }
+  .cta-band h2 { margin: 0 0 6px; font-size: 1.3rem; letter-spacing: -.02em; }
+  .cta-band p { margin: 0; color: var(--muted); max-width: 640px; }
+
+  /* cargo switch (mapa/comparar) */
+  .cargo-switch { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+  .cargo-switch button {
+    appearance: none; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line-2);
+    background: rgba(148,163,184,.06); color: var(--muted); font: inherit; font-weight: 600; font-size: .86rem; cursor: pointer;
+  }
+  .cargo-switch button:hover { border-color: rgba(96,165,250,.55); color: #fff; }
+  .cargo-switch button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .page-cta-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* planos */
+  .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; align-items: stretch; }
+  .plan { display: flex; flex-direction: column; padding: 24px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+  .plan.featured { border-color: rgba(96,165,250,.7); box-shadow: 0 0 0 1px rgba(96,165,250,.4), 0 20px 50px rgba(37,99,235,.25); background: linear-gradient(180deg, rgba(37,99,235,.14), var(--card) 45%); }
+  .plan-tag { align-self: flex-start; padding: 3px 10px; border-radius: 999px; font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: rgba(245,158,11,.15); color: #FCD34D; }
+  .plan-tag.ok { background: rgba(34,197,94,.16); color: #86EFAC; }
+  .plan h2 { margin: 14px 0 4px; font-size: 1.3rem; letter-spacing: -.02em; }
+  .plan .price { font-size: 1.55rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: 16px; }
+  .plan ul { list-style: none; margin: 0 0 20px; padding: 0; flex: 1; }
+  .plan li { position: relative; padding: 7px 0 7px 28px; color: var(--muted); font-size: .92rem; border-top: 1px solid var(--line); }
+  .plan li:first-child { border-top: 0; }
+  .plan li::before { content: '✓'; position: absolute; left: 0; top: 8px; width: 18px; height: 18px; border-radius: 50%; background: rgba(34,197,94,.16); color: #4ADE80; font-size: .7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .contact-box { margin: 26px 0; padding: 26px; border-radius: 18px; background: var(--bg-2); border: 1px solid var(--line-2); text-align: center; }
+  .contact-box h2 { margin: 0 0 6px; font-size: 1.3rem; }
+  .contact-box p { margin: 0 auto 16px; color: var(--subtext); max-width: 620px; }
+  .contact-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+  /* textos institucionais */
+  .prose { max-width: 800px; color: var(--muted); line-height: 1.7; font-size: .98rem; }
+  .prose h2 { color: var(--text); font-size: 1.2rem; margin: 28px 0 8px; letter-spacing: -.01em; }
+  .prose h3 { color: var(--text); font-size: 1rem; margin: 18px 0 4px; }
+  .prose ul { padding-left: 20px; } .prose li { margin: 6px 0; }
+  .prose strong { color: var(--text); }
+  .prose.faq { margin: 10px auto 0; }
+  .todo-note { border: 1px dashed var(--corrige); background: rgba(245,158,11,.08); color: #FCD34D; padding: 10px 14px; border-radius: 10px; font-size: .86rem; margin-bottom: 8px; }
+
+  /* ---------- footer ---------- */
+  .site-footer { text-align: left; margin: 48px 0 0; padding: 40px 16px 22px; background: var(--bg-2); border-top: 1px solid var(--line); color: var(--subtext); font-size: .88rem; }
+  .ft-inner { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 28px; }
+  .ft-brand p { margin: 12px 0 0; max-width: 320px; }
+  .ft-brand .ft-disc { font-size: .78rem; }
+  .site-footer h4 { margin: 4px 0 10px; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--subtext); }
+  .site-footer a, .ft-link { display: block; color: var(--muted); text-decoration: none; padding: 5px 0; }
+  .ft-link { appearance: none; border: 0; background: transparent; font: inherit; cursor: pointer; text-align: left; }
+  .site-footer a:hover, .ft-link:hover { color: #fff; }
+  .site-footer .brand { padding: 0; }
+  .ft-bottom { max-width: var(--maxw); margin: 28px auto 0; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .78rem; }
+  .ft-bottom a { display: inline; padding: 0; color: var(--subtext); text-decoration: underline; }
+  .ft-right { display: inline-flex; align-items: center; gap: 12px; }
+  .site-footer .visit-counter { position: static; }
+  .site-footer a.brand { display: inline-flex; }
+  .page-head .legenda .leg-item { min-height: 30px; padding: 3px 9px; }
+  .qe2022-wrap.show { margin: -6px 0 18px; }
+  @media (min-width: 1000px) {
+    .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+    .kpi-grid > .kpi { grid-column: span 2; }
+    .kpi-grid > .kpi:nth-child(n+4) { grid-column: span 3; }
+  }
+
+  /* ---------- chat (marca) ---------- */
+  .chat-fab { background: linear-gradient(135deg, var(--brand), #7C3AED); border-color: rgba(255,255,255,.18); color: #fff; }
+  .chat-fab:hover { background: linear-gradient(135deg, var(--brand-2), #6D28D9); }
+  .chat-panel { background: var(--bg-2); }
+  .chat-head h2 { color: var(--text); }
+
+  /* ---------- responsivo ---------- */
+  @media (max-width: 1060px) {
+    .primary-nav { display: none; }
+    .hamburger { display: inline-flex; }
+  }
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 22px; }
+  }
+  @media (max-width: 860px) {
+    :root { --bn-h: 64px; }
+    .bottom-nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 56; display: grid; grid-template-columns: repeat(5, 1fr);
+      background: rgba(10,20,40,.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--line-2); padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 60px; color: var(--subtext); text-decoration: none; font-size: .68rem; font-weight: 600; }
+    .bottom-nav a svg { width: 22px; height: 22px; }
+    .bottom-nav a.active { color: var(--accent); }
+    body { padding-bottom: calc(var(--bn-h) + env(safe-area-inset-bottom)); }
+    .chat-fab { bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .chat-panel { bottom: calc(136px + env(safe-area-inset-bottom)); }
+    .section-nav { display: none; }
+    body.is-result .section-nav { display: block; }
+    .ft-inner { grid-template-columns: 1fr 1fr; }
+    .ft-brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 640px) {
+    .hdr-inner { height: 56px; gap: 10px; padding: 0 12px; }
+    .brand svg { width: 30px; height: 30px; }
+    .brand-word { font-size: 1.02rem; }
+    .chat-fab { right: 12px; padding: 10px 14px; min-height: 44px; font-size: .82rem; }
+    #views-root { padding: 16px 12px 32px; }
+    .hp-grid strong { font-size: 1.15rem; }
+    .cta-band { padding: 20px; }
+    .page-actions .btn-ghost, .page-actions .btn-primary { flex: 1 1 auto; }
+  }
+  @media (max-width: 480px) {
+    .btn-cta { display: none; }
+    .site-header #status.status { padding: 6px 10px; }
+    #status-curto { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+  }
+
 </style>
 </head>
 <body>
 
-<header>
-  <div id="visit-counter" class="visit-counter" hidden aria-label="Contador de acessos"></div>
-  <h1>Apuração Sergipe 2026</h1>
-  <div id="status" class="status" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="status-texto">Conectando ao TSE…</span></div>
-  <div class="resumo">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
-  <div class="atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
-  <div class="hdr-actions">
-    <button type="button" class="btn" id="btn-atualizar">Atualizar agora</button>
-    <button type="button" class="btn" id="btn-auto-update" aria-pressed="false">Atualização automática: desligada</button>
-    <button type="button" class="btn" id="btn-compartilhar">Compartilhar</button>
+<a class="skip-link" href="#views-root">Pular para o conteúdo</a>
+<header class="site-header" id="site-header">
+  <div class="hdr-inner">
+    <a class="brand" href="#inicio" aria-label="Cadê Meu Voto — página inicial">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="hdr-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#1D4ED8"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#hdr-g)"/><rect x="9" y="9" width="30" height="14" rx="3.5" fill="#F8FAFC"/><path d="M18 16.3l3.6 3.4 7.4-7.3" fill="none" stroke="#16A34A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><g fill="#DBEAFE" fill-opacity=".72"><rect x="9" y="27" width="8" height="5" rx="1.6"/><rect x="20" y="27" width="8" height="5" rx="1.6"/><rect x="31" y="27" width="8" height="5" rx="1.6"/><rect x="9" y="34.5" width="8" height="5" rx="1.6"/><rect x="20" y="34.5" width="8" height="5" rx="1.6"/></g><rect x="31" y="34.5" width="8" height="5" rx="1.6" fill="#22C55E"/></svg>
+      <span class="brand-word"><span class="b1">Cadê</span> <span class="b2">Meu Voto</span></span>
+    </a>
+    <nav class="primary-nav" aria-label="Ferramentas">
+      <a href="#mapa" data-view="mapa">Mapa de Votação</a>
+      <a href="#comparar" data-view="comparar">Comparar</a>
+      <a href="#relatorios" data-view="relatorios">Relatórios</a>
+      <a href="#sobre" data-view="sobre">Metodologia</a>
+    </nav>
+    <div class="hdr-tools">
+      <div class="status-wrap">
+        <button type="button" id="status" class="status" aria-expanded="false" aria-controls="status-pop" title="Status dos dados e atualização">
+          <span class="dot" aria-hidden="true"></span><span id="status-curto">Conectando…</span>
+        </button>
+        <div class="status-pop" id="status-pop" role="dialog" aria-label="Status dos dados" hidden>
+          <div class="pop-title">Dados oficiais do TSE</div>
+          <div class="pop-line" id="status-texto" role="status" aria-live="polite">Conectando ao TSE…</div>
+          <div class="pop-line">Urnas apuradas: <strong id="urnas-geral">—</strong></div>
+          <div class="pop-line atualizado" id="atualizado-geral">Aguardando divulgação do TSE</div>
+          <div class="pop-actions">
+            <button type="button" class="btn" id="btn-atualizar">Atualizar agora</button>
+            <button type="button" class="btn" id="btn-auto-update" aria-pressed="false">Atualização automática: desligada</button>
+            <button type="button" class="btn" id="btn-compartilhar">Compartilhar esta página</button>
+          </div>
+        </div>
+      </div>
+      <a class="btn-cta" href="#planos" data-view="planos">Planos</a>
+      <button type="button" class="hamburger" id="nav-toggle" aria-controls="nav-drawer" aria-expanded="false" aria-label="Abrir menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
+  <nav class="section-nav" aria-label="Resultados por cargo">
+    <div class="section-inner">
+      <div class="nav" id="nav-tabs">
+        <a href="#inicio" data-view="inicio">Início</a>
+        <a href="#governo" data-view="governo">Governo</a>
+        <a href="#senado" data-view="senado">Senado</a>
+        <a href="#presidente" data-view="presidente">Presidente</a>
+        <a href="#federais" data-view="federais">Dep. Federais</a>
+        <a href="#estaduais" data-view="estaduais">Dep. Estaduais</a>
+        <a href="#suplentes" data-view="suplentes">Suplentes</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div class="nav-drawer" id="nav-drawer" hidden>
+  <div class="drawer-backdrop" data-close-drawer></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="drawer-head">
+      <span class="brand-word"><span class="b1">Cadê</span> <span class="b2">Meu Voto</span></span>
+      <button type="button" class="drawer-close" data-close-drawer aria-label="Fechar menu">×</button>
+    </div>
+    <h3>Resultados</h3>
+    <a href="#inicio" data-view="inicio">Início</a>
+    <a href="#governo" data-view="governo">Governo</a>
+    <a href="#senado" data-view="senado">Senado</a>
+    <a href="#presidente" data-view="presidente">Presidente</a>
+    <a href="#federais" data-view="federais">Deputados Federais</a>
+    <a href="#estaduais" data-view="estaduais">Deputados Estaduais</a>
+    <a href="#suplentes" data-view="suplentes">Suplentes</a>
+    <h3>Ferramentas</h3>
+    <a href="#mapa" data-view="mapa">Mapa de Votação</a>
+    <a href="#comparar" data-view="comparar">Comparar candidatos</a>
+    <a href="#relatorios" data-view="relatorios">Relatórios em PDF</a>
+    <h3>Cadê Meu Voto</h3>
+    <a href="#planos" data-view="planos">Planos e acesso aos dados</a>
+    <a href="#sobre" data-view="sobre">Sobre e metodologia</a>
+    <a href="#privacidade" data-view="privacidade">Privacidade</a>
+    <a href="#termos" data-view="termos">Termos de uso</a>
+  </div>
+</div>
+
+<main id="views-root">
   <div class="qe2022-wrap" id="qe-ref-wrap">
     <details>
       <summary>Ver referência 2022 (quociente eleitoral)</summary>
@@ -647,59 +1028,345 @@
       </div>
     </details>
   </div>
-</header>
 
-<nav class="nav-wrap" aria-label="Seções do painel">
+  <!-- ===== Início ===== -->
+  <section class="view" id="view-inicio">
+    <div class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Eleições 2026 · Sergipe · Dados oficiais do TSE</div>
+        <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios prontos para campanhas, partidos, imprensa e eleitores. Do município ao bairro, ao local de votação e à seção.</p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="#mapa">Abrir o Mapa de Votação</a>
+          <a class="btn-ghost" href="#planos">Planos para campanhas</a>
+        </div>
+        <div class="hero-status" id="inicio-status">Carregando dados do TSE…</div>
+      </div>
+      <div class="hero-panel" aria-label="Sergipe 2026 em números">
+        <div class="hp-title">Sergipe 2026 em números <span>fonte: TSE</span></div>
+        <div class="hp-grid">
+          <div><strong>75</strong><span>municípios</span></div>
+          <div><strong>1.214</strong><span>locais de votação</span></div>
+          <div><strong>5.923</strong><span>seções eleitorais</span></div>
+          <div><strong>1.737.460</strong><span>eleitores aptos</span></div>
+          <div><strong>1.436.609</strong><span>compareceram (82,7%)</span></div>
+          <div><strong>408</strong><span>candidatos e legendas com mapa</span></div>
+        </div>
+        <div class="hp-foot">Votação por seção e detalhe da apuração por seção — TSE, 1º turno (04/10/2026).</div>
+      </div>
+    </div>
+
+    <h2 class="sec-title">Resultados em Sergipe</h2>
+    <div class="kpi-grid" id="inicio-kpis" aria-live="polite"></div>
+
+    <h2 class="sec-title">Ferramentas</h2>
+    <div class="feat-grid">
+      <a class="feat" href="#mapa">
+        <span class="feat-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="currentColor" stroke-width="1.8"/></svg></span>
+        <h3>Mapa de Votação até a seção</h3>
+        <p>Município → zona → bairro → local de votação → seção, com aptos, comparecimento e votos oficiais de cada candidato.</p>
+        <span class="feat-go">Abrir mapa →</span>
+      </a>
+      <a class="feat" href="#comparar">
+        <span class="feat-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16M3 9h8M13 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <h3>Comparativos A × B</h3>
+        <p>Dois candidatos lado a lado (mesmo cargo ou não): quem venceu cada município, bairro, local e seção.</p>
+        <span class="feat-go">Comparar →</span>
+      </a>
+      <a class="feat" href="#relatorios">
+        <span class="feat-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v4h4M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <h3>Relatórios em PDF</h3>
+        <p>Relatórios por candidato, comparativo e município, com mapas coropléticos, conferência de totais e tabelas por seção.</p>
+        <span class="feat-go">Gerar relatório →</span>
+      </a>
+      <button type="button" class="feat" data-open-chat>
+        <span class="feat-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <h3>Assistente com IA</h3>
+        <p>Pergunte em linguagem natural: votos por município, eleitos, suplentes. Respostas baseadas nos dados do TSE.</p>
+        <span class="feat-go">Perguntar →</span>
+      </button>
+    </div>
+
+    <div class="cta-band">
+      <div>
+        <h2>Dados compilados para campanhas, partidos e imprensa</h2>
+        <p>Relatórios ilimitados, exportação por seção e API estão a caminho. Hoje, todo o conteúdo do site continua aberto.</p>
+      </div>
+      <a class="btn-primary" href="#planos">Conhecer os planos</a>
+    </div>
+  </section>
+
+  <!-- ===== Resultados por cargo ===== -->
+  <section class="view" id="view-governo">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Sergipe</div>
+      <h1>Governador</h1>
+      <p>Votação oficial do TSE para o Governo de Sergipe em 2026, com todos os candidatos.</p>
+      <div class="page-actions"><a class="btn-ghost" href="#mapa?c=3">Ver no Mapa de Votação</a><a class="btn-ghost" href="#comparar?c=3">Comparar candidatos</a></div>
+    </div>
+    <div class="grid ordered" id="grid-governo"></div>
+  </section>
+  <section class="view" id="view-senado">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Sergipe</div>
+      <h1>Senado</h1>
+      <p>Votação para o Senado em Sergipe, senadores eleitos, composição das 81 cadeiras após 2026 e metas por município.</p>
+      <div class="page-actions"><a class="btn-ghost" href="#mapa?c=5">Ver no Mapa de Votação</a><a class="btn-ghost" href="#comparar?c=5">Comparar candidatos</a></div>
+    </div>
+    <div class="grid ordered" id="grid-senado"></div>
+  </section>
+  <section class="view" id="view-presidente">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Brasil e Sergipe</div>
+      <h1>Presidente</h1>
+      <p>Resultado nacional e o recorte de Sergipe para a eleição presidencial de 2026.</p>
+      <div class="page-actions"><a class="btn-ghost" href="#mapa?c=1">Ver no Mapa de Votação</a><a class="btn-ghost" href="#comparar?c=1">Comparar candidatos</a></div>
+    </div>
+    <div class="grid ordered two" id="grid-presidente"></div>
+  </section>
+  <section class="view" id="view-federais">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Sergipe</div>
+      <h1>Deputados Federais</h1>
+      <p>As 8 cadeiras de Sergipe na Câmara: eleitos, votação por partido/federação, rankings e o custo de cada cadeira em 2022.</p>
+      <div class="page-actions"><a class="btn-ghost" href="#mapa?c=6">Ver no Mapa de Votação</a><a class="btn-ghost" href="#comparar?c=6">Comparar candidatos</a></div>
+    </div>
+    <div class="grid ordered" id="grid-federais"></div>
+  </section>
+  <section class="view" id="view-estaduais">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Sergipe</div>
+      <h1>Deputados Estaduais</h1>
+      <p>As 24 cadeiras da Assembleia Legislativa (Alese): distribuição por partido/federação, eleitos e rankings.</p>
+      <div class="page-actions"><a class="btn-ghost" href="#mapa?c=7">Ver no Mapa de Votação</a><a class="btn-ghost" href="#comparar?c=7">Comparar candidatos</a></div>
+    </div>
+    <div class="grid ordered" id="grid-estaduais"></div>
+  </section>
+  <section class="view" id="view-suplentes">
+    <div class="page-head" data-legend>
+      <div class="eyebrow">Resultados · Sergipe</div>
+      <h1>Suplentes</h1>
+      <p>1º, 2º e 3º suplentes por partido/federação e suplentes vinculados aos senadores eleitos.</p>
+    </div>
+    <div class="grid ordered" id="grid-suplentes"></div>
+  </section>
+
+  <!-- ===== Ferramentas ===== -->
+  <section class="view" id="view-mapa">
+    <div class="page-head">
+      <div class="eyebrow">Ferramenta</div>
+      <h1>Mapa de Votação</h1>
+      <p>Escolha o cargo e o candidato para ver os votos por município, zona, bairro, local de votação e seção eleitoral, com aptos e comparecimento oficiais.</p>
+      <div class="cargo-switch" role="group" aria-label="Cargo" data-cargo-switch="mapa"></div>
+      <div class="page-actions"><button type="button" class="btn-ghost" data-pdf-from="mapa">Gerar PDF deste candidato</button><a class="btn-ghost" href="#comparar" data-compare-from-mapa>Comparar com outro candidato</a></div>
+    </div>
+    <div id="mapa-root"></div>
+  </section>
+  <section class="view" id="view-comparar">
+    <div class="page-head">
+      <div class="eyebrow">Ferramenta</div>
+      <h1>Comparar candidatos</h1>
+      <p>Dois candidatos lado a lado, do mesmo cargo ou de cargos diferentes: vencedor por município, diferença de votos e detalhe até a seção.</p>
+      <div class="cargo-switch" role="group" aria-label="Cargo do candidato A" data-cargo-switch="comparar"></div>
+      <div class="page-actions"><button type="button" class="btn-ghost" data-pdf-from="comparar">Gerar PDF comparativo</button></div>
+    </div>
+    <div id="comparar-root"></div>
+  </section>
+  <section class="view" id="view-relatorios">
+    <div class="page-head">
+      <div class="eyebrow">Ferramenta</div>
+      <h1>Relatórios em PDF</h1>
+      <p>Gere relatórios no próprio navegador: resumo da eleição, candidato, comparativo A × B e município, com mapas e tabelas até a seção eleitoral.</p>
+    </div>
+    <div class="grid ordered" id="grid-relatorios"></div>
+  </section>
+
+  <!-- ===== Institucional ===== -->
+  <section class="view" id="view-planos">
+    <div class="page-head center">
+      <div class="eyebrow">Planos</div>
+      <h1>Planos e acesso aos dados</h1>
+      <p>Hoje todo o Cadê Meu Voto é aberto ao público. Em breve teremos planos para quem precisa de mais profundidade, volume e dados compilados.</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <div class="plan-tag ok">Disponível agora</div>
+        <h2>Público</h2>
+        <div class="price">Gratuito</div>
+        <ul>
+          <li>Resultados oficiais por cargo</li>
+          <li>Mapa de Votação até a seção eleitoral</li>
+          <li>Comparativos A × B</li>
+          <li>Relatórios em PDF</li>
+          <li>Assistente com IA (com limite de uso)</li>
+        </ul>
+        <a class="btn-ghost block" href="#mapa">Usar agora</a>
+      </div>
+      <div class="plan featured">
+        <div class="plan-tag">Em breve</div>
+        <h2>Profissional</h2>
+        <div class="price">Preço em breve</div>
+        <ul>
+          <li>Relatórios ilimitados e personalizados</li>
+          <li>Dados até a seção eleitoral, todos os cargos</li>
+          <li>Exportação em CSV por seção, local e bairro</li>
+          <li>Suporte por e-mail</li>
+        </ul>
+        <a class="btn-primary block" data-contact="profissional" href="#planos">Quero ser avisado</a>
+      </div>
+      <div class="plan">
+        <div class="plan-tag">Em breve</div>
+        <h2>Campanha / Institucional</h2>
+        <div class="price">Sob consulta</div>
+        <ul>
+          <li>Tudo do Profissional</li>
+          <li>API de dados compilados</li>
+          <li>Volume e formatos sob medida</li>
+          <li>Atendimento dedicado</li>
+        </ul>
+        <a class="btn-ghost block" data-contact="campanha" href="#planos">Fale conosco</a>
+      </div>
+    </div>
+    <div class="contact-box" id="contact-box">
+      <h2>Fale conosco</h2>
+      <p>Conte o que você precisa (cargo, municípios, formato dos dados) e retornamos com uma proposta.</p>
+      <div class="contact-actions" id="contact-actions"></div>
+    </div>
+    <div class="prose faq">
+      <h2>Perguntas frequentes</h2>
+      <h3>Os dados são oficiais?</h3>
+      <p>Sim. Todos os números vêm do Tribunal Superior Eleitoral (divulgação de resultados e dados abertos). Não estimamos nem alteramos votos. Veja a <a href="#sobre">metodologia</a>.</p>
+      <h3>O que é gratuito hoje vai continuar disponível?</h3>
+      <p>O acesso público atual continua no ar. Os planos pagos vão acrescentar volume, exportação e integração, sem retirar o que já está aberto.</p>
+      <h3>Quando os planos ficam disponíveis?</h3>
+      <p>Ainda não há data nem preço definidos. Deixe seu contato e avisamos no lançamento.</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-sobre">
+    <div class="page-head">
+      <div class="eyebrow">Institucional</div>
+      <h1>Sobre e metodologia</h1>
+      <p>Como o Cadê Meu Voto obtém, organiza e confere os dados eleitorais.</p>
+    </div>
+    <div class="prose">
+      <h2>O que é</h2>
+      <p>O Cadê Meu Voto é um painel independente de dados eleitorais. Ele reúne os resultados oficiais das Eleições 2026 em Sergipe e os apresenta por cargo, partido, município, zona, bairro, local de votação e seção eleitoral.</p>
+      <h2>Fontes oficiais</h2>
+      <ul>
+        <li><strong>Divulgação de resultados do TSE</strong> (<a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a>): totais por cargo, situação dos candidatos (eleito, suplente, 2º turno) e vagas por partido/federação.</li>
+        <li><strong>Dados abertos do TSE</strong> (<a href="https://dadosabertos.tse.jus.br/" target="_blank" rel="noopener">dadosabertos.tse.jus.br</a>): <em>votação por seção eleitoral</em>, <em>detalhe da apuração por seção</em> (aptos, comparecimento, abstenções, brancos e nulos) e <em>eleitorado por local de votação</em> de 2026 (1º turno).</li>
+        <li><strong>Histórico 2018 e 2022</strong>: dados abertos do TSE (votação por candidato e partido).</li>
+      </ul>
+      <h2>Como tratamos os dados</h2>
+      <ul>
+        <li>Os votos não são estimados nem ajustados. Somamos os votos de cada seção para chegar ao local de votação, ao bairro, à zona, ao município e ao total.</li>
+        <li>Conferência automática: a soma das seções de cada candidato é comparada com o total oficial. Os relatórios em PDF imprimem essa conferência.</li>
+        <li>Percentuais dos cards de resultado são sobre votos válidos, como na divulgação do TSE. Nas tabelas por seção, o percentual é sobre o comparecimento da seção.</li>
+        <li>Bairros e endereços seguem o cadastro de locais de votação do TSE.</li>
+      </ul>
+      <h2>Limitações</h2>
+      <ul>
+        <li>As metas de votação do Senado por município são dados de campanha, não do TSE, e estão identificadas como tal.</li>
+        <li>As respostas do assistente são geradas por IA a partir dos dados do painel e podem conter erros. Confira sempre nas tabelas.</li>
+        <li>Em caso de divergência, vale o resultado oficial publicado pela Justiça Eleitoral.</li>
+      </ul>
+      <h2>Independência</h2>
+      <p>O Cadê Meu Voto não é um site oficial e não tem vínculo com o TSE, os TREs ou qualquer partido. Marcas e nomes de candidatos pertencem aos seus titulares.</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-privacidade">
+    <div class="page-head">
+      <div class="eyebrow">Institucional</div>
+      <h1>Política de privacidade</h1>
+      <p>Versão provisória.</p>
+    </div>
+    <div class="prose">
+      <div class="todo-note">Documento provisório, sujeito a revisão jurídica antes do lançamento dos planos.</div>
+      <h2>Resumo</h2>
+      <p>O Cadê Meu Voto não exige cadastro nem login e não vende dados pessoais.</p>
+      <h2>O que é tratado</h2>
+      <ul>
+        <li><strong>Contador de acessos</strong>: ao abrir o site, um serviço externo de contagem registra uma visita por sessão do navegador. Não enviamos nome, e-mail ou identificadores pessoais.</li>
+        <li><strong>Preferências</strong>: a escolha de atualização automática fica guardada apenas no seu navegador (armazenamento local).</li>
+        <li><strong>Assistente com IA</strong>: as perguntas digitadas no chat são enviadas ao nosso servidor (Cloudflare Workers) e a um provedor de IA para gerar a resposta. O endereço IP é usado temporariamente para limitar o volume de perguntas (até 2 dias). Não digite dados pessoais no chat.</li>
+        <li><strong>Relatórios em PDF</strong>: são gerados no seu próprio navegador.</li>
+      </ul>
+      <h2>Contato</h2>
+      <p>Dúvidas sobre privacidade: use os canais da página <a href="#planos">Fale conosco</a>.</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-termos">
+    <div class="page-head">
+      <div class="eyebrow">Institucional</div>
+      <h1>Termos de uso</h1>
+      <p>Versão provisória.</p>
+    </div>
+    <div class="prose">
+      <div class="todo-note">Documento provisório, sujeito a revisão jurídica antes do lançamento dos planos.</div>
+      <ul>
+        <li>O conteúdo tem finalidade informativa. Os números vêm do TSE; em caso de divergência, prevalece o resultado oficial da Justiça Eleitoral.</li>
+        <li>O site é oferecido como está, sem garantia de disponibilidade contínua.</li>
+        <li>É proibido usar o conteúdo para desinformação ou para atribuir ao site informações que ele não publica.</li>
+        <li>A marca Cadê Meu Voto, o layout e as compilações de dados pertencem aos seus titulares. Os dados públicos do TSE continuam públicos.</li>
+        <li>Planos pagos, quando lançados, terão condições próprias, informadas antes da contratação.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="ft-inner">
+    <div class="ft-brand">
+      <a class="brand" href="#inicio" aria-label="Cadê Meu Voto">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2563EB"/><rect x="9" y="9" width="30" height="14" rx="3.5" fill="#F8FAFC"/><path d="M18 16.3l3.6 3.4 7.4-7.3" fill="none" stroke="#16A34A" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><g fill="#DBEAFE" fill-opacity=".72"><rect x="9" y="27" width="8" height="5" rx="1.6"/><rect x="20" y="27" width="8" height="5" rx="1.6"/><rect x="31" y="27" width="8" height="5" rx="1.6"/><rect x="9" y="34.5" width="8" height="5" rx="1.6"/><rect x="20" y="34.5" width="8" height="5" rx="1.6"/></g><rect x="31" y="34.5" width="8" height="5" rx="1.6" fill="#22C55E"/></svg>
+        <span class="brand-word"><span class="b1">Cadê</span> <span class="b2">Meu Voto</span></span>
+      </a>
+      <p>Dados eleitorais oficiais, organizados até a seção eleitoral.</p>
+      <p class="ft-disc">Projeto independente, sem vínculo com o TSE ou partidos.</p>
+    </div>
+    <div>
+      <h4>Resultados</h4>
+      <a href="#governo">Governo</a><a href="#senado">Senado</a><a href="#presidente">Presidente</a><a href="#federais">Dep. Federais</a><a href="#estaduais">Dep. Estaduais</a><a href="#suplentes">Suplentes</a>
+    </div>
+    <div>
+      <h4>Ferramentas</h4>
+      <a href="#mapa">Mapa de Votação</a><a href="#comparar">Comparar</a><a href="#relatorios">Relatórios em PDF</a><button type="button" class="ft-link" data-open-chat>Assistente com IA</button>
+    </div>
+    <div>
+      <h4>Cadê Meu Voto</h4>
+      <a href="#planos">Planos</a><a href="#sobre">Sobre e metodologia</a><a href="#privacidade">Privacidade</a><a href="#termos">Termos de uso</a>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <span>Fonte: TSE — <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a> e dados abertos. Percentuais sobre votos válidos. Senado: 54 eleitos em 2026 + 27 eleitos em 2022.</span>
+    <span class="ft-right"><span id="visit-counter" class="visit-counter" hidden aria-label="Contador de acessos"></span> © 2026 Cadê Meu Voto</span>
+  </div>
+</footer>
+
+<nav class="bottom-nav" aria-label="Navegação rápida">
+  <a href="#inicio" data-view="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Início</a>
+  <a href="#governo" data-view="governo" data-group="resultados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Resultados</a>
+  <a href="#mapa" data-view="mapa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="currentColor" stroke-width="1.8"/></svg>Mapa</a>
+  <a href="#comparar" data-view="comparar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M17 4v16M3 9h8M13 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Comparar</a>
+  <a href="#relatorios" data-view="relatorios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v4h4M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Relatórios</a>
+</nav>
+
+<template id="tpl-legenda">
   <div class="legenda" aria-label="Legenda de status">
     <span class="leg-item"><span class="sw eleito" aria-hidden="true"></span><span>✓ Eleito</span></span>
     <span class="leg-item"><span class="sw meu" aria-hidden="true"></span><span>★ Acompanhado</span></span>
     <span class="leg-item"><span class="sw turno2" aria-hidden="true"></span><span>2º turno</span></span>
   </div>
-  <div class="nav" id="nav-tabs">
-    <a href="#painel" data-view="painel" class="active">Painel principal</a>
-    <a href="#governo" data-view="governo">Governo</a>
-    <a href="#presidente" data-view="presidente">Presidente</a>
-    <a href="#senadores" data-view="senadores">Senadores</a>
-    <a href="#federais" data-view="federais">Deputados Federais</a>
-    <a href="#estaduais" data-view="estaduais">Deputados Estaduais</a>
-    <a href="#suplentes" data-view="suplentes">Suplentes</a>
-    <a href="#relatorios" data-view="relatorios">Relatórios</a>
-  </div>
-  <div class="nav-select-wrap">
-    <select id="nav-select" class="nav-select" aria-label="Seção">
-      <option value="painel">Painel principal</option>
-      <option value="governo">Governo</option>
-      <option value="presidente">Presidente</option>
-      <option value="senadores">Senadores</option>
-      <option value="federais">Deputados Federais</option>
-      <option value="estaduais">Deputados Estaduais</option>
-      <option value="suplentes">Suplentes</option>
-      <option value="relatorios">Relatórios</option>
-    </select>
-  </div>
-</nav>
+</template>
 
-<main id="views-root" aria-live="polite">
-  <section class="view active" id="view-painel"><div class="grid ordered" id="grid-painel"></div></section>
-  <section class="view" id="view-governo"><div class="grid ordered" id="grid-governo"></div></section>
-  <section class="view" id="view-presidente"><div class="grid ordered two" id="grid-presidente"></div></section>
-  <section class="view" id="view-senadores"><div class="grid ordered" id="grid-senadores"></div></section>
-  <section class="view" id="view-federais"><div class="grid ordered" id="grid-federais"></div></section>
-  <section class="view" id="view-estaduais"><div class="grid ordered" id="grid-estaduais"></div></section>
-  <section class="view" id="view-suplentes"><div class="grid ordered" id="grid-suplentes"></div></section>
-  <section class="view" id="view-relatorios"><div class="grid ordered" id="grid-relatorios"></div></section>
-</main>
-
-<footer>
-  Fonte: TSE — <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a>
-  (dados oficiais). Fotos: CDN do TSE. Histórico 2018/2022: dados abertos do TSE.
-  Percentuais sobre votos válidos. Senado: 54 eleitos em 2026 + 27 eleitos em 2022 (partido na eleição).
-</footer>
 
 <button type="button" class="chat-fab" id="chat-fab" aria-haspopup="dialog" aria-controls="chat-panel" aria-expanded="false">Pergunte sobre a eleição</button>
 <div class="chat-panel" id="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
   <div class="chat-head">
-    <h2 id="chat-title">Assistente · Eleições SE</h2>
+    <h2 id="chat-title">Assistente · Cadê Meu Voto</h2>
     <button type="button" class="chat-close" id="chat-close" aria-label="Fechar chat">×</button>
   </div>
   <div class="chat-msgs" id="chat-msgs" aria-live="polite"></div>
@@ -713,9 +1380,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261006s1"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006s1"></script>
-<script src="relatorios.js?v=20261006s1"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006b1"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006b1"></script>
+<script src="relatorios.js?v=20261006b1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -913,8 +1580,8 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 
 let HIST = null;
 let resultadoFinal = false;
-let viewAtual = 'painel';
-const VIEWS = ['painel','governo','presidente','senadores','federais','estaduais','suplentes','relatorios'];
+let viewAtual = 'inicio';
+const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','sobre','privacidade','termos'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -1439,14 +2106,16 @@ function renderAlese() {
   return card;
 }
 
-function renderEleitos() {
+function renderEleitos(cods) {
+  cods = cods || [6, 7];
   const card = el('section', 'card eleitos');
-  card.appendChild(el('h2', null, 'Eleitos - Deputado Federal e Estadual'));
-  const algum = [6, 7].map(c => estado[c]?.dados).find(Boolean);
+  const cg0 = CONFIG.cargos.find(c => c.codigo === cods[0]);
+  card.appendChild(el('h2', null, cods.length === 1 ? `Eleitos por partido/federação · ${cg0 ? cg0.titulo : ''}` : 'Eleitos - Deputado Federal e Estadual'));
+  const algum = cods.map(c => estado[c]?.dados).find(Boolean);
   const final = algum && algum.totalFinal;
   card.appendChild(el('div', 'meta', algum ? `Urnas apuradas: ${fmtPct(algum.pst)} • ${final ? 'Resultado final do TSE.' : 'PROJEÇÃO: vagas que o TSE calcula agora para cada partido/federação (quociente + sobras) e os mais votados de cada um. Pode mudar até 100% das urnas.'} Amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
   const g = el('div', 'eleitos-grid');
-  for (const cod of [6, 7]) {
+  for (const cod of cods) {
     const cargo = CONFIG.cargos.find(c => c.codigo === cod);
     const d = estado[cod]?.dados;
     const col = el('div');
@@ -1652,16 +2321,17 @@ function renderEleitoRow(item) {
   return row;
 }
 
-function renderEleitosSE() {
+function renderEleitosSE(cods) {
   const card = el('section', 'card eleitos');
-  card.appendChild(el('h2', null, 'Eleitos de Sergipe'));
-  card.appendChild(el('div', 'meta', 'Senadores (2), Deputados Federais (8) e Deputados Estaduais (24). Votos 2026 = resultado oficial. Histórico = eleição anterior com match confiável por nome de urna ou nome completo. Comparativo com eleitos em 2018 (Senado) e 2022 (Câmara/Alese), sem rastrear suplências.'));
+  const soUm = cods && cods.length === 1;
+  card.appendChild(el('h2', null, soUm ? 'Eleitos de Sergipe e renovação' : 'Eleitos de Sergipe'));
+  card.appendChild(el('div', 'meta', (soUm ? '' : 'Senadores (2), Deputados Federais (8) e Deputados Estaduais (24). ') + 'Votos 2026 = resultado oficial. Histórico = eleição anterior com match confiável por nome de urna ou nome completo. Comparativo com eleitos em 2018 (Senado) e 2022 (Câmara/Alese), sem rastrear suplências.'));
   if (!HIST || !HIST.eleitos_se) { card.appendChild(el('div', 'aviso-card espera', 'Carregando lista de eleitos…')); return card; }
   const blocos = [
     { cod: '5', titulo: 'Senadores (2)', ant: '2018' },
     { cod: '6', titulo: 'Deputados Federais (8)', ant: '2022' },
     { cod: '7', titulo: 'Deputados Estaduais (24)', ant: '2022' },
-  ];
+  ].filter(b => !cods || cods.includes(b.cod));
   const g = el('div', 'eleitos-grid');
   for (const b of blocos) {
     const col = el('div'); col.appendChild(el('h3', null, b.titulo));
@@ -1991,20 +2661,21 @@ function renderMapaEstados(estados) {
 const MAPA_CARGO_LABEL = {
   '1': 'Presidente', '3': 'Governador', '5': 'Senador', '6': 'Dep. Federal', '7': 'Dep. Estadual'
 };
-const MAPA_VIEW_CARGO = { presidente: '1', governo: '3', senadores: '5', federais: '6', estaduais: '7', painel: '3' };
+const MAPA_VIEW_CARGO = { presidente: '1', governo: '3', senado: '5', federais: '6', estaduais: '7', inicio: '3' };
 
 function parseLocationHash() {
-  const raw = (location.hash || '#painel').slice(1);
+  const raw = (location.hash || '#inicio').slice(1);
   const q = raw.indexOf('?');
-  const viewPart = (q >= 0 ? raw.slice(0, q) : raw) || 'painel';
+  const viewPart = (q >= 0 ? raw.slice(0, q) : raw) || 'inicio';
   const qs = q >= 0 ? raw.slice(q + 1) : '';
-  const view = VIEWS.includes(viewPart) ? viewPart : 'painel';
+  const view = VIEWS.includes(viewPart) ? viewPart : 'inicio';
   const p = new URLSearchParams(qs);
-  return { view, a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
+  return { view, c: p.get('c') || '', a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
 }
 
 function buildLocationHash(view, params) {
   const p = new URLSearchParams();
+  if (params && params.c) p.set('c', String(params.c));
   if (params && params.a) p.set('a', params.a);
   if (params && params.b) p.set('b', params.b);
   if (params && params.ac) p.set('ac', String(params.ac));
@@ -2201,9 +2872,10 @@ async function mountSeChoropleth(host, opts) {
   host.replaceChildren(wrap);
 }
 
-function renderMapaPanel(cargoCodigo, titulo, viewHint) {
+function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
   const cargoPadrao = String(cargoCodigo);
-  const panelView = viewHint || ({ '1':'presidente', '3':'governo', '5':'senadores', '6':'federais', '7':'estaduais' }[cargoPadrao]) || viewAtual;
+  const opts = panelOpts || {};
+  const panelView = viewHint || 'mapa';
   const card = el('section', 'card mapa-votacao span-all');
   card.dataset.mapaCargo = cargoPadrao;
   card.appendChild(el('h2', null, titulo || 'Mapa de Votação'));
@@ -2228,6 +2900,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   const btnClose = el('button', 'btn-mapa'); btnClose.type = 'button'; btnClose.textContent = 'Fechar comparação';
   btnClose.hidden = true;
   actions.appendChild(btnCompare); actions.appendChild(btnClose);
+  if (opts.autoCompare) actions.hidden = true;
   card.appendChild(actions);
 
   const mobileToggle = el('div', 'mapa-mobile-toggle');
@@ -2468,7 +3141,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
 
   const pushHash = () => {
     if (!hashReady || viewAtual !== viewForHash) return;
-    const params = { a: numA || undefined };
+    const params = { c: cargoPadrao, a: numA || undefined };
     if (compareOn && numB) {
       params.b = numB;
       if (String(cargoB) !== cargoPadrao) params.bc = cargoB;
@@ -2629,33 +3302,268 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     listaA = (idx.cargos && idx.cargos[cargoPadrao]) || [];
     listaB = (idx.cargos && idx.cargos[cargoB]) || [];
     const h = parseLocationHash();
-    const preferA = h.a || '';
+    const hashMine = h.view === viewForHash && (!h.c || h.c === cargoPadrao);
+    const preferA = hashMine ? (h.a || '') : '';
     paintSelect(selA, listaA, buscaA, preferA);
     const n0 = preferA && listaA.some(c => candKey(c) === preferA) ? preferA : (listaA[0] ? candKey(listaA[0]) : '');
     if (n0) { selA.value = n0; await showA(n0); }
-    if (h.view === viewForHash && h.b) {
+    if (hashMine && h.b) {
       if (h.bc) { selCargoB.value = h.bc; await loadListaB(h.bc); }
       numB = h.b;
+      await openCompare();
+    } else if (opts.autoCompare) {
       await openCompare();
     }
     hashReady = true;
     pushHash();
   });
 
+  card._getSel = () => ({ c: cargoPadrao, a: numA, b: numB, bc: cargoB, compareOn });
+  card._syncHash = () => pushHash();
   return card;
 }
 
 
 
+/* ===== Navegação Cadê Meu Voto (sub-páginas por hash) ===== */
+const RESULT_VIEWS = ['governo', 'senado', 'presidente', 'federais', 'estaduais', 'suplentes'];
+const PAGE_TITLES = {
+  inicio: 'Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral',
+  governo: 'Governador · Sergipe 2026 · Cadê Meu Voto',
+  senado: 'Senado · Sergipe 2026 · Cadê Meu Voto',
+  presidente: 'Presidente · Sergipe 2026 · Cadê Meu Voto',
+  federais: 'Deputados Federais · Sergipe 2026 · Cadê Meu Voto',
+  estaduais: 'Deputados Estaduais · Sergipe 2026 · Cadê Meu Voto',
+  suplentes: 'Suplentes · Sergipe 2026 · Cadê Meu Voto',
+  mapa: 'Mapa de Votação até a seção · Cadê Meu Voto',
+  comparar: 'Comparar candidatos · Cadê Meu Voto',
+  relatorios: 'Relatórios em PDF · Cadê Meu Voto',
+  planos: 'Planos e acesso aos dados · Cadê Meu Voto',
+  sobre: 'Sobre e metodologia · Cadê Meu Voto',
+  privacidade: 'Política de privacidade · Cadê Meu Voto',
+  termos: 'Termos de uso · Cadê Meu Voto',
+};
+const LEGACY_CARGO = { painel: '3', governo: '3', presidente: '1', senadores: '5', senado: '5', federais: '6', estaduais: '7' };
+const LEGACY_VIEW = { painel: 'inicio', senadores: 'senado' };
+
+/** Redireciona hashes antigos (#painel, #senadores, #estaduais?a=..&b=..) para as novas páginas. */
+function legacyRedirect() {
+  const raw = (location.hash || '').slice(1);
+  if (!raw) return false;
+  const q = raw.indexOf('?');
+  const viewPart = q >= 0 ? raw.slice(0, q) : raw;
+  const p = new URLSearchParams(q >= 0 ? raw.slice(q + 1) : '');
+  let want = null;
+  if (LEGACY_CARGO[viewPart] && (p.get('a') || p.get('b'))) {
+    const params = { c: LEGACY_CARGO[viewPart], a: p.get('a') || '', b: p.get('b') || '', bc: p.get('bc') || '' };
+    want = buildLocationHash(params.b ? 'comparar' : 'mapa', params);
+  } else if (LEGACY_VIEW[viewPart]) {
+    want = '#' + LEGACY_VIEW[viewPart];
+  }
+  if (want && want !== location.hash) { history.replaceState(null, '', want); return true; }
+  return false;
+}
+
+/* --- Mapa / Comparar como páginas próprias --- */
+const MAPA_MOUNT = { mapa: null, comparar: null };
+const CARGO_SWITCH = [['3', 'Governador'], ['5', 'Senado'], ['1', 'Presidente'], ['6', 'Dep. Federal'], ['7', 'Dep. Estadual']];
+
+function paintCargoSwitch(view, c) {
+  const box = document.querySelector(`[data-cargo-switch="${view}"]`);
+  if (!box) return;
+  if (!box.childElementCount) {
+    for (const [cd, lab] of CARGO_SWITCH) {
+      const b = el('button', null, lab); b.type = 'button'; b.dataset.c = cd;
+      b.addEventListener('click', () => {
+        const want = buildLocationHash(view, { c: cd });
+        if (location.hash !== want) location.hash = want;
+      });
+      box.appendChild(b);
+    }
+  }
+  box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === c ? 'true' : 'false'));
+}
+
+function mountMapaView(view) {
+  const root = document.getElementById(view + '-root');
+  if (!root) return;
+  const h = parseLocationHash();
+  const cur = MAPA_MOUNT[view];
+  const fromHash = h.view === view && h.c && MAPA_CARGO_LABEL[h.c] ? h.c : '';
+  const c = fromHash || (cur ? cur.c : '3');
+  paintCargoSwitch(view, c);
+  if (cur && cur.c === c) {
+    const sel = cur.card._getSel ? cur.card._getSel() : {};
+    const wantA = h.view === view ? h.a : '';
+    const wantB = h.view === view ? h.b : '';
+    const same = (!wantA || wantA === sel.a) && (!wantB || wantB === sel.b);
+    if (same) { if (cur.card._syncHash) cur.card._syncHash(); return; }
+  }
+  const title = (view === 'comparar' ? 'Comparar · ' : 'Mapa de Votação · ') + (MAPA_CARGO_LABEL[c] || '');
+  const card = renderMapaPanel(c, title, view, { autoCompare: view === 'comparar' });
+  root.replaceChildren(card);
+  MAPA_MOUNT[view] = { c, card };
+}
+
+function pdfFromMapa(view) {
+  const m = MAPA_MOUNT[view];
+  const s = m && m.card._getSel ? m.card._getSel() : null;
+  if (!s || !s.a) { location.hash = '#relatorios'; return; }
+  if (s.compareOn && s.b && String(s.bc || s.c) === String(s.c)) {
+    location.hash = '#relatorios?' + new URLSearchParams({ t: 'comparar', c: s.c, a: s.a, b: s.b }).toString();
+  } else {
+    location.hash = '#relatorios?' + new URLSearchParams({ t: 'candidato', c: s.c, n: s.a }).toString();
+  }
+}
+
+/* --- Contato comercial --- */
+const SITE = {
+  // TODO(Marcel): confirmar o e-mail comercial (a caixa precisa existir) e preencher o WhatsApp
+  // no formato internacional só com dígitos, ex.: '5579999999999'. Com whatsapp vazio o botão fica oculto.
+  contatoEmail: 'contato@cademeuvoto.com.br',
+  whatsapp: '',
+};
+function contatoHref(plano) {
+  const assunto = 'Cadê Meu Voto — ' + (plano === 'campanha' ? 'Plano Campanha/Institucional' : plano === 'profissional' ? 'Plano Profissional' : 'Contato');
+  const corpo = 'Olá! Tenho interesse em ' + (plano ? 'saber mais sobre o ' + assunto.split('— ')[1] : 'falar com vocês') + '.\n\nNome:\nOrganização/campanha:\nCargo/municípios de interesse:\n';
+  return 'mailto:' + SITE.contatoEmail + '?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+}
+function bootContato() {
+  document.querySelectorAll('[data-contact]').forEach(a => { a.href = contatoHref(a.dataset.contact); });
+  const box = document.getElementById('contact-actions');
+  if (!box) return;
+  const mail = el('a', 'btn-primary', 'Enviar e-mail'); mail.href = contatoHref('');
+  box.appendChild(mail);
+  if (SITE.whatsapp) {
+    const wa = el('a', 'btn-ghost', 'WhatsApp');
+    wa.href = 'https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent('Olá! Vim pelo Cadê Meu Voto e quero saber mais sobre os planos.');
+    wa.target = '_blank'; wa.rel = 'noopener';
+    box.appendChild(wa);
+  }
+  const em = el('div', 'hp-foot', SITE.contatoEmail); em.style.width = '100%';
+  box.appendChild(em);
+}
+
+/* --- Header: drawer e popover de status --- */
+function setDrawer(open) {
+  const d = document.getElementById('nav-drawer');
+  const t = document.getElementById('nav-toggle');
+  if (!d) return;
+  d.hidden = !open;
+  if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
+  document.documentElement.style.overflow = open ? 'hidden' : '';
+  if (open) { const f = d.querySelector('.drawer-close'); if (f) f.focus(); }
+}
+function setStatusPop(open) {
+  const pop = document.getElementById('status-pop');
+  const b = document.getElementById('status');
+  if (!pop) return;
+  pop.hidden = !open;
+  if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function openChat() {
+  const panel = document.getElementById('chat-panel');
+  const fab = document.getElementById('chat-fab');
+  if (panel && fab && !panel.classList.contains('open')) fab.click();
+}
+
+/* ===== Início: cards de destaque (dados do TSE já carregados no estado) ===== */
+function kpiTag(c) {
+  const s = String(c.st || '').toLowerCase();
+  // o TSE marca e='s' também para quem vai ao 2º turno: checar o texto do status primeiro
+  if (s.includes('2º turno') || s.includes('2o turno') || s.includes('segundo turno')) return el('span', 'kpi-tag t2', '2º turno');
+  if (s.startsWith('eleito') || (c.eleito && !s)) return el('span', 'kpi-tag ok', 'Eleito');
+  return null;
+}
+function kpiRow(c, uf, eleicao) {
+  const row = el('div', 'kpi-row');
+  row.appendChild(makeAvatar(c.sqcand, c.nome, uf || CONFIG.uf, eleicao || codigoEleicao, true));
+  const mid = el('div');
+  const nm = el('div', 'nm', c.nome);
+  const tg = kpiTag(c); if (tg) nm.appendChild(tg);
+  mid.appendChild(nm);
+  mid.appendChild(el('div', 'sub', [c.partido, c.n ? 'nº ' + c.n : ''].filter(Boolean).join(' · ')));
+  row.appendChild(mid);
+  const v = el('div', 'v', fmtPct(c.pvap || 0));
+  v.appendChild(el('small', null, fmtInt.format(c.vap || 0) + ' votos'));
+  row.appendChild(v);
+  return row;
+}
+function kpiCard(href, label, goLabel, build) {
+  const a = el('a', 'kpi'); a.href = href;
+  const top = el('div', 'kpi-top');
+  top.appendChild(el('span', 'kpi-label', label));
+  top.appendChild(el('span', 'kpi-go', goLabel + ' →'));
+  a.appendChild(top);
+  try { build(a); } catch (e) { console.warn('kpi', label, e); }
+  return a;
+}
+function topDe(key, n) {
+  const d = estado[key] && estado[key].dados;
+  if (!d || !d.todos || !d.todos.length) return [];
+  return [...d.todos].sort((x, y) => y.vap - x.vap).slice(0, n);
+}
+function bancadas(cod) {
+  const d = estado[cod] && estado[cod].dados;
+  if (!d || !d.listasVagas || !d.listasVagas.length) return null;
+  const listas = [...d.listasVagas].sort((a, b) => b.vag - a.vag || b.votos - a.votos);
+  return { total: d.vagas || listas.reduce((t, l) => t + l.vag, 0), listas, final: d.totalFinal, pst: d.pst };
+}
+function renderInicio() {
+  const host = document.getElementById('inicio-kpis');
+  if (!host) return;
+  const vazio = (a) => a.appendChild(el('div', 'kpi-empty', 'Aguardando dados do TSE…'));
+  const cards = [];
+  cards.push(kpiCard('#governo', 'Governador', 'Ver resultado', a => {
+    const top = topDe(3, 2); if (!top.length) return vazio(a);
+    top.forEach(c => a.appendChild(kpiRow(c)));
+  }));
+  cards.push(kpiCard('#senado', 'Senado · 2 vagas', 'Ver Senado', a => {
+    const all = topDe(5, 99); if (!all.length) return vazio(a);
+    const el2 = all.filter(c => String(c.st || '').toLowerCase().startsWith('eleito'));
+    (el2.length ? el2 : all.slice(0, 2)).forEach(c => a.appendChild(kpiRow(c)));
+  }));
+  cards.push(kpiCard('#presidente', 'Presidente · votação em SE', 'Ver Presidente', a => {
+    const cfg = CONFIG.cargos.find(c => c.chave === 'pres-se');
+    const top = topDe('pres-se', 2); if (!top.length) return vazio(a);
+    top.forEach(c => a.appendChild(kpiRow(c, cfg && cfg.uf, cfg && cfg.eleicao)));
+  }));
+  for (const [cod, href, label] of [[6, '#federais', 'Deputados Federais'], [7, '#estaduais', 'Deputados Estaduais']]) {
+    cards.push(kpiCard(href, label, 'Ver eleitos', a => {
+      const b = bancadas(cod); if (!b) return vazio(a);
+      const big = el('div', 'kpi-big', String(b.total));
+      big.appendChild(el('small', null, b.final ? 'cadeiras · resultado final' : 'cadeiras · projeção com ' + fmtPct(b.pst)));
+      a.appendChild(big);
+      const chips = el('div', 'kpi-chips');
+      b.listas.slice(0, 6).forEach(l => { const s = el('span'); s.appendChild(el('b', null, String(l.vag))); s.appendChild(document.createTextNode(' ' + l.nome)); chips.appendChild(s); });
+      a.appendChild(chips);
+    }));
+  }
+  host.replaceChildren(...cards);
+  const st = document.getElementById('inicio-status');
+  if (st) {
+    const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === 'se').map(c => estado[chaveDe(c)] && estado[chaveDe(c)].dados).find(Boolean);
+    if (!ref) st.textContent = 'Carregando dados do TSE…';
+    else {
+      const h = horaTSE(ref);
+      st.textContent = (resultadoFinal || ref.totalFinal ? 'Resultado final do TSE' : `${fmtPct(ref.pst)} das urnas apuradas`) + (h ? ` · atualizado em ${h} (Brasília)` : '');
+    }
+  }
+}
+
 function setView(name, pushHash) {
-  if (!VIEWS.includes(name)) name = 'painel';
+  if (!VIEWS.includes(name)) name = 'inicio';
+  const changed = viewAtual !== name;
   viewAtual = name;
+  document.body.dataset.view = name;
+  document.body.classList.toggle('is-result', RESULT_VIEWS.includes(name));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
-  document.querySelectorAll('#nav-tabs a').forEach(a => a.classList.toggle('active', a.dataset.view === name));
-  const sel = document.getElementById('nav-select');
-  if (sel && sel.value !== name) sel.value = name;
+  document.querySelectorAll('a[data-view]').forEach(a => {
+    const on = a.dataset.view === name || (a.dataset.group === 'resultados' && RESULT_VIEWS.includes(name));
+    a.classList.toggle('active', on);
+    if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
   if (pushHash !== false) {
-    // navegação de abas limpa params de comparação
     const want = buildLocationHash(name, {});
     if (location.hash !== want) history.pushState(null, '', want);
   }
@@ -2663,23 +3571,30 @@ function setView(name, pushHash) {
   if (qe) {
     const show = (name === 'federais' || name === 'estaduais');
     qe.classList.toggle('show', show);
-    if (!show) {
+    if (show) {
+      const ph = document.querySelector('#view-' + name + ' .page-head');
+      if (ph && ph.nextElementSibling !== qe) ph.after(qe);
+    } else {
       const det = qe.querySelector('details');
       if (det) det.open = false;
     }
   }
-  if (window.__syncTabs) window.__syncTabs();
+  document.title = PAGE_TITLES[name] || PAGE_TITLES.inicio;
+  setDrawer(false);
+  setStatusPop(false);
+  if (name === 'mapa' || name === 'comparar') mountMapaView(name);
   if (name === 'relatorios' && window.Relatorios) {
     // só monta a UI; applyHashFromLocation é chamado por applyHashView / openInPanel
-    // (evitar recursão setView ↔ applyHashFromLocation)
     window.Relatorios.bootUI();
   }
+  if (changed && setView._booted) window.scrollTo({ top: 0, behavior: 'instant' });
+  setView._booted = true;
 }
 
 async function compartilhar() {
   const url = location.href;
-  const title = 'Apuração Sergipe 2026';
-  const text = 'Confira a apuração de Sergipe 2026';
+  const title = 'Cadê Meu Voto';
+  const text = 'Eleições 2026 em Sergipe com dados oficiais do TSE, até a seção eleitoral';
   try {
     if (navigator.share) { await navigator.share({ title, text, url }); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -2818,7 +3733,7 @@ function bootChat() {
     if (open) {
       lastFocus = document.activeElement;
       if (!msgs.childElementCount) {
-        addBubble('bot', 'Olá! Posso responder sobre as eleições de Sergipe 2026 (e referências a 2022), incluindo Presidente no Brasil/SE. Fonte: TSE.');
+        addBubble('bot', 'Olá! Sou o assistente do Cadê Meu Voto. Posso responder sobre as eleições de Sergipe 2026 (e referências a 2022), incluindo Presidente no Brasil/SE. Fonte: TSE.');
       }
       syncSuggest();
       setTimeout(() => input.focus(), 50);
@@ -2935,44 +3850,39 @@ function bootChat() {
 
 
 function bootNav() {
-  const tabs = document.getElementById('nav-tabs');
-  if (tabs) {
-    tabs.setAttribute('role', 'tablist');
-    tabs.addEventListener('click', e => { const a = e.target.closest('a[data-view]'); if (!a) return; e.preventDefault(); setView(a.dataset.view); });
-    tabs.addEventListener('keydown', e => {
-      const links = [...tabs.querySelectorAll('a[data-view]')];
-      const i = links.indexOf(document.activeElement);
-      if (i < 0) return;
-      let n = null;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % links.length;
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i - 1 + links.length) % links.length;
-      if (e.key === 'Home') n = 0;
-      if (e.key === 'End') n = links.length - 1;
-      if (n == null) return;
-      e.preventDefault();
-      links[n].focus();
-      setView(links[n].dataset.view);
-    });
-    linksRole(tabs);
+  // legenda de status nas páginas de resultado
+  const tpl = document.getElementById('tpl-legenda');
+  if (tpl) document.querySelectorAll('.page-head[data-legend]').forEach(h => h.appendChild(tpl.content.cloneNode(true)));
+  const tg = document.getElementById('nav-toggle');
+  if (tg) tg.addEventListener('click', () => setDrawer(true));
+  document.querySelectorAll('[data-close-drawer]').forEach(b => b.addEventListener('click', () => setDrawer(false)));
+  const stBtn = document.getElementById('status');
+  const pop = document.getElementById('status-pop');
+  if (stBtn && pop) {
+    stBtn.addEventListener('click', (e) => { e.stopPropagation(); setStatusPop(pop.hidden); });
+    pop.addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', () => { if (!pop.hidden) setStatusPop(false); });
   }
-  function linksRole(tabs) {
-    tabs.querySelectorAll('a[data-view]').forEach(a => {
-      a.setAttribute('role', 'tab');
-      a.setAttribute('aria-selected', a.classList.contains('active') ? 'true' : 'false');
-    });
-  }
-  const _setView = setView;
-  // wrap to sync aria-selected
-  window.__syncTabs = () => {
-    document.querySelectorAll('#nav-tabs a[data-view]').forEach(a => a.setAttribute('aria-selected', a.classList.contains('active') ? 'true' : 'false'));
-  };
-  const sel = document.getElementById('nav-select');
-  if (sel) sel.addEventListener('change', e => setView(e.target.value));
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const d = document.getElementById('nav-drawer');
+    if (d && !d.hidden) { setDrawer(false); if (tg) tg.focus(); }
+    if (pop && !pop.hidden) { setStatusPop(false); if (stBtn) stBtn.focus(); }
+  });
+  document.querySelectorAll('[data-open-chat]').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); openChat(); }));
+  document.querySelectorAll('[data-pdf-from]').forEach(b => b.addEventListener('click', () => pdfFromMapa(b.dataset.pdfFrom)));
+  document.querySelectorAll('[data-compare-from-mapa]').forEach(a => a.addEventListener('click', (e) => {
+    const m = MAPA_MOUNT.mapa; const sel = m && m.card._getSel ? m.card._getSel() : null;
+    if (!sel) return;
+    e.preventDefault();
+    location.hash = buildLocationHash('comparar', { c: sel.c, a: sel.a });
+  }));
   const btn = document.getElementById('btn-atualizar');
   if (btn) btn.addEventListener('click', () => atualizar());
   const sh = document.getElementById('btn-compartilhar');
   if (sh) sh.addEventListener('click', () => compartilhar());
   const applyHashView = () => {
+    legacyRedirect();
     const { view } = parseLocationHash();
     setView(view, false);
     if (view === 'relatorios' && window.Relatorios && window.Relatorios.applyHashFromLocation) {
@@ -2992,61 +3902,45 @@ function renderTudo() {
   const fed = CONFIG.cargos.find(c => c.codigo === 6);
   const est = CONFIG.cargos.find(c => c.codigo === 7);
 
-  const gp = document.getElementById('grid-painel');
-  if (gp) {
-    const nodes = [renderAlese(), renderSenado81()];
-    if (gov) {
-      const govCard = renderCard(gov);
-      govCard.classList.add('span-all');
-      nodes.push(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador', 'painel'));
-    }
-    nodes.push(renderEleitosSE());
-    gp.replaceChildren(...nodes);
-  }
-
   const gg = document.getElementById('grid-governo');
   if (gg) {
     if (gov) {
       const govCard = renderCard(gov);
       govCard.classList.add('span-all');
-      gg.replaceChildren(govCard, renderMapaPanel(3, 'Mapa de Votação — Governador', 'governo'));
+      gg.replaceChildren(govCard);
     } else {
       gg.replaceChildren();
     }
   }
 
   const gpr = document.getElementById('grid-presidente');
-  if (gpr) {
-    const nodes = [...pres.map(renderCard), renderMapaPanel(1, 'Mapa de Votação — Presidente', 'presidente')];
-    gpr.replaceChildren(...nodes);
-  }
+  if (gpr) gpr.replaceChildren(...pres.map(renderCard));
 
-  const gs = document.getElementById('grid-senadores');
-  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderMetaSenado(), renderMapaPanel(5, 'Mapa de Votação — Senadores', 'senadores'));
+  const gs = document.getElementById('grid-senado');
+  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderEleitosSE(['5']), renderSenado81(), renderMetaSenado());
 
   const gf = document.getElementById('grid-federais');
   if (gf) {
     const nodes = [];
     if (fed) nodes.push(renderCard(fed));
+    nodes.push(renderEleitos([6]));
+    nodes.push(renderEleitosSE(['6']));
     (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [6], titulo: pd.titulo.replace(' - Votação do partido', ' · Federal') })));
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
-    // PL top 5 dedicado removido (redundante com o bloco de todos os partidos/federações abaixo)
     nodes.push(renderTopTodosPartidos(6, 'Mais votados por partido/federação · Deputado Federal'));
-    nodes.push(renderEleitos());
-    nodes.push(renderMapaPanel(6, 'Mapa de Votação — Deputados Federais', 'federais'));
     nodes.push(renderCusto());
     gf.replaceChildren(...nodes);
   }
 
   const ge = document.getElementById('grid-estaduais');
   if (ge) {
-    const nodes = [];
+    const nodes = [renderAlese()];
     if (est) nodes.push(renderCard(est));
+    nodes.push(renderEleitos([7]));
+    nodes.push(renderEleitosSE(['7']));
     (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [7], titulo: pd.titulo.replace(' - Votação do partido', ' · Estadual') })));
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
-    // PL top 5 dedicado removido (redundante com o bloco de todos os partidos/federações abaixo)
     nodes.push(renderTopTodosPartidos(7, 'Mais votados por partido/federação · Deputado Estadual'));
-    nodes.push(renderMapaPanel(7, 'Mapa de Votação — Deputados Estaduais', 'estaduais'));
     ge.replaceChildren(...nodes);
   }
 
@@ -3061,6 +3955,8 @@ function renderTudo() {
 
   const finals = CONFIG.cargos.map(c => estado[chaveDe(c)]?.dados).filter(Boolean);
   resultadoFinal = finals.length > 0 && finals.every(d => d.totalFinal || d.pst >= 100);
+  window.__pstRef = ref ? ref.pst : null;
+  renderInicio();
 }
 
 function renderStatus() {
@@ -3073,6 +3969,13 @@ function renderStatus() {
         ? `Resultado final • Próxima verificação em ${segundos}s`
         : `Ao Vivo • Próxima atualização em ${segundos}s`)
     : (resultadoFinal ? 'Resultado final • Atualização automática desligada' : 'Atualização automática desligada — use “Atualizar agora”');
+  const curto = document.getElementById('status-curto');
+  if (curto) {
+    curto.textContent = buscando ? 'Atualizando…'
+      : algumErro ? 'Falha no TSE'
+      : resultadoFinal ? 'Resultado final'
+      : (window.__pstRef != null ? (autoUpdateOn ? 'Ao vivo · ' : 'Parcial · ') + fmtPct(window.__pstRef) : 'Conectando…');
+  }
   document.getElementById('status-texto').textContent = buscando
     ? 'Atualizando…'
     : algumErro
@@ -3142,6 +4045,7 @@ function setAutoUpdate(on) {
 }
 
 syncRelGlobals();
+bootContato();
 bootNav();
 bootChat();
 renderTudo();

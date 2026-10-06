@@ -4,7 +4,7 @@ compatibility_date = "2024-11-01"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGIN = "https://marcelhalls-dotcom.github.io"
+ALLOWED_ORIGIN = "https://marcelhalls-dotcom.github.io,https://cademeuvoto.com.br,https://www.cademeuvoto.com.br"
 ROUTER_BASE = "https://omniroute-iicx.srv1890264.hstgr.cloud/v1"
 ROUTER_MODEL = "cademeuvoto"
 MAX_MSG_CHARS = "1000"

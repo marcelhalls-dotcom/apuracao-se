@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="favicon.svg?v=20261006b1" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=20261006b1" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon-16.png?v=20261006b1" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="favicon.ico?v=20261006b1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006b1" sizes="180x180">
+<link rel="icon" href="favicon.svg?v=20261006b2" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=20261006b2" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png?v=20261006b2" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="favicon.ico?v=20261006b2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006b2" sizes="180x180">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#0A1428">
 <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
@@ -21,14 +21,14 @@
 <meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
 <meta property="og:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:url" content="https://marcelhalls-dotcom.github.io/apuracao-se/">
-<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b1">
+<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
 <meta name="twitter:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
-<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b1">
+<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b2">
 <style>
   :root {
     --bg: #0f172a;
@@ -915,7 +915,8 @@
     .hdr-inner { height: 56px; gap: 10px; padding: 0 12px; }
     .brand svg { width: 30px; height: 30px; }
     .brand-word { font-size: 1.02rem; }
-    .chat-fab { right: 12px; padding: 10px 14px; min-height: 44px; font-size: .82rem; }
+    .chat-fab { right: 12px; width: 52px; height: 52px; min-height: 52px; padding: 0; border-radius: 50%; font-size: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .chat-fab::before { content: 'IA'; font-size: .95rem; font-weight: 800; letter-spacing: .02em; }
     #views-root { padding: 16px 12px 32px; }
     .hp-grid strong { font-size: 1.15rem; }
     .cta-band { padding: 20px; }
@@ -1363,7 +1364,7 @@
 </template>
 
 
-<button type="button" class="chat-fab" id="chat-fab" aria-haspopup="dialog" aria-controls="chat-panel" aria-expanded="false">Pergunte sobre a eleição</button>
+<button type="button" class="chat-fab" id="chat-fab" aria-label="Pergunte sobre a eleição (assistente com IA)" title="Assistente com IA" aria-haspopup="dialog" aria-controls="chat-panel" aria-expanded="false">Pergunte sobre a eleição</button>
 <div class="chat-panel" id="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" hidden>
   <div class="chat-head">
     <h2 id="chat-title">Assistente · Cadê Meu Voto</h2>
@@ -1380,9 +1381,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261006b1"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006b1"></script>
-<script src="relatorios.js?v=20261006b1"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006b2"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006b2"></script>
+<script src="relatorios.js?v=20261006b2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -3580,6 +3581,9 @@ function setView(name, pushHash) {
     }
   }
   document.title = PAGE_TITLES[name] || PAGE_TITLES.inicio;
+  const tabs = document.getElementById('nav-tabs');
+  const actTab = tabs && tabs.querySelector('a.active');
+  if (tabs && actTab) tabs.scrollLeft = Math.max(0, actTab.offsetLeft - (tabs.clientWidth - actTab.offsetWidth) / 2);
   setDrawer(false);
   setStatusPop(false);
   if (name === 'mapa' || name === 'comparar') mountMapaView(name);

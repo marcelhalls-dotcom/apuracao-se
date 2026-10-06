@@ -1651,6 +1651,9 @@
       try { await global.loadMapaIndex(); } catch (e) { console.warn('loadMapaIndex', e); }
     }
     rebuildCandFlat();
+    const idx = await loadMunIndex();
+    // lê o estado da UI só depois do await: um hash novo aplicado nesse intervalo
+    // (ex.: botão "Gerar PDF" do mapa) não pode ser sobrescrito pelos valores antigos
     const preserved = {
       mode: (root.querySelector('input[name=rel-mode]:checked') || {}).value,
       cand: root.querySelector('#rel-cand')?.value || '',
@@ -1659,7 +1662,6 @@
       custom: root.querySelector('#rel-cand-custom')?.value || '',
       mun: root.querySelector('#rel-mun')?.value || '',
     };
-    const idx = await loadMunIndex();
     const munHtml = ['<option value="">Escolha o município…</option>']
       .concat([...(idx.muns || [])].sort((a, b) => a.nm.localeCompare(b.nm, 'pt-BR')).map(m => '<option value="' + m.cd + '">' + m.nm + '</option>'))
       .join('');

@@ -125,6 +125,149 @@
     catch { return null; }
   }
 
+  /* ---------- Seções eleitorais (TSE votacao_secao + detalhe_votacao_secao 2026) ---------- */
+  let secMetaCache = null;
+  const secCandCache = new Map();
+  async function loadSecaoMeta() {
+    if (secMetaCache) return secMetaCache;
+    secMetaCache = (async () => {
+      const raw = await global.getJSON('mapa/secao/secoes.json');
+      const byLoc = new Map();
+      raw.s.forEach((r, i) => { let a = byLoc.get(r[0]); if (!a) { a = []; byLoc.set(r[0], a); } a.push(i); });
+      for (const a of byLoc.values()) a.sort((x, y) => raw.s[x][1] - raw.s[y][1]);
+      const pres = new Map((raw.pres || []).map(q => [q[0], [q[1], q[2]]]));
+      return { s: raw.s, byLoc, pres, fonte: raw.fonte || '' };
+    })();
+    secMetaCache.catch(() => { secMetaCache = null; });
+    return secMetaCache;
+  }
+  async function loadSecaoCand(cargo, numero) {
+    const k = cargo + ':' + numero;
+    if (!secCandCache.has(k)) {
+      secCandCache.set(k, global.getJSON('mapa/secao/' + cargo + '/' + numero + '.json')
+        .then(d => ({ t: d.t || 0, m: new Map(d.s || []), n: (d.s || []).length }))
+        .catch(() => null));
+    }
+    return secCandCache.get(k);
+  }
+  function secInfo(meta, si, cargo) {
+    const r = meta.s[si];
+    let ap = r[2], cp = r[3];
+    if (String(cargo) === '1' && meta.pres.has(si)) { const pp = meta.pres.get(si); ap = pp[0]; cp = pp[1]; }
+    return { si, s: r[1], ap, cp, li: r[0] };
+  }
+  function escSecoes(meta, lis, cargo) {
+    const out = [];
+    for (const li of lis || []) for (const si of (meta.byLoc.get(li) || [])) out.push(secInfo(meta, si, cargo));
+    out.sort((a, b) => a.s - b.s);
+    return out;
+  }
+  function sumSecVotes(m) { let s = 0; for (const v of m.values()) s += v; return s; }
+  function fmtPct1(part, whole) { return whole > 0 ? (100 * part / whole).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%' : '—'; }
+  function eqCols(doc, ncols, indent) {
+    const w = (pageSize(doc).w - margins().l - margins().r - (indent || 0)) / ncols;
+    const cs = {}; for (let i = 0; i < ncols; i++) cs[i] = { cellWidth: w };
+    return cs;
+  }
+  /** Linhas "empacotadas": `per` seções por linha, cada seção com cellsFn(s) células. */
+  function packSecRows(secs, per, cellsFn, ncell) {
+    const rows = [];
+    for (let i = 0; i < secs.length; i += per) {
+      const row = [];
+      for (let j = 0; j < per; j++) {
+        const s = secs[i + j];
+        if (s) row.push(...cellsFn(s));
+        else for (let k = 0; k < ncell; k++) row.push('');
+      }
+      rows.push(row);
+    }
+    return rows;
+  }
+  const SEC_HEAD_FILL = [51, 65, 85];
+  const ESC_ROW_STYLE = { fillColor: [226, 232, 240], fontStyle: 'bold', textColor: [15, 23, 42], fontSize: 6.8 };
+  const SEC_ROW_STYLE = { fontSize: 6.2, textColor: [51, 65, 85], cellPadding: { top: 1, bottom: 1, left: 2, right: 2 } };
+
+  /** Candidato: escolas do bairro, cada uma com suas seções (Seção · Aptos · Comp. · Votos). */
+  const BAIRRO_ROW_STYLE = { fillColor: [219, 234, 254], fontStyle: 'bold', textColor: [30, 58, 138], fontSize: 7 };
+  function writeEscolasSecoesCand(doc, y, groups, ctx, indent) {
+    const per = ctx.landscape ? 4 : 3, nc = 4, ncols = per * nc;
+    const body = [];
+    for (const g of groups) {
+    body.push([{ content: g.title, colSpan: ncols, styles: BAIRRO_ROW_STYLE }]);
+    for (const e of g.escolas) {
+      const secs = escSecoes(ctx.meta, e.lis, ctx.cargo);
+      let ap = 0, cp = 0, sv = 0;
+      for (const s of secs) { ap += s.ap; cp += s.cp; s.v = ctx.votes.get(s.si) || 0; sv += s.v; }
+      if (sv !== e.v) ctx.mismatch.push(e.nm + ': escola ' + e.v + ' ≠ seções ' + sv);
+      body.push([
+        { content: e.nl || '—', styles: ESC_ROW_STYLE },
+        { content: e.nm + '  —  ' + secs.length + ' seç. · aptos ' + fmtN(ap) + ' · comp. ' + fmtN(cp), colSpan: ncols - 3, styles: ESC_ROW_STYLE },
+        { content: fmtN(e.v) + ' (' + fmtPct1(e.v, cp) + ')', colSpan: 2, styles: Object.assign({}, ESC_ROW_STYLE, { halign: 'right' }) },
+      ]);
+      for (const r of packSecRows(secs, per, s => [
+        { content: String(s.s), styles: { fontStyle: 'bold' } }, fmtN(s.ap), fmtN(s.cp),
+        { content: fmtN(s.v), styles: { textColor: s.v ? [12, 74, 110] : [148, 163, 184], fontStyle: s.v ? 'bold' : 'normal' } },
+      ], nc)) body.push(r.map(c => (typeof c === 'string' ? { content: c, styles: SEC_ROW_STYLE } : Object.assign({}, c, { styles: Object.assign({}, SEC_ROW_STYLE, c.styles) }))));
+      ctx.rows += secs.length;
+    }
+    }
+    const grp = []; for (let j = 0; j < per; j++) grp.push('Seção', 'Aptos', 'Comp.', 'Votos');
+    return autoTable(doc, {
+      startY: y,
+      head: [[{ content: 'Nº local · Escola — seções · aptos · comparecimento', colSpan: ncols - 2 }, { content: 'Votos (% comp.)', colSpan: 2, styles: { halign: 'right' } }], grp],
+      body,
+      styles: { font: 'NotoSans', fontSize: 6.4, cellPadding: 1.6, halign: 'left', overflow: 'linebreak' },
+      headStyles: { fillColor: SEC_HEAD_FILL, textColor: 255, fontSize: 6.4 },
+      columnStyles: eqCols(doc, ncols, indent),
+      margin: { left: margins().l + (indent || 0), right: margins().r },
+    }) + 12;
+  }
+
+  /** Comparativo: escolas com seções (Seção · Aptos · Comp. · A · B · Δ). */
+  function writeEscolasSecoesCmp(doc, y, groups, ctx, indent) {
+    const per = ctx.landscape ? 3 : 2, nc = 6, ncols = per * nc;
+    const body = [];
+    for (const g of groups) {
+    body.push([{ content: g.title, colSpan: ncols, styles: BAIRRO_ROW_STYLE }]);
+    for (const e of g.escRows) {
+      const secs = escSecoes(ctx.meta, e.lis, ctx.cargo);
+      let ap = 0, cp = 0, sa = 0, sb = 0;
+      for (const s of secs) {
+        ap += s.ap; cp += s.cp;
+        s.a = ctx.votesA.get(s.si) || 0; s.b = ctx.votesB.get(s.si) || 0; sa += s.a; sb += s.b;
+      }
+      if (sa !== e.va || sb !== e.vb) ctx.mismatch.push(e.nm + ': escola ' + e.va + '/' + e.vb + ' ≠ seções ' + sa + '/' + sb);
+      const dStyle = Object.assign({}, ESC_ROW_STYLE, { textColor: e.d > 0 ? [21, 128, 61] : e.d < 0 ? [185, 28, 28] : [15, 23, 42] });
+      body.push([
+        { content: e.nl || '—', styles: ESC_ROW_STYLE },
+        { content: e.nm + '  —  ' + secs.length + ' seç. · aptos ' + fmtN(ap) + ' · comp. ' + fmtN(cp), colSpan: ncols - 4, styles: ESC_ROW_STYLE },
+        { content: fmtN(e.va), styles: ESC_ROW_STYLE }, { content: fmtN(e.vb), styles: ESC_ROW_STYLE },
+        { content: (e.d > 0 ? '+' : '') + fmtN(e.d), styles: dStyle },
+      ]);
+      for (const r of packSecRows(secs, per, s => {
+        const d = s.a - s.b;
+        return [
+          { content: String(s.s), styles: { fontStyle: 'bold' } }, fmtN(s.ap), fmtN(s.cp),
+          { content: fmtN(s.a), styles: { textColor: [29, 78, 216] } },
+          { content: fmtN(s.b), styles: { textColor: [194, 65, 12] } },
+          { content: (d > 0 ? '+' : '') + fmtN(d), styles: { textColor: d > 0 ? [21, 128, 61] : d < 0 ? [185, 28, 28] : [100, 116, 139] } },
+        ];
+      }, nc)) body.push(r.map(c => (typeof c === 'string' ? { content: c, styles: SEC_ROW_STYLE } : Object.assign({}, c, { styles: Object.assign({}, SEC_ROW_STYLE, c.styles) }))));
+      ctx.rows += secs.length;
+    }
+    }
+    const grp = []; for (let j = 0; j < per; j++) grp.push('Seção', 'Aptos', 'Comp.', 'A', 'B', 'Δ');
+    return autoTable(doc, {
+      startY: y,
+      head: [[{ content: 'Nº local · Escola — seções · aptos · comparecimento', colSpan: ncols - 3 }, 'A', 'B', 'Δ'], grp],
+      body,
+      styles: { font: 'NotoSans', fontSize: 6.2, cellPadding: 1.5, overflow: 'linebreak' },
+      headStyles: { fillColor: SEC_HEAD_FILL, textColor: 255, fontSize: 6.4 },
+      columnStyles: eqCols(doc, ncols, indent),
+      margin: { left: margins().l + (indent || 0), right: margins().r },
+    }) + 12;
+  }
+
   function sortedTodos(dados) {
     if (!dados || !dados.todos) return [];
     return [...dados.todos].sort((a, b) => (b.vap || 0) - (a.vap || 0) || String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
@@ -251,8 +394,9 @@
       bairro.v += v;
       const eKey = (L.nl || '') + '|' + (L.nm || '');
       let esc = bairro.escolas.get(eKey);
-      if (!esc) { esc = { nl: L.nl || '', nm: L.nm || ('Local ' + (L.nl || '')), v: 0 }; bairro.escolas.set(eKey, esc); }
+      if (!esc) { esc = { nl: L.nl || '', nm: L.nm || ('Local ' + (L.nl || '')), v: 0, lis: [] }; bairro.escolas.set(eKey, esc); }
       esc.v += v;
+      if (!esc.lis.includes(li)) esc.lis.push(li);
     }
     const munList = [...muns.values()].sort((a, b) => b.v - a.v);
     for (const m of munList) {
@@ -606,11 +750,13 @@
     return y + mapH + 10;
   }
 
+  /** NotoSans embutida não tem setas/✓: troca por ASCII para não sumir no PDF. */
+  function pdfSafe(s) { return String(s || '').replace(/\s*→\s*/g, ' > ').replace(/≠/g, '<>'); }
   function bodyText(doc, text, y) {
     const m = margins();
     const { w, h } = pageSize(doc);
     doc.setFont('NotoSans', 'normal'); doc.setFontSize(10);
-    const lines = doc.splitTextToSize(String(text || ''), w - m.l - m.r);
+    const lines = doc.splitTextToSize(pdfSafe(text), w - m.l - m.r);
     for (const line of lines) {
       if (y > h - m.b) { doc.addPage(); y = m.t; }
       doc.text(line, m.l, y); y += 13;
@@ -647,7 +793,7 @@
     doc.text('Escopo: ' + scope, m.l, base);
     doc.text('Gerado em: ' + nowMaceio(), m.l, base + 18);
     doc.setFontSize(9); doc.setTextColor(90);
-    doc.text(doc.splitTextToSize(notes || 'Números oficiais do TSE. PDF gerado no navegador.', w - m.l - m.r), m.l, h - 90);
+    doc.text(doc.splitTextToSize(pdfSafe(notes || 'Números oficiais do TSE. PDF gerado no navegador.'), w - m.l - m.r), m.l, h - 90);
     doc.setTextColor(0);
   }
 
@@ -712,7 +858,8 @@
     const doc = newDoc(opts); await ensureFonts(doc);
     const title = 'Relatório completo — ' + st.nome;
     const scope = (CARGO_NOME[cargo] || cargo) + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '');
-    await writeCover(doc, title, scope, 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola.', photo ? [photo] : []);
+    const wantSec = opts.secoes !== false;
+    await writeCover(doc, title, scope, 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola' + (wantSec ? ' → seção eleitoral.' : '.'), photo ? [photo] : []);
 
     const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
     const bookmarks = [];
@@ -721,7 +868,7 @@
     const cardW0 = pageSize(doc).w - m0.l - m0.r;
 
     y = sectionTitle(doc, 'Resumo executivo', y, bookmarks, 'resumo', 150);
-    y = writeCandCard(doc, m0.l, y, cardW0, st, photo, 'Candidato') + 8;
+    y = writeCandCard(doc, m0.l, y, cardW0, st, photo, 'Candidato') + 20;
 
     const geojson = await loadGeoMun();
     const geo = await loadGeoLoc();
@@ -733,6 +880,23 @@
     const stats0 = computeKeyStats(tree, null, 'a');
     stats0.wins = 0; stats0.totalMun = tree.munList.length;
     y = writeKeyStatsBlock(doc, y, st.nome, stats0, munNames0);
+
+    let secCtx = null;
+    if (wantSec) {
+      try {
+        const [meta, sc] = await Promise.all([loadSecaoMeta(), loadSecaoCand(cargo, numero)]);
+        if (meta && sc) {
+          secCtx = { meta, votes: sc.m, cargo, landscape: !!opts.landscape, mismatch: [], rows: 0 };
+          const sSum = sumSecVotes(sc.m);
+          const ok = sSum === tree.total;
+          y = bodyText(doc, 'Conferência: soma das ' + fmtN(sc.n) + ' seções com voto = ' + fmtN(sSum) + ' votos; soma por escola/município = ' + fmtN(tree.total) + (ok ? ' (consistente).' : ' (DIVERGENTE).'), y);
+        } else {
+          y = bodyText(doc, 'Dados por seção indisponíveis para este candidato; detalhe até escola.', y);
+        }
+      } catch (e) {
+        y = bodyText(doc, 'Dados por seção indisponíveis (' + (e.message || e) + '); detalhe até escola.', y);
+      }
+    }
 
     y = sectionTitle(doc, 'Mapa por município (votos)', y, bookmarks, 'mapa', 408);
     const svg = buildChoroplethSVG(geojson, valueByI, { w: 520, h: 400, title: st.nome + ' (quantis)', mode: 'seq', munNames: munNames0 });
@@ -768,6 +932,10 @@
         if (y > pageSize(doc).h - 100) { doc.addPage(); y = margins().t; }
         doc.setFont('NotoSans', 'bold'); doc.setFontSize(10);
         doc.text('Zona ' + z.z + ' — ' + fmtN(z.v) + ' votos', margins().l, y); y += 12;
+        if (secCtx) {
+          y = writeEscolasSecoesCand(doc, y, z.bairroList.map(b => ({ title: 'Bairro: ' + b.nm + ' — ' + fmtN(b.v) + ' votos', escolas: b.escolaList })), secCtx, 8);
+          continue;
+        }
         for (const b of z.bairroList) {
           if (y > pageSize(doc).h - 80) { doc.addPage(); y = margins().t; }
           doc.setFont('NotoSans', 'bold'); doc.setFontSize(9); doc.setTextColor(40, 60, 90);
@@ -784,8 +952,10 @@
       }
     }
 
+    if (secCtx && secCtx.mismatch.length) console.warn('seções≠escola', secCtx.mismatch.slice(0, 5));
     writeToc(doc, bookmarks, tocPage, tocPageCount);
     addFooterAll(doc, { subtitle: title });
+    doc.__secStats = secCtx ? { rows: secCtx.rows, mismatch: secCtx.mismatch.length } : null;
     return { doc, tree, st, svg };
   }
 
@@ -802,7 +972,8 @@
     const doc = newDoc(opts); await ensureFonts(doc);
     const title = 'Comparativo — ' + stA.nome + ' × ' + stB.nome;
     const scope = (CARGO_NOME[cargo] || cargo) + ' · ' + aN + ' vs ' + bN;
-    await writeCover(doc, title, scope, 'Comparativo zoneado completo (município → zona → bairro → escola). Fotos do repositório local.', [photoA, photoB].filter(Boolean));
+    const wantSec = opts.secoes !== false;
+    await writeCover(doc, title, scope, 'Comparativo zoneado completo (município → zona → bairro → escola' + (wantSec ? ' → seção' : '') + '). Fotos do repositório local.', [photoA, photoB].filter(Boolean));
 
     const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
     const bookmarks = [];
@@ -815,7 +986,7 @@
     y = sectionTitle(doc, 'Resumo executivo', y, bookmarks, 'resumo', 160);
     const yCardA = writeCandCard(doc, m.l, y, cardW, stA, photoA, 'A');
     const yCardB = writeCandCard(doc, m.l + cardW + gap, y, cardW, stB, photoB, 'B');
-    y = Math.max(yCardA, yCardB) + 10;
+    y = Math.max(yCardA, yCardB) + 20;
     y = bodyText(doc, 'Diferença A−B (estado): ' + fmtN(stA.vap - stB.vap)
       + (stA.pvap != null && stB.pvap != null ? '  ·  Δ pp: ' + fmtP(stA.pvap - stB.pvap) : ''), y);
 
@@ -837,6 +1008,23 @@
     const statsB = computeKeyStats(treeB, cmpRows, 'b');
     y = writeKeyStatsBlock(doc, y, 'A (' + stA.nome + ')', statsA, munNames);
     y = writeKeyStatsBlock(doc, y, 'B (' + stB.nome + ')', statsB, munNames);
+
+    let secCtx = null;
+    if (wantSec) {
+      try {
+        const [meta, sa, sb] = await Promise.all([loadSecaoMeta(), loadSecaoCand(cargo, aN), loadSecaoCand(cargo, bN)]);
+        if (meta && sa && sb) {
+          secCtx = { meta, votesA: sa.m, votesB: sb.m, cargo, landscape: !!opts.landscape, mismatch: [], rows: 0 };
+          const tA = sumSecVotes(sa.m), tB = sumSecVotes(sb.m);
+          const ok = tA === treeA.total && tB === treeB.total;
+          y = bodyText(doc, 'Conferência por seção: A = ' + fmtN(tA) + ' (escolas ' + fmtN(treeA.total) + ') · B = ' + fmtN(tB) + ' (escolas ' + fmtN(treeB.total) + ')' + (ok ? ' (consistente).' : ' (DIVERGENTE).'), y);
+        } else {
+          y = bodyText(doc, 'Dados por seção indisponíveis para A ou B; detalhe até escola.', y);
+        }
+      } catch (e) {
+        y = bodyText(doc, 'Dados por seção indisponíveis (' + (e.message || e) + ').', y);
+      }
+    }
 
     const mapW = 520, mapH = 390;
     // Mapa A — heading stays with map
@@ -895,14 +1083,17 @@
           ...((za && za.bairroList) || []).map(b => b.nm),
           ...((zb && zb.bairroList) || []).map(b => b.nm),
         ]);
+        const secGroups = [];
         for (const bnm of [...bairros].sort((a, b) => a.localeCompare(b, 'pt-BR'))) {
           const ba = za && za.bairros.get(bnm);
           const bb = zb && zb.bairros.get(bnm);
           const bvA = ba ? ba.v : 0, bvB = bb ? bb.v : 0;
-          if (y > pageSize(doc).h - 70) { doc.addPage(); y = margins().t; }
-          doc.setFont('NotoSans', 'bold'); doc.setFontSize(8); doc.setTextColor(40, 60, 90);
-          doc.text('Bairro: ' + bnm + ' — A ' + fmtN(bvA) + ' · B ' + fmtN(bvB) + ' · Δ ' + fmtN(bvA - bvB), margins().l + 6, y);
-          y += 10; doc.setTextColor(0);
+          if (!secCtx && y > pageSize(doc).h - 70) { doc.addPage(); y = margins().t; }
+          if (!secCtx) {
+            doc.setFont('NotoSans', 'bold'); doc.setFontSize(8); doc.setTextColor(40, 60, 90);
+            doc.text('Bairro: ' + bnm + ' — A ' + fmtN(bvA) + ' · B ' + fmtN(bvB) + ' · Δ ' + fmtN(bvA - bvB), margins().l + 6, y);
+            y += 10; doc.setTextColor(0);
+          }
 
           const escKeys = new Set([
             ...((ba && ba.escolaList) || []).map(e => e.nl + '|' + e.nm),
@@ -910,27 +1101,15 @@
           ]);
           const escMapA = new Map(((ba && ba.escolaList) || []).map(e => [e.nl + '|' + e.nm, e]));
           const escMapB = new Map(((bb && bb.escolaList) || []).map(e => [e.nl + '|' + e.nm, e]));
-          const rows = [...escKeys].map(k => {
-            const ea = escMapA.get(k), eb = escMapB.get(k);
-            const nm = (ea || eb).nm, nl = (ea || eb).nl;
-            const va = ea ? ea.v : 0, vb = eb ? eb.v : 0;
-            return [nl || '—', nm, fmtN(va), fmtN(vb), fmtN(va - vb)];
-          }).sort((x, y) => {
-            const da = Number(String(y[2]).replace(/\./g, '')) - Number(String(x[2]).replace(/\./g, ''));
-            return da;
-          });
-          // better sort by numeric va+vb
-          rows.sort((x, y) => {
-            const na = escMapA.get(x[0] + '|' + x[1]) || escMapA.get([...escMapA.keys()].find(k => k.endsWith('|' + x[1])));
-            return 0;
-          });
           // simple: rebuild sorted
           const escRows = [...escKeys].map(k => {
             const ea = escMapA.get(k), eb = escMapB.get(k);
             const nm = (ea || eb).nm, nl = (ea || eb).nl;
             const va = ea ? ea.v : 0, vb = eb ? eb.v : 0;
-            return { nl, nm, va, vb, d: va - vb };
+            const lis = [...new Set([...((ea && ea.lis) || []), ...((eb && eb.lis) || [])])];
+            return { nl, nm, va, vb, d: va - vb, lis };
           }).sort((a, b) => (b.va + b.vb) - (a.va + a.vb) || a.nm.localeCompare(b.nm, 'pt-BR'));
+          if (secCtx) { secGroups.push({ title: 'Bairro: ' + bnm + ' — A ' + fmtN(bvA) + ' · B ' + fmtN(bvB) + ' · Δ ' + ((bvA - bvB) > 0 ? '+' : '') + fmtN(bvA - bvB), escRows }); continue; }
 
           y = autoTable(doc, {
             startY: y,
@@ -941,11 +1120,14 @@
             margin: { left: margins().l + 6, right: margins().r },
           }) + 12;
         }
+        if (secCtx && secGroups.length) y = writeEscolasSecoesCmp(doc, y, secGroups, secCtx, 6);
       }
     }
 
+    if (secCtx && secCtx.mismatch.length) console.warn('seções≠escola', secCtx.mismatch.slice(0, 5));
     writeToc(doc, bookmarks, tocPage, tocPageCount);
     addFooterAll(doc, { subtitle: title });
+    doc.__secStats = secCtx ? { rows: secCtx.rows, mismatch: secCtx.mismatch.length } : null;
     return { doc, stA, stB, treeA, treeB, cmpRows, aByI, bByI, winByI, geojson };
   }
 
@@ -973,8 +1155,74 @@
     return { doc };
   }
 
+  /** Município: zona → local de votação → seções (aptos, comparecimento, abstenção, 1º e 2º de Governador). */
+  async function writeMunicipioSecoes(doc, y, mun, munData, bookmarks, opts) {
+    const gov = ((munData && munData.cargos && munData.cargos['3']) || []).slice(0, 2);
+    const [meta, geo] = await Promise.all([loadSecaoMeta(), loadGeoLoc()]);
+    const vs = await Promise.all(gov.map(g => loadSecaoCand('3', g.n)));
+    const locs = geo.loc || [];
+    const zonas = new Map();
+    let nSec = 0, ap = 0, cp = 0;
+    const gSum = gov.map(() => 0);
+    meta.s.forEach((r, si) => {
+      const L = locs[r[0]];
+      if (!L || L.m !== mun.i) return;
+      let Z = zonas.get(L.z); if (!Z) { Z = new Map(); zonas.set(L.z, Z); }
+      let E = Z.get(r[0]); if (!E) { E = { L, secs: [] }; Z.set(r[0], E); }
+      const s = { s: r[1], ap: r[2], cp: r[3], g: vs.map(v => (v && v.m.get(si)) || 0) };
+      s.g.forEach((v, i) => { gSum[i] += v; });
+      E.secs.push(s); nSec++; ap += s.ap; cp += s.cp;
+    });
+    y = sectionTitle(doc, 'Seções eleitorais (' + fmtN(nSec) + ')', y, bookmarks, 'secoes', 120);
+    const legend = gov.map((g, i) => 'G' + (i + 1) + ' = ' + g.n + ' ' + (g.nm || '') + (g.sg ? ' (' + g.sg + ')' : '')).join('   ·   ');
+    y = bodyText(doc, 'Por local de votação: aptos, comparecimento e abstenção (TSE, detalhe por seção) e votos dos 2 mais votados para Governador no município. ' + legend, y);
+    const checks = gov.map((g, i) => 'G' + (i + 1) + ': seções ' + fmtN(gSum[i]) + (gSum[i] === g.v ? ' = ' : ' ≠ ') + 'município ' + fmtN(g.v) + (gSum[i] === g.v ? ' (ok)' : ' (DIVERGENTE)'));
+    y = bodyText(doc, 'Totais: ' + fmtN(nSec) + ' seções · aptos ' + fmtN(ap) + ' · comparecimento ' + fmtN(cp) + ' (' + fmtPct1(cp, ap) + ') · abstenção ' + fmtN(ap - cp) + '.  Conferência: ' + checks.join(' · '), y);
+    const per = opts.landscape ? 3 : 2, nc = 6, ncols = per * nc;
+    const gH = gov.map((g, i) => 'G' + (i + 1) + ' ' + g.n);
+    while (gH.length < 2) gH.push('—');
+    let rows = 0;
+    for (const z of [...zonas.keys()].sort((a, b) => a - b)) {
+      const Z = zonas.get(z);
+      if (y > pageSize(doc).h - 90) { doc.addPage(); y = margins().t; }
+      doc.setFont('NotoSans', 'bold'); doc.setFontSize(10); doc.setTextColor(0);
+      doc.text('Zona ' + z, margins().l, y); y += 10;
+      const escs = [...Z.values()].sort((a, b) => String(a.L.b || '').localeCompare(String(b.L.b || ''), 'pt-BR') || String(a.L.nm).localeCompare(String(b.L.nm), 'pt-BR'));
+      const body = [];
+      for (const E of escs) {
+        E.secs.sort((a, b) => a.s - b.s);
+        const eap = E.secs.reduce((s, x) => s + x.ap, 0), ecp = E.secs.reduce((s, x) => s + x.cp, 0);
+        const eg = [0, 1].map(i => E.secs.reduce((s, x) => s + (x.g[i] || 0), 0));
+        body.push([
+          { content: E.L.nl || '—', styles: ESC_ROW_STYLE },
+          { content: E.L.nm + (E.L.b ? ' · ' + E.L.b : '') + '  —  ' + E.secs.length + ' seç.', colSpan: ncols - 6, styles: ESC_ROW_STYLE },
+          { content: fmtN(eap), styles: ESC_ROW_STYLE }, { content: fmtN(ecp) + ' (' + fmtPct1(ecp, eap) + ')', colSpan: 2, styles: ESC_ROW_STYLE },
+          { content: gov[0] ? fmtN(eg[0]) : '—', styles: ESC_ROW_STYLE }, { content: gov[1] ? fmtN(eg[1]) : '—', styles: ESC_ROW_STYLE },
+        ]);
+        for (const r of packSecRows(E.secs, per, s => [
+          { content: String(s.s), styles: { fontStyle: 'bold' } }, fmtN(s.ap), fmtN(s.cp), fmtN(s.ap - s.cp),
+          { content: gov[0] ? fmtN(s.g[0]) : '—', styles: { textColor: [29, 78, 216] } },
+          { content: gov[1] ? fmtN(s.g[1]) : '—', styles: { textColor: [194, 65, 12] } },
+        ], nc)) body.push(r.map(c => (typeof c === 'string' ? { content: c, styles: SEC_ROW_STYLE } : Object.assign({}, c, { styles: Object.assign({}, SEC_ROW_STYLE, c.styles) }))));
+        rows += E.secs.length;
+      }
+      const grp = []; for (let j = 0; j < per; j++) grp.push('Seção', 'Aptos', 'Comp.', 'Abst.', gH[0], gH[1]);
+      y = autoTable(doc, {
+        startY: y,
+        head: [[{ content: 'Nº local · Local de votação · bairro', colSpan: ncols - 5 }, 'Aptos', { content: 'Comparec.', colSpan: 2 }, gH[0], gH[1]], grp],
+        body,
+        styles: { font: 'NotoSans', fontSize: 6.2, cellPadding: 1.5, overflow: 'linebreak' },
+        headStyles: { fillColor: SEC_HEAD_FILL, textColor: 255, fontSize: 6.2 },
+        columnStyles: eqCols(doc, ncols, 0),
+        margin: { left: margins().l, right: margins().r },
+      }) + 10;
+    }
+    doc.__secStats = { rows, mismatch: gov.filter((g, i) => gSum[i] !== g.v).length };
+    return y;
+  }
+
   async function buildMunicipio(spec) {
-    const opts = Object.assign({ topN: 10 }, spec.options || {});
+    const opts = Object.assign({ topN: 10, landscape: false }, spec.options || {});
     const munIdx = await loadMunIndex();
     let mun = (munIdx.muns || []).find(m => String(m.cd) === String(spec.cd));
     const doc = newDoc(opts); await ensureFonts(doc);
@@ -991,6 +1239,10 @@
         if (!rows.length) continue;
         y = sectionTitle(doc, CARGO_NOME[cg] || cg, y, bookmarks);
         y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total SE']], body: rows.slice(0, opts.topN || 10).map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t)]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 8;
+      }
+      if (opts.secoes !== false) {
+        try { y = await writeMunicipioSecoes(doc, y, mun, munData, bookmarks, opts); }
+        catch (e) { y = bodyText(doc, 'Seções indisponíveis: ' + (e.message || e), y); }
       }
     }
     writeToc(doc, bookmarks, tocPage);
@@ -1066,6 +1318,7 @@
     if (p.get('b')) out.b = p.get('b');
     if (p.get('cd')) out.cd = p.get('cd');
     if (p.get('mun')) out.mun = p.get('mun');
+    if (p.get('s') === '0') out.options = { secoes: false };
     if (out.template === 'comparativo') out.template = 'comparar';
     // só promove a comparar se o hash não pediu outro modelo explicitamente
     if ((out.a && out.b) && (out.template === 'resumo' || !p.get('t'))) out.template = 'comparar';
@@ -1087,6 +1340,7 @@
     } else if (t === 'municipio') {
       if (spec.cd || spec.mun) p.set('cd', String(spec.cd || spec.mun));
     }
+    if (t !== 'resumo' && spec.options && spec.options.secoes === false) p.set('s', '0');
     // resumo/custom: só t (+c se fizer sentido)
     return '#relatorios?' + p.toString();
   }
@@ -1107,8 +1361,10 @@
   function collectUISpec(root) {
     const mode = (root.querySelector('input[name=rel-mode]:checked') || {}).value || 'resumo';
     const landscape = !!root.querySelector('#rel-landscape')?.checked;
+    const secEl = root.querySelector('#rel-secoes');
+    const secoes = secEl ? !!secEl.checked : true;
     const blocks = [...root.querySelectorAll('.rel-block:checked')].map(x => x.value);
-    const spec = { template: mode, options: { landscape, hist: true, fotos: true }, blocks };
+    const spec = { template: mode, options: { landscape, hist: true, fotos: true, secoes }, blocks };
     if (mode === 'comparar') {
       const a = root.querySelector('#rel-cand-a')?.value || '';
       const b = root.querySelector('#rel-cand-b')?.value || '';
@@ -1140,6 +1396,8 @@
     root.querySelectorAll('.rel-mode-panel').forEach(p => { p.hidden = p.dataset.mode !== mode; });
     const blocks = root.querySelector('#rel-blocks');
     if (blocks) blocks.hidden = !(mode === 'custom' || mode === 'resumo');
+    const sw = root.querySelector('#rel-secoes-wrap');
+    if (sw) sw.hidden = mode === 'resumo';
   }
 
   function updateHashFromUI(root) {
@@ -1173,6 +1431,8 @@
     const radio = root.querySelector('input[name=rel-mode][value="' + mode + '"]');
     if (radio) radio.checked = true;
     syncModePanels(root);
+    const secEl = root.querySelector('#rel-secoes');
+    if (secEl) secEl.checked = !(s.options && s.options.secoes === false);
     const cargo = s.cargo || s.c || '7';
     const setP = (id, v) => {
       const picker = root.querySelector('.rel-picker[data-picker="' + id + '"]');
@@ -1484,14 +1744,14 @@
       const svg = buildChoroplethSVG(geojson, valueByI, { w: 480, h: 360, title: st.nome + ' (quantis)', mode: 'seq', munNames });
       return '<div class="rel-exec-cards">' + candCardHtml('Candidato', st, spec.cargo, numero) + '</div>'
         + '<div class="rel-maps">' + svg + '</div>'
-        + '<p class="meta">PDF completo: mapa + município → zona → bairro → escola.</p>';
+        + '<p class="meta">PDF completo: mapa + município → zona → bairro → escola' + (spec.options && spec.options.secoes === false ? '' : ' → seção (aptos, comparecimento, votos)') + '.</p>';
     }
     if (t === 'municipio' && (spec.cd || spec.mun)) {
       const cd = spec.cd || spec.mun;
       const idx = await loadMunIndex();
       const mun = (idx.muns || []).find(m => String(m.cd) === String(cd));
       return '<p><strong>Município:</strong> ' + (mun ? mun.nm : cd) + ' <span class="meta">(código ' + cd + ')</span></p>'
-        + '<p class="meta">O PDF lista os mais votados por cargo neste município.</p>';
+        + '<p class="meta">O PDF lista os mais votados por cargo neste município' + (spec.options && spec.options.secoes === false ? '' : ' e todas as seções eleitorais por local de votação (aptos, comparecimento, abstenção, 1º e 2º para Governador)') + '.</p>';
     }
     // resumo
     await ensureCargoEstado(7);
@@ -1571,7 +1831,7 @@
       root.innerHTML = [
         '<section class="card span-all rel-card">',
         '<h2>Relatórios (PDF)</h2>',
-        '<p class="meta">PDFs no navegador com mapas coropléticos de Sergipe, fotos e detalhe completo (município → zona → bairro → escola). Sumário clicável + favoritos.</p>',
+        '<p class="meta">PDFs no navegador com mapas coropléticos de Sergipe, fotos e detalhe completo (município → zona → bairro → escola → seção eleitoral). Sumário clicável + favoritos.</p>',
         '<div class="rel-modes" role="radiogroup">',
         '<label><input type="radio" name="rel-mode" value="resumo" checked> Resumo</label>',
         '<label><input type="radio" name="rel-mode" value="candidato"> Candidato</label>',
@@ -1589,7 +1849,8 @@
         '<div id="rel-blocks" class="rel-blocks"><div class="meta">Blocos (resumo)</div>',
         BLOCKS.map(b => '<label><input class="rel-block" type="checkbox" value="' + b.id + '" checked> ' + b.label + '</label>').join(' '),
         '</div>',
-        '<div class="rel-opts"><label><input type="checkbox" id="rel-landscape"> Paisagem</label></div>',
+        '<div class="rel-opts"><label><input type="checkbox" id="rel-landscape"> Paisagem</label>',
+        '<label id="rel-secoes-wrap" hidden title="Tabelas por seção eleitoral sob cada escola (aumenta o nº de páginas)"><input type="checkbox" id="rel-secoes" checked> Incluir seções eleitorais</label></div>',
         '<div class="rel-actions">',
         '<button type="button" class="btn-mapa" id="rel-preview-btn">Atualizar prévia</button>',
         '<button type="button" class="btn-mapa" id="rel-pdf-btn">Gerar PDF</button>',
@@ -1601,6 +1862,8 @@
       root.querySelectorAll('input[name=rel-mode]').forEach(r => r.addEventListener('change', () => onModeChange(root)));
       const munSel = root.querySelector('#rel-mun');
       if (munSel) munSel.addEventListener('change', () => updateHashFromUI(root));
+      const secChk = root.querySelector('#rel-secoes');
+      if (secChk) secChk.addEventListener('change', () => updateHashFromUI(root));
 
       root.querySelector('#rel-preview-btn').addEventListener('click', async () => {
         const spec = collectUISpec(root);
@@ -1675,6 +1938,7 @@
     generate, generateAndDownload, openInPanel, bootUI, parseRelHash, buildRelHash,
     applySpecToUI, applyHashFromLocation, BLOCKS, CARGO_NOME,
     buildChoroplethSVG, buildVoteTree, // exposed for mapa panel reuse
+    loadSecaoMeta, loadSecaoCand,
   };
 
   function autoBoot() {

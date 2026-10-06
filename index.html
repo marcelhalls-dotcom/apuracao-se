@@ -324,6 +324,19 @@
   .mapa-tree .mv-pct { color: #c4b5fd; font-size: 0.78rem; }
   .mapa-tree .mv-meta { color: #fcd34d; font-size: 0.75rem; font-weight: 500; }
   .mapa-tree .mv-nested { margin: 6px 0 4px 8px; display: grid; gap: 4px; }
+  .mapa-tree details.mv-esc { padding: 0; background: transparent; }
+  .mapa-tree details.mv-esc > summary.el-row { display: grid; cursor: pointer; }
+  .mapa-tree details.mv-esc[open] > summary.el-row { background: rgba(167,139,250,0.10); border-radius: 8px; }
+  .mv-secoes { overflow-x: auto; }
+  .mv-sec-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .mv-sec-table th, .mv-sec-table td { padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(148,163,184,.18); }
+  .mv-sec-table th:first-child, .mv-sec-table td:first-child { text-align: left; }
+  .mv-sec-table th { color: var(--subtext); font-weight: 600; }
+  .mv-sec-table td.sec { font-weight: 700; }
+  .mv-sec-table td.v { color: #c4b5fd; font-weight: 700; }
+  .mv-sec-table tr.zero td { color: var(--subtext); }
+  .mv-sec-table tfoot td { font-weight: 700; border-top: 1px solid rgba(148,163,184,.4); }
+  .mv-sec-nota { color: var(--subtext); font-size: 0.75rem; margin-top: 4px; }
   .mapa-busca-nivel { width: 100%; margin: 4px 0 8px; min-height: 40px; padding: 8px 10px; border-radius: 8px;
     border: 1px solid rgba(148,163,184,0.35); background: #0f172a; color: var(--text); }
   .mapa-empty { color: var(--subtext); padding: 12px 0; }
@@ -700,9 +713,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261005r5"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261005r5"></script>
-<script src="relatorios.js?v=20261005r5"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006s1"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006s1"></script>
+<script src="relatorios.js?v=20261006s1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1712,7 +1725,8 @@ function expandMapaCompact(raw, geo) {
     if (!B) { B = { votos: 0, locais: [] }; Z.bairros.set(bKey, B); }
     B.votos += v;
     B.locais.push({
-      nm: L.nm, end: L.e || '', nr: L.nl,
+      nm: L.nm, end: L.e || '', nr: L.nl, li,
+      ck: raw.c != null && raw.n != null ? (raw.c + ':' + raw.n) : '',
       votos: v, pct: totalRef ? v / totalRef : 0
     });
   }
@@ -1774,7 +1788,7 @@ function mapaNodeRow(label, votos, pct, extraTxt) {
   sm.appendChild(left);
   const right = el('span', 'mv-right');
   right.appendChild(document.createTextNode(fmtInt.format(votos) + ' votos'));
-  right.appendChild(el('div', 'mv-pct', fmtPct(pct)));
+  right.appendChild(el('div', 'mv-pct', fmtPct(100 * (pct || 0))));
   sm.appendChild(right);
   return sm;
 }
@@ -1794,7 +1808,76 @@ function lazyDetails(label, votos, pct, extraTxt, buildChild, opts) {
   return det;
 }
 
-function renderMapaLocais(locais, filtro) {
+/* ---- Seções eleitorais (TSE votacao_secao + detalhe_votacao_secao 2026), carregadas sob demanda ---- */
+let SECAO_META_P = null;
+const secaoCandCache = new Map();
+function loadSecaoMetaSite() {
+  if (!SECAO_META_P) {
+    SECAO_META_P = getJSON('mapa/secao/secoes.json').then(raw => {
+      const byLoc = new Map();
+      raw.s.forEach((r, i) => { let a = byLoc.get(r[0]); if (!a) { a = []; byLoc.set(r[0], a); } a.push(i); });
+      for (const a of byLoc.values()) a.sort((x, y) => raw.s[x][1] - raw.s[y][1]);
+      return { s: raw.s, byLoc, pres: new Map((raw.pres || []).map(q => [q[0], [q[1], q[2]]])) };
+    });
+    SECAO_META_P.catch(() => { SECAO_META_P = null; });
+  }
+  return SECAO_META_P;
+}
+function loadSecaoCandSite(ck) {
+  if (!secaoCandCache.has(ck)) {
+    const [c, n] = ck.split(':');
+    const pr = getJSON(`mapa/secao/${c}/${n}.json`).then(d => new Map(d.s || []));
+    pr.catch(() => secaoCandCache.delete(ck));
+    secaoCandCache.set(ck, pr);
+  }
+  return secaoCandCache.get(ck);
+}
+function renderMapaSecoes(l) {
+  const box = el('div', 'mv-secoes');
+  box.appendChild(el('div', 'mapa-empty', 'Carregando seções…'));
+  if (!l.ck || l.li == null) { box.replaceChildren(el('div', 'mapa-empty', 'Seções indisponíveis para este candidato.')); return box; }
+  Promise.all([loadSecaoMetaSite(), loadSecaoCandSite(l.ck)]).then(([meta, votes]) => {
+    const isPres = l.ck.startsWith('1:');
+    const sis = meta.byLoc.get(l.li) || [];
+    const table = document.createElement('table');
+    table.className = 'mv-sec-table';
+    table.setAttribute('aria-label', 'Votos por seção eleitoral — ' + l.nm);
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    for (const h of ['Seção', 'Aptos', 'Comparec.', 'Votos', '% comp.']) { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); }
+    thead.appendChild(hr); table.appendChild(thead);
+    const tb = document.createElement('tbody');
+    let sAp = 0, sCp = 0, sV = 0;
+    for (const si of sis) {
+      const r = meta.s[si];
+      let ap = r[2], cp = r[3];
+      if (isPres && meta.pres.has(si)) [ap, cp] = meta.pres.get(si);
+      const v = votes.get(si) || 0;
+      sAp += ap; sCp += cp; sV += v;
+      const tr = document.createElement('tr');
+      if (!v) tr.className = 'zero';
+      for (const [txt, cls] of [[String(r[1]), 'sec'], [fmtInt.format(ap)], [fmtInt.format(cp)], [fmtInt.format(v), 'v'], [cp ? fmtPct(100 * v / cp) : '—']]) {
+        const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+    table.appendChild(tb);
+    const tf = document.createElement('tfoot');
+    const fr = document.createElement('tr');
+    for (const txt of ['Total (' + sis.length + ')', fmtInt.format(sAp), fmtInt.format(sCp), fmtInt.format(sV), sCp ? fmtPct(100 * sV / sCp) : '—']) { const td = document.createElement('td'); td.textContent = txt; fr.appendChild(td); }
+    tf.appendChild(fr); table.appendChild(tf);
+    const nota = el('div', 'mv-sec-nota', sV === l.votos
+      ? `Soma das seções = ${fmtInt.format(sV)} votos (confere com o colégio).`
+      : `Atenção: soma das seções (${fmtInt.format(sV)}) difere do colégio (${fmtInt.format(l.votos)}).`);
+    box.replaceChildren(table, nota);
+  }).catch(e => {
+    console.warn('secoes', e);
+    box.replaceChildren(el('div', 'mapa-empty', 'Não foi possível carregar as seções.'));
+  });
+  return box;
+}
+
+function renderMapaLocais(locais, filtro, parentKey, syncOpts) {
   const wrap = el('div');
   const q = (filtro || '').trim().toLowerCase();
   let n = 0;
@@ -1802,15 +1885,25 @@ function renderMapaLocais(locais, filtro) {
     const lab = `${l.nm} ${l.end || ''} ${l.nr}`.toLowerCase();
     if (q && !lab.includes(q)) continue;
     n++;
-    const row = el('div', 'el-row');
-    row.style.gridTemplateColumns = '1fr auto';
+    const det = el('details', 'mv-esc');
+    det.dataset.mvKey = (parentKey || '') + '|e:' + l.nr + ':' + l.nm;
+    const sm = el('summary', 'el-row');
+    sm.style.gridTemplateColumns = '1fr auto';
     const mid = el('div'); mid.appendChild(el('div', 'nm', l.nm));
     if (l.end) mid.appendChild(el('div', 'sub', l.end));
-    mid.appendChild(el('div', 'sub', 'Colégio eleitoral nº ' + l.nr));
-    row.appendChild(mid);
-    const v = el('div', 'votos'); v.appendChild(el('div', null, fmtInt.format(l.votos))); v.appendChild(el('div', 'sub', fmtPct(l.pct)));
-    row.appendChild(v);
-    wrap.appendChild(row);
+    mid.appendChild(el('div', 'sub', 'Colégio eleitoral nº ' + l.nr + ' · toque para ver as seções'));
+    sm.appendChild(mid);
+    const v = el('div', 'votos'); v.appendChild(el('div', null, fmtInt.format(l.votos))); v.appendChild(el('div', 'sub', fmtPct(100 * (l.pct || 0))));
+    sm.appendChild(v);
+    det.appendChild(sm);
+    const slot = el('div', 'mv-nested');
+    det.appendChild(slot);
+    let built = false;
+    det.addEventListener('toggle', () => {
+      if (det.open && !built) { built = true; slot.replaceChildren(renderMapaSecoes(l)); }
+      if (syncOpts && syncOpts.onToggle) syncOpts.onToggle(det);
+    });
+    wrap.appendChild(det);
   }
   if (!n) wrap.appendChild(el('div', 'mapa-empty', 'Nenhum colégio neste filtro'));
   return wrap;
@@ -1825,7 +1918,7 @@ function renderMapaBairros(bairros, filtro, parentKey, syncOpts) {
     const key = (parentKey || '') + '|b:' + b.nm;
     wrap.appendChild(lazyDetails(
       'Bairro: ' + b.nm, b.votos, b.pct, null,
-      () => renderMapaLocais(b.locais || [], q && !b.nm.toLowerCase().includes(q) ? q : ''),
+      () => renderMapaLocais(b.locais || [], q && !b.nm.toLowerCase().includes(q) ? q : '', key, syncOpts),
       { key, onToggle: syncOpts && syncOpts.onToggle }
     ));
   }
@@ -2114,7 +2207,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
   const card = el('section', 'card mapa-votacao span-all');
   card.dataset.mapaCargo = cargoPadrao;
   card.appendChild(el('h2', null, titulo || 'Mapa de Votação'));
-  card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro e colégio eleitoral. Fonte: votação por seção 2026 + locais de votação 2026. Use Comparar para ver dois candidatos lado a lado (mesmo cargo ou outro).'));
+  card.appendChild(el('div', 'meta', 'Votos oficiais do TSE por município, zona, bairro, colégio eleitoral e seção (aptos, comparecimento e votos por seção). Fonte: votação por seção 2026 + detalhe da apuração por seção 2026 + locais de votação 2026. Use Comparar para ver dois candidatos lado a lado (mesmo cargo ou outro).'));
 
   const hash0 = parseLocationHash();
   const viewForHash = panelView;
@@ -2298,10 +2391,10 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint) {
     if (Number(cargo) === 1) {
       tree.appendChild(el('h3', null, 'Por estado'));
       tree.appendChild(renderMapaEstados(data.estados || []));
-      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio → seção'));
       if (data.nota_se) tree.appendChild(el('div', 'meta', data.nota_se));
     } else {
-      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio'));
+      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio → seção'));
     }
     const hostTree = el('div');
     hostTree.appendChild(renderMapaMunicipios(munListOf(data), filtroGeo.value, syncOpts));

@@ -12,7 +12,13 @@ MAX_HISTORY = "8"
 MAX_TOKENS = "1800"
 RATE_HOUR = "20"
 RATE_DAY = "60"
+CONTATO_RATE_HOUR = "5"
+CONTATO_RATE_DAY = "20"
 PAGES_BASE = "https://marcelhalls-dotcom.github.io/apuracao-se"
+
+[[kv_namespaces]]
+binding = "CONTATO"
+id = "9063be22a3604a1aa2831b17ce5a31aa"
 
 [[kv_namespaces]]
 binding = "RATE"

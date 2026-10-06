@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="favicon.svg?v=20261006b2" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=20261006b2" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon-16.png?v=20261006b2" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="favicon.ico?v=20261006b2">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006b2" sizes="180x180">
+<link rel="icon" href="favicon.svg?v=20261006c1" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=20261006c1" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png?v=20261006c1" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="favicon.ico?v=20261006c1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006c1" sizes="180x180">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#0A1428">
 <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
@@ -21,14 +21,14 @@
 <meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
 <meta property="og:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:url" content="https://marcelhalls-dotcom.github.io/apuracao-se/">
-<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b2">
+<meta property="og:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006c1">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
 <meta name="twitter:description" content="Dados oficiais do TSE até a seção eleitoral: mapa de votação, comparativos A × B e relatórios em PDF.">
-<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006b2">
+<meta name="twitter:image" content="https://marcelhalls-dotcom.github.io/apuracao-se/og.png?v=20261006c1">
 <style>
   :root {
     --bg: #0f172a;
@@ -845,7 +845,36 @@
   .contact-box { margin: 26px 0; padding: 26px; border-radius: 18px; background: var(--bg-2); border: 1px solid var(--line-2); text-align: center; }
   .contact-box h2 { margin: 0 0 6px; font-size: 1.3rem; }
   .contact-box p { margin: 0 auto 16px; color: var(--subtext); max-width: 620px; }
-  .contact-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .contact-box.left { text-align: left; margin-top: 0; }
+  .contact-box.left p { margin-left: 0; }
+  .contato-form { max-width: 640px; margin: 0 auto; text-align: left; display: grid; gap: 14px; }
+  .ct-row { display: grid; gap: 6px; }
+  .ct-row label { font-size: .86rem; font-weight: 600; color: var(--text); }
+  .ct-row label .opt { font-weight: 400; color: var(--subtext); }
+  .contato-form input[type=text], .contato-form input[type=email], .contato-form input[type=tel], .contato-form select, .contato-form textarea {
+    width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-2);
+    background: var(--bg); color: var(--text); font: inherit; font-size: .95rem;
+  }
+  .contato-form textarea { resize: vertical; min-height: 120px; }
+  .contato-form input:focus, .contato-form select:focus, .contato-form textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(96,165,250,.2); }
+  .ct-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ct-count { font-size: .74rem; color: var(--subtext); text-align: right; }
+  .ct-count.warn { color: #FBBF24; }
+  .ct-hp { position: absolute !important; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .ct-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: var(--muted); cursor: pointer; }
+  .ct-check input { width: 18px; height: 18px; margin-top: 2px; flex: none; accent-color: var(--brand); }
+  .contato-form .btn-primary { justify-self: start; }
+  .ct-status { padding: 12px 14px; border-radius: 10px; font-size: .9rem; }
+  .ct-status.ok { background: rgba(34,197,94,.14); border: 1px solid rgba(34,197,94,.45); color: #86EFAC; }
+  .ct-status.erro { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.45); color: #FCA5A5; }
+  .ct-status.info { background: rgba(96,165,250,.10); border: 1px solid rgba(96,165,250,.35); color: #BFDBFE; }
+  .ct-lgpd { margin: 0; font-size: .76rem; color: var(--subtext); line-height: 1.5; }
+  .plan li.no { color: var(--subtext); }
+  .plan li.no::before { content: '–'; background: rgba(148,163,184,.14); color: var(--subtext); }
+  .plans-note { text-align: center; color: var(--subtext); font-size: .84rem; margin: 14px 0 0; }
+  .ajuda-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .ajuda-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .ct-grid2 { grid-template-columns: 1fr; } .contato-form .btn-primary { justify-self: stretch; } .contact-box { padding: 18px; } }
 
   /* textos institucionais */
   .prose { max-width: 800px; color: var(--muted); line-height: 1.7; font-size: .98rem; }
@@ -1004,6 +1033,7 @@
     <a href="#relatorios" data-view="relatorios">Relatórios em PDF</a>
     <h3>Cadê Meu Voto</h3>
     <a href="#planos" data-view="planos">Planos e acesso aos dados</a>
+    <a href="#ajuda" data-view="ajuda">Ajuda e contato</a>
     <a href="#sobre" data-view="sobre">Sobre e metodologia</a>
     <a href="#privacidade" data-view="privacidade">Privacidade</a>
     <a href="#termos" data-view="termos">Termos de uso</a>
@@ -1091,7 +1121,7 @@
     <div class="cta-band">
       <div>
         <h2>Dados compilados para campanhas, partidos e imprensa</h2>
-        <p>Relatórios ilimitados, exportação por seção e API estão a caminho. Hoje, todo o conteúdo do site continua aberto.</p>
+        <p>Planos com mais relatórios, seções e zonas eleitorais, comparativos e relatórios em Excel estão a caminho.</p>
       </div>
       <a class="btn-primary" href="#planos">Conhecer os planos</a>
     </div>
@@ -1187,19 +1217,19 @@
     <div class="page-head center">
       <div class="eyebrow">Planos</div>
       <h1>Planos e acesso aos dados</h1>
-      <p>Hoje todo o Cadê Meu Voto é aberto ao público. Em breve teremos planos para quem precisa de mais profundidade, volume e dados compilados.</p>
+      <p>Compare os planos do Cadê Meu Voto. Os planos pagos estão em preparação; deixe seu contato para saber do lançamento.</p>
     </div>
     <div class="plans">
       <div class="plan">
-        <div class="plan-tag ok">Disponível agora</div>
-        <h2>Público</h2>
-        <div class="price">Gratuito</div>
+        <div class="plan-tag ok">Gratuito</div>
+        <h2>Gratuito</h2>
+        <div class="price">R$ 0</div>
         <ul>
           <li>Resultados oficiais por cargo</li>
-          <li>Mapa de Votação até a seção eleitoral</li>
-          <li>Comparativos A × B</li>
-          <li>Relatórios em PDF</li>
+          <li>Mapa de Votação no site</li>
+          <li>2 relatórios em PDF (sem seções e sem zonas)</li>
           <li>Assistente com IA (com limite de uso)</li>
+          <li class="no">Sem comparativos</li>
         </ul>
         <a class="btn-ghost block" href="#mapa">Usar agora</a>
       </div>
@@ -1208,39 +1238,66 @@
         <h2>Profissional</h2>
         <div class="price">Preço em breve</div>
         <ul>
-          <li>Relatórios ilimitados e personalizados</li>
-          <li>Dados até a seção eleitoral, todos os cargos</li>
-          <li>Exportação em CSV por seção, local e bairro</li>
-          <li>Suporte por e-mail</li>
+          <li>25 relatórios por mês</li>
+          <li>Seções e zonas eleitorais inclusas</li>
+          <li>Comparativos A × B</li>
+          <li>Relatórios em Excel</li>
+          <li>Tudo do plano Gratuito</li>
         </ul>
-        <a class="btn-primary block" data-contact="profissional" href="#planos">Quero ser avisado</a>
+        <a class="btn-primary block" data-contact="profissional" href="#planos-contato">Quero ser avisado</a>
       </div>
       <div class="plan">
         <div class="plan-tag">Em breve</div>
         <h2>Campanha / Institucional</h2>
         <div class="price">Sob consulta</div>
         <ul>
-          <li>Tudo do Profissional</li>
-          <li>API de dados compilados</li>
+          <li>Tudo do plano Profissional</li>
           <li>Volume e formatos sob medida</li>
           <li>Atendimento dedicado</li>
         </ul>
-        <a class="btn-ghost block" data-contact="campanha" href="#planos">Fale conosco</a>
+        <a class="btn-ghost block" data-contact="campanha" href="#planos-contato">Fale conosco</a>
       </div>
     </div>
-    <div class="contact-box" id="contact-box">
+    <p class="plans-note">Os limites de cada plano passam a valer com o lançamento do acesso por conta.</p>
+    <div class="contact-box" id="planos-contato">
       <h2>Fale conosco</h2>
       <p>Conte o que você precisa (cargo, municípios, formato dos dados) e retornamos com uma proposta.</p>
-      <div class="contact-actions" id="contact-actions"></div>
+      <div class="contato-host" data-contato-form="planos"></div>
     </div>
     <div class="prose faq">
       <h2>Perguntas frequentes</h2>
       <h3>Os dados são oficiais?</h3>
       <p>Sim. Todos os números vêm do Tribunal Superior Eleitoral (divulgação de resultados e dados abertos). Não estimamos nem alteramos votos. Veja a <a href="#sobre">metodologia</a>.</p>
-      <h3>O que é gratuito hoje vai continuar disponível?</h3>
-      <p>O acesso público atual continua no ar. Os planos pagos vão acrescentar volume, exportação e integração, sem retirar o que já está aberto.</p>
+      <h3>Como funcionam os limites de cada plano?</h3>
+      <p>Cada plano tem uma quantidade de relatórios e um conjunto de recursos. Os limites serão aplicados quando o acesso por conta for lançado, e as condições serão informadas antes da contratação.</p>
       <h3>Quando os planos ficam disponíveis?</h3>
-      <p>Ainda não há data nem preço definidos. Deixe seu contato e avisamos no lançamento.</p>
+      <p>Ainda não há data nem preço definidos. Deixe seu contato pelo formulário acima e avisamos no lançamento.</p>
+    </div>
+  </section>
+
+  <section class="view" id="view-ajuda">
+    <div class="page-head">
+      <div class="eyebrow">Ajuda</div>
+      <h1>Ajuda e contato</h1>
+      <p>Dúvidas sobre o site, os dados ou os planos? Veja as respostas rápidas ou envie uma mensagem.</p>
+    </div>
+    <div class="ajuda-grid">
+      <div class="prose">
+        <h2>Respostas rápidas</h2>
+        <h3>Como vejo os votos de um candidato por bairro ou seção?</h3>
+        <p>Abra o <a href="#mapa">Mapa de Votação</a>, escolha o cargo e o candidato e expanda município → zona → bairro → local de votação → seção.</p>
+        <h3>Como comparo dois candidatos?</h3>
+        <p>Use a página <a href="#comparar">Comparar</a>: escolha o candidato A e o B (pode ser de outro cargo).</p>
+        <h3>Como gero um relatório em PDF?</h3>
+        <p>Em <a href="#relatorios">Relatórios</a>, escolha o modelo (resumo, candidato, comparativo ou município) e clique em gerar. O PDF é criado no seu navegador.</p>
+        <h3>De onde vêm os números?</h3>
+        <p>Do TSE (divulgação oficial e dados abertos). Detalhes em <a href="#sobre">Sobre e metodologia</a>.</p>
+      </div>
+      <div class="contact-box left">
+        <h2>Envie uma mensagem</h2>
+        <p>Respondemos pelo e-mail informado.</p>
+        <div class="contato-host" data-contato-form="ajuda"></div>
+      </div>
     </div>
   </section>
 
@@ -1293,9 +1350,10 @@
         <li><strong>Preferências</strong>: a escolha de atualização automática fica guardada apenas no seu navegador (armazenamento local).</li>
         <li><strong>Assistente com IA</strong>: as perguntas digitadas no chat são enviadas ao nosso servidor (Cloudflare Workers) e a um provedor de IA para gerar a resposta. O endereço IP é usado temporariamente para limitar o volume de perguntas (até 2 dias). Não digite dados pessoais no chat.</li>
         <li><strong>Relatórios em PDF</strong>: são gerados no seu próprio navegador.</li>
+        <li><strong>Formulário de contato</strong>: nome, e-mail, telefone (opcional), assunto e mensagem ficam armazenados na nossa infraestrutura (Cloudflare) apenas para responder ao seu contato e não são compartilhados nem vendidos. O endereço IP é usado temporariamente para limitar envios em excesso (até 2 dias) e não fica gravado junto da mensagem. Você pode pedir a exclusão pelo próprio formulário.</li>
       </ul>
       <h2>Contato</h2>
-      <p>Dúvidas sobre privacidade: use os canais da página <a href="#planos">Fale conosco</a>.</p>
+      <p>Dúvidas sobre privacidade ou pedidos de exclusão: use o formulário da página <a href="#ajuda">Ajuda e contato</a>.</p>
     </div>
   </section>
 
@@ -1338,7 +1396,7 @@
     </div>
     <div>
       <h4>Cadê Meu Voto</h4>
-      <a href="#planos">Planos</a><a href="#sobre">Sobre e metodologia</a><a href="#privacidade">Privacidade</a><a href="#termos">Termos de uso</a>
+      <a href="#planos">Planos</a><a href="#ajuda">Ajuda e contato</a><a href="#sobre">Sobre e metodologia</a><a href="#privacidade">Privacidade</a><a href="#termos">Termos de uso</a>
     </div>
   </div>
   <div class="ft-bottom">
@@ -1381,9 +1439,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261006b2"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006b2"></script>
-<script src="relatorios.js?v=20261006b2"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006c1"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006c1"></script>
+<script src="relatorios.js?v=20261006c1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1582,7 +1640,7 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 let HIST = null;
 let resultadoFinal = false;
 let viewAtual = 'inicio';
-const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','sobre','privacidade','termos'];
+const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','ajuda','sobre','privacidade','termos'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -3340,6 +3398,7 @@ const PAGE_TITLES = {
   comparar: 'Comparar candidatos · Cadê Meu Voto',
   relatorios: 'Relatórios em PDF · Cadê Meu Voto',
   planos: 'Planos e acesso aos dados · Cadê Meu Voto',
+  ajuda: 'Ajuda e contato · Cadê Meu Voto',
   sobre: 'Sobre e metodologia · Cadê Meu Voto',
   privacidade: 'Política de privacidade · Cadê Meu Voto',
   termos: 'Termos de uso · Cadê Meu Voto',
@@ -3417,32 +3476,112 @@ function pdfFromMapa(view) {
   }
 }
 
-/* --- Contato comercial --- */
-const SITE = {
-  // TODO(Marcel): confirmar o e-mail comercial (a caixa precisa existir) e preencher o WhatsApp
-  // no formato internacional só com dígitos, ex.: '5579999999999'. Com whatsapp vazio o botão fica oculto.
-  contatoEmail: 'contato@cademeuvoto.com.br',
-  whatsapp: '',
+/* --- Formulário de contato (Worker /contato) --- */
+const CONTATO_API = 'https://apuracao-se-chat.chamado-640.workers.dev/contato';
+const CONTATO_MAX = 2000;
+const CONTATO_PLANO_MSG = {
+  profissional: 'Tenho interesse no plano Profissional e quero ser avisado(a) do lançamento.',
+  campanha: 'Tenho interesse no plano Campanha / Institucional.',
 };
-function contatoHref(plano) {
-  const assunto = 'Cadê Meu Voto — ' + (plano === 'campanha' ? 'Plano Campanha/Institucional' : plano === 'profissional' ? 'Plano Profissional' : 'Contato');
-  const corpo = 'Olá! Tenho interesse em ' + (plano ? 'saber mais sobre o ' + assunto.split('— ')[1] : 'falar com vocês') + '.\n\nNome:\nOrganização/campanha:\nCargo/municípios de interesse:\n';
-  return 'mailto:' + SITE.contatoEmail + '?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+function buildContatoForm(ctx) {
+  const id = (n) => `ct-${ctx}-${n}`;
+  const form = document.createElement('form');
+  form.className = 'contato-form'; form.noValidate = true; form.dataset.ctx = ctx;
+  form.innerHTML = `
+    <div class="ct-row">
+      <label for="${id('nome')}">Nome <span aria-hidden="true">*</span></label>
+      <input id="${id('nome')}" name="nome" type="text" autocomplete="name" maxlength="120" required>
+    </div>
+    <div class="ct-grid2">
+      <div class="ct-row">
+        <label for="${id('email')}">E-mail <span aria-hidden="true">*</span></label>
+        <input id="${id('email')}" name="email" type="email" autocomplete="email" maxlength="200" required>
+      </div>
+      <div class="ct-row">
+        <label for="${id('tel')}">Telefone <span class="opt">(opcional)</span></label>
+        <input id="${id('tel')}" name="telefone" type="tel" autocomplete="tel" maxlength="30" inputmode="tel">
+      </div>
+    </div>
+    <div class="ct-row">
+      <label for="${id('assunto')}">Assunto <span aria-hidden="true">*</span></label>
+      <select id="${id('assunto')}" name="assunto" required>
+        <option value="">Escolha…</option>
+        <option value="duvida">Dúvida</option>
+        <option value="planos">Planos</option>
+        <option value="imprensa">Imprensa</option>
+        <option value="outro">Outro</option>
+      </select>
+    </div>
+    <div class="ct-row">
+      <label for="${id('msg')}">Mensagem <span aria-hidden="true">*</span></label>
+      <textarea id="${id('msg')}" name="mensagem" rows="5" maxlength="${CONTATO_MAX}" required></textarea>
+      <div class="ct-count" aria-live="polite">0/${CONTATO_MAX}</div>
+    </div>
+    <div class="ct-hp" aria-hidden="true">
+      <label for="${id('site')}">Não preencha este campo</label>
+      <input id="${id('site')}" name="website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+    <label class="ct-check"><input type="checkbox" name="aceite" required> <span>Concordo com o uso dos meus dados para responder a este contato.</span></label>
+    <button type="submit" class="btn-primary">Enviar mensagem</button>
+    <div class="ct-status" role="status" aria-live="polite" hidden></div>
+    <p class="ct-lgpd">LGPD: usamos seus dados apenas para responder a esta mensagem. Eles ficam armazenados na nossa infraestrutura (Cloudflare), não são compartilhados nem vendidos, e você pode pedir a exclusão a qualquer momento por este formulário. Veja a <a href="#privacidade">Política de privacidade</a>.</p>`;
+  const t0 = Date.now();
+  const msg = form.querySelector('textarea');
+  const count = form.querySelector('.ct-count');
+  const status = form.querySelector('.ct-status');
+  const btn = form.querySelector('button[type=submit]');
+  const syncCount = () => { const n = msg.value.length; count.textContent = n + '/' + CONTATO_MAX; count.classList.toggle('warn', n > CONTATO_MAX - 150); };
+  msg.addEventListener('input', syncCount);
+  const show = (kind, text) => { status.hidden = false; status.className = 'ct-status ' + kind; status.textContent = text; };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const data = {
+      nome: String(fd.get('nome') || '').trim(), email: String(fd.get('email') || '').trim(),
+      telefone: String(fd.get('telefone') || '').trim(), assunto: String(fd.get('assunto') || ''),
+      mensagem: String(fd.get('mensagem') || '').trim(), website: String(fd.get('website') || ''),
+      aceite: !!fd.get('aceite'), pagina: ctx, t0,
+    };
+    const erros = [];
+    if (data.nome.length < 2) erros.push('Informe seu nome.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) erros.push('Informe um e-mail válido.');
+    if (!data.assunto) erros.push('Escolha o assunto.');
+    if (data.mensagem.length < 10) erros.push('A mensagem precisa ter pelo menos 10 caracteres.');
+    if (data.mensagem.length > CONTATO_MAX) erros.push(`A mensagem pode ter no máximo ${CONTATO_MAX} caracteres.`);
+    if (!data.aceite) erros.push('Marque a concordância com o uso dos dados.');
+    if (erros.length) { show('erro', erros.join(' ')); return; }
+    btn.disabled = true; btn.textContent = 'Enviando…'; show('info', 'Enviando sua mensagem…');
+    try {
+      const r = await fetch(CONTATO_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const out = await r.json().catch(() => ({}));
+      if (r.ok && out.ok) {
+        form.reset(); syncCount();
+        show('ok', 'Mensagem enviada! Obrigado pelo contato. Responderemos no e-mail informado.');
+      } else if (r.status === 429) {
+        show('erro', out.error || 'Muitas mensagens enviadas. Tente novamente mais tarde.');
+      } else {
+        show('erro', out.error || 'Não foi possível enviar agora. Tente novamente em instantes.');
+      }
+    } catch (err) {
+      show('erro', 'Falha de conexão ao enviar. Verifique sua internet e tente de novo.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar mensagem';
+    }
+  });
+  return form;
 }
 function bootContato() {
-  document.querySelectorAll('[data-contact]').forEach(a => { a.href = contatoHref(a.dataset.contact); });
-  const box = document.getElementById('contact-actions');
-  if (!box) return;
-  const mail = el('a', 'btn-primary', 'Enviar e-mail'); mail.href = contatoHref('');
-  box.appendChild(mail);
-  if (SITE.whatsapp) {
-    const wa = el('a', 'btn-ghost', 'WhatsApp');
-    wa.href = 'https://wa.me/' + SITE.whatsapp + '?text=' + encodeURIComponent('Olá! Vim pelo Cadê Meu Voto e quero saber mais sobre os planos.');
-    wa.target = '_blank'; wa.rel = 'noopener';
-    box.appendChild(wa);
-  }
-  const em = el('div', 'hp-foot', SITE.contatoEmail); em.style.width = '100%';
-  box.appendChild(em);
+  document.querySelectorAll('[data-contato-form]').forEach(h => { if (!h.firstChild) h.appendChild(buildContatoForm(h.dataset.contatoForm)); });
+  document.querySelectorAll('[data-contact]').forEach(a => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    const form = document.querySelector('[data-contato-form="planos"] form');
+    if (!form) return;
+    form.querySelector('select[name=assunto]').value = 'planos';
+    const ta = form.querySelector('textarea');
+    if (!ta.value.trim()) { ta.value = CONTATO_PLANO_MSG[a.dataset.contact] || ''; ta.dispatchEvent(new Event('input')); }
+    document.getElementById('planos-contato').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => form.querySelector('input[name=nome]').focus({ preventScroll: true }), 400);
+  }));
 }
 
 /* --- Header: drawer e popover de status --- */

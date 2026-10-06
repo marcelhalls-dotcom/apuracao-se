@@ -269,6 +269,14 @@
   .qe2022-wrap { display: none; max-width: 960px; margin: 12px auto 0; text-align: left; }
   .qe2022-wrap.show { display: block; }
   .qe2022-wrap[data-uf-hidden] { display: none !important; }
+  .hemi-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .hemi-info { display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid var(--line-2, rgba(148,163,184,.25)); border-radius: 12px; background: rgba(148,163,184,.06); }
+  .hemi-info .nm { font-weight: 700; }
+  .hemi-info .sub { font-size: .78rem; color: var(--muted, #94a3b8); }
+  .hemi-info img, .hemi-info .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; }
+  svg circle.cad { cursor: pointer; transition: stroke .15s; outline: none; }
+  svg circle.cad:hover, svg circle.cad:focus, svg circle.cad.on { stroke: #f8fafc; stroke-width: 3; }
+  .hemi-nome { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
   .qe2022-wrap > details { border: 2px dashed #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.10); padding: 8px 12px; }
   .qe2022-wrap summary {
     cursor: pointer; font-weight: 700; color: #fcd34d; list-style: none;
@@ -1984,6 +1992,8 @@ function histKey(cargoOrCod, numero, uf) {
 }
 function histOf(codigo, numero, uf) {
   if (!HIST || !HIST.historico) return null;
+  // historico.json é de SE (exceto presidente/br): nunca casar número de candidato de outra UF com histórico de SE
+  if (currentUf !== 'se' && String(uf || 'se').toLowerCase() !== 'br') return null;
   return HIST.historico[`${codigo}:${numero}:${(uf || 'se').toLowerCase()}`] || null;
 }
 
@@ -2380,14 +2390,22 @@ const CORES_LISTA = { 'PSD': '#22c55e', 'PP / UNIÃO': '#3b82f6', 'PCDOB / PT / 
 const PALETA_EXTRA = ['#a3e635', '#c084fc', '#2dd4bf', '#fca5a5', '#93c5fd', '#fde68a'];
 function corLista(nome, i) { return CORES_LISTA[nome] || PALETA_EXTRA[i % PALETA_EXTRA.length]; }
 
-function renderAlese() {
-  const d = estadoCargo(7).dados;
-  const card = el('section', 'card alese');
-  card.appendChild(el('h2', null, 'Alese - distribuição das 24 cadeiras'));
-  if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE calcular as vagas de Deputado Estadual')); return card; }
-  card.appendChild(el('div', 'meta', `${d.totalFinal ? 'Resultado final do TSE' : 'Projeção com ' + fmtPct(d.pst) + ' das urnas'} • Quociente eleitoral ${fmtInt.format(d.qe)} votos`));
+function renderAlese() { return renderHemicicloCargo(7); }
+/** Hemiciclo de uma casa proporcional da UF corrente: 7 = Assembleia (Alese/ALE-AL), 6 = bancada na Câmara. */
+function renderHemicicloCargo(cod) {
+  const d = estadoCargo(cod).dados;
+  const m = ufMeta(currentUf);
+  const esperado = cod === 7 ? m.est : m.fed;
+  const casa = cod === 7 ? (m.ale || 'Assembleia Legislativa') : 'Câmara dos Deputados';
+  const card = el('section', 'card alese' + (cod === 6 ? ' hemi-fed' : ''));
+  card.appendChild(el('h2', null, cod === 7
+    ? `${casa} - distribuição das ${esperado || ''} cadeiras`.replace('  ', ' ')
+    : `Bancada de ${m.nome} na Câmara - ${esperado || ''} cadeiras`));
+  if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE calcular as vagas de ' + (cod === 7 ? 'Deputado Estadual' : 'Deputado Federal'))); return card; }
+  card.appendChild(el('div', 'meta', `${d.totalFinal ? 'Resultado final do TSE' : 'Projeção com ' + fmtPct(d.pst) + ' das urnas'} • Quociente eleitoral ${fmtInt.format(d.qe)} votos • Toque/passe o mouse numa cadeira para ver o eleito`));
   const listas = [...d.listasVagas].sort((a, b) => b.vag - a.vag || b.votos - a.votos).map((l, i) => ({ ...l, cor: corLista(l.nome, i) }));
   const total = listas.reduce((t, l) => t + l.vag, 0);
+  if (esperado && total !== esperado) card.appendChild(el('div', 'aviso-card', `Atenção: soma das vagas (${total}) difere do total da casa (${esperado}). Conferir com o TSE.`));
   // hemiciclo: fileiras concêntricas, cadeiras ordenadas por ângulo e coloridas em sequência
   const fileiras = total <= 12 ? 2 : total <= 30 ? 3 : 4, R0 = 70, R1 = 170, W = 400, H = 210, cx = 200, cy = 195;
   const raios = Array.from({ length: fileiras }, (_, i) => R0 + (R1 - R0) * (fileiras === 1 ? 1 : i / (fileiras - 1)));
@@ -2401,16 +2419,36 @@ function renderAlese() {
   const ns = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Hemiciclo da Alese com ' + total + ' cadeiras: ' + listas.map(l => l.nome + ' ' + l.vag).join(', '));
+  svg.setAttribute('aria-label', 'Hemiciclo ' + casa + ' com ' + total + ' cadeiras: ' + listas.map(l => l.nome + ' ' + l.vag).join(', '));
+  const info = el('div', 'hemi-info');
+  const showInfo = (l, e, c) => {
+    svg.querySelectorAll('circle.on').forEach(x => x.classList.remove('on'));
+    if (c) c.classList.add('on');
+    info.replaceChildren();
+    if (e) info.appendChild(makeAvatar(e.sqcand, e.nome, CONFIG.uf, codigoEleicao, false));
+    const tx = el('div');
+    tx.appendChild(el('div', 'nm', e ? e.nome : l.nome));
+    tx.appendChild(el('div', 'sub', e ? `${l.nome} · nº ${e.n}${e.vap != null ? ' · ' + fmtInt.format(e.vap) + ' votos' : ''}${e.pvap != null ? ' (' + fmtPct(e.pvap) + ')' : ''}` : `${l.vag} cadeira(s)`));
+    info.appendChild(tx);
+  };
+  info.appendChild(el('div', 'sub', 'Toque numa cadeira para ver o eleito.'));
   let idx = 0;
   listas.forEach(l => { for (let k = 0; k < l.vag; k++) { const pt = pts[idx++]; if (!pt) break;
+    const e = l.eleitos[k] || null;
     const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', pt.x.toFixed(1)); c.setAttribute('cy', pt.y.toFixed(1)); c.setAttribute('r', raioCad.toFixed(1)); c.setAttribute('fill', l.cor); c.setAttribute('stroke', '#0f172a'); c.setAttribute('stroke-width', '1.5');
-    const t = document.createElementNS(ns, 'title'); t.textContent = `${l.nome}${l.eleitos[k] ? ' - ' + l.eleitos[k].nome : ''}`; c.appendChild(t); svg.appendChild(c); } });
+    c.setAttribute('tabindex', '0'); c.setAttribute('class', 'cad');
+    const t = document.createElementNS(ns, 'title'); t.textContent = `${l.nome}${e ? ' - ' + e.nome : ''}`; c.appendChild(t);
+    ['mouseenter', 'focus', 'click'].forEach(ev => c.addEventListener(ev, () => showInfo(l, e, c)));
+    svg.appendChild(c); } });
   const tx = document.createElementNS(ns, 'text'); tx.setAttribute('x', cx); tx.setAttribute('y', cy - 8); tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('fill', '#e2e8f0'); tx.setAttribute('font-size', '30'); tx.setAttribute('font-weight', '800'); tx.textContent = total; svg.appendChild(tx);
-  const wrap = el('div', 'hemi-wrap alese-wrap'); wrap.appendChild(svg);
+  const wrap = el('div', 'hemi-wrap alese-wrap');
+  const col = el('div', 'hemi-col'); col.appendChild(svg); col.appendChild(info); wrap.appendChild(col);
   const leg = el('div', 'hemi-leg alese-leg');
   listas.forEach(l => { const it = el('div', 'it'); const dot = el('span', 'swatch'); dot.style.background = l.cor; it.appendChild(dot);
-    const tx2 = el('div'); tx2.appendChild(el('div', null, l.nome)); tx2.appendChild(el('div', 'nomes', l.eleitos.map(e => e.nome).join(', '))); it.appendChild(tx2);
+    const tx2 = el('div'); tx2.appendChild(el('div', null, l.nome));
+    const nomes = el('div', 'nomes');
+    l.eleitos.forEach((e, i) => { const b = el('button', 'hemi-nome', e.nome); b.type = 'button'; b.addEventListener('click', () => showInfo(l, e, null)); b.addEventListener('mouseenter', () => showInfo(l, e, null)); nomes.appendChild(b); if (i < l.eleitos.length - 1) nomes.appendChild(document.createTextNode(', ')); });
+    tx2.appendChild(nomes); it.appendChild(tx2);
     it.appendChild(el('span', 'q', String(l.vag))); leg.appendChild(it); });
   wrap.appendChild(leg); card.appendChild(wrap);
   return card;
@@ -2586,7 +2624,7 @@ function renderSenado81() {
   const card = el('section', 'card senado81');
   card.appendChild(el('h2', null, 'Senado Federal - 81 cadeiras (composição após 2026)'));
   if (!HIST || !HIST.senado81) { card.appendChild(el('div', 'aviso-card espera', 'Carregando composição do Senado…')); return card; }
-  card.appendChild(el('div', 'meta', '54 senadores eleitos em 2026 (2 por UF) + 27 eleitos em 2022 que permanecem até 2031. Partido dos remanescentes = partido na eleição de 2022. Votos 2022 fora de SE: sem dado neste arquivo.'));
+  card.appendChild(el('div', 'meta', '54 senadores eleitos em 2026 (2 por UF) + 27 eleitos em 2022 que permanecem até 2031. Partido dos remanescentes = partido na eleição de 2022. Votos 2022: só há dado para Sergipe neste arquivo.' + (currentUf !== 'se' ? ' Bancada de ' + ufMeta(currentUf).nome + ': ' + HIST.senado81.filter(x => String(x.uf).toLowerCase() === currentUf).map(x => `${x.nmu} (${x.partido}, ${x.ano})`).join(', ') + '.' : '')));
   const byParty = new Map();
   for (const s of HIST.senado81) {
     const p = s.partido || '—';
@@ -4390,6 +4428,7 @@ function renderTudo() {
   if (gs) {
     const nodes = sen ? [renderCard(sen)] : [];
     if (currentUf === 'se') nodes.push(renderEleitosSE(['5']), renderSenado81(), renderMetaSenado());
+    else nodes.push(renderSenado81());
     gs.replaceChildren(...nodes);
   }
 
@@ -4397,6 +4436,7 @@ function renderTudo() {
   if (gf) {
     const nodes = [];
     if (fed) nodes.push(renderCard(fed));
+    nodes.push(renderHemicicloCargo(6));
     nodes.push(renderEleitos([6]));
     if (currentUf === 'se') {
       nodes.push(renderEleitosSE(['6']));
@@ -4414,7 +4454,7 @@ function renderTudo() {
   const ge = document.getElementById('grid-estaduais');
   if (ge) {
     const nodes = [];
-    if (currentUf === 'se') nodes.push(renderAlese());
+    nodes.push(renderAlese());
     if (est) nodes.push(renderCard(est));
     nodes.push(renderEleitos([7]));
     if (currentUf === 'se') {

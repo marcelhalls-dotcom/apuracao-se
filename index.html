@@ -19,11 +19,11 @@
 <meta name="twitter:description" content="Saiba onde estão os votos, até a seção eleitoral. Dados oficiais do TSE.">
 <meta name="twitter:image" content="https://cademeuvoto.com.br/og-cademeuvoto.jpg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="favicon.svg?v=20261006d1" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=20261006d1" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon-16.png?v=20261006d1" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="favicon.ico?v=20261006d1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006d1" sizes="180x180">
+<link rel="icon" href="favicon.svg?v=20261006e1" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=20261006e1" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png?v=20261006e1" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="favicon.ico?v=20261006e1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006e1" sizes="180x180">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#0A1428">
 <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
@@ -743,6 +743,22 @@
   .btn-wa { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
   .btn-wa::before { content: ""; width: 18px; height: 18px; flex: none; background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2325D366' d='M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z'/%3E%3C/svg%3E"); }
   .pop-actions .btn-wa { border-color: rgba(37,211,102,.45); }
+
+  .uf-picker { margin: 18px 0 8px; }
+  .uf-picker-label { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .uf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); gap: 8px; }
+  .uf-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line-2); background: rgba(148,163,184,.06); color: var(--text); text-decoration: none; font: inherit; cursor: pointer; text-align: left; }
+  .uf-chip:hover { border-color: rgba(96,165,250,.5); background: rgba(37,99,235,.12); }
+  .uf-chip[aria-current="true"] { border-color: rgba(56,189,248,.7); background: rgba(14,165,233,.16); box-shadow: 0 0 0 1px rgba(56,189,248,.25); }
+  .uf-chip .uf-sigla { font-weight: 800; font-size: 1rem; letter-spacing: .04em; }
+  .uf-chip .uf-nome { font-size: .72rem; color: var(--muted); }
+  .uf-chip .uf-st { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .uf-chip.is-ready .uf-st { color: #4ade80; }
+  .uf-chip.is-soon { opacity: .72; cursor: default; }
+  .uf-chip.is-soon .uf-st { color: #94a3b8; }
+  .uf-banner { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; padding: 8px 12px; border-radius: 10px; background: rgba(37,99,235,.12); border: 1px solid rgba(96,165,250,.28); font-size: .85rem; }
+  .uf-banner strong { font-weight: 800; }
+  .uf-banner a { color: var(--accent); font-weight: 700; }
   .page-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .page-head .legenda { justify-content: flex-start; margin: 14px 0 0; padding: 0; max-width: none; }
   .btn-primary, .btn-ghost {
@@ -1069,18 +1085,19 @@
   <section class="view" id="view-inicio">
     <div class="hero">
       <div class="hero-copy">
-        <div class="eyebrow">Eleições 2026 · Sergipe · Dados oficiais do TSE</div>
+        <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Sergipe e Alagoas · mais estados em breve</div>
         <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
-        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios prontos para campanhas, partidos, imprensa e eleitores. Do município ao bairro, ao local de votação e à seção.</p>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e <strong>Alagoas</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
+        <div class="uf-picker" id="uf-picker" aria-label="Escolha o estado"></div>
         <div class="hero-actions">
-          <a class="btn-primary" href="#mapa">Abrir o Mapa de Votação</a>
+          <a class="btn-primary" href="#mapa" id="cta-mapa">Abrir o Mapa de Votação</a>
           <a class="btn-ghost" href="#planos">Planos para campanhas</a>
           <a class="btn-ghost btn-wa" href="https://wa.me/" target="_blank" rel="noopener" data-wa-share="inicio">Compartilhar no WhatsApp</a>
         </div>
         <div class="hero-status" id="inicio-status">Carregando dados do TSE…</div>
       </div>
-      <div class="hero-panel" aria-label="Sergipe 2026 em números">
-        <div class="hp-title">Sergipe 2026 em números <span>fonte: TSE</span></div>
+      <div class="hero-panel" id="hero-panel" aria-label="Números do estado">
+        <div class="hp-title" id="hero-panel-title">Sergipe 2026 em números <span>fonte: TSE</span></div>
         <div class="hp-grid">
           <div><strong>75</strong><span>municípios</span></div>
           <div><strong>1.214</strong><span>locais de votação</span></div>
@@ -1093,7 +1110,7 @@
       </div>
     </div>
 
-    <h2 class="sec-title">Resultados em Sergipe</h2>
+    <h2 class="sec-title" id="sec-resultados-title">Resultados em Sergipe</h2>
     <div class="kpi-grid" id="inicio-kpis" aria-live="polite"></div>
 
     <h2 class="sec-title">Ferramentas</h2>
@@ -1439,15 +1456,15 @@
   <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros.</div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre Sergipe 2026/2022…" required></textarea>
+    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL)…" required></textarea>
     <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261006d1"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006d1"></script>
-<script src="relatorios.js?v=20261006d1"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006e1"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e1"></script>
+<script src="relatorios.js?v=20261006e1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1510,6 +1527,176 @@ const CONFIG = {
     { numero: '55', sigla: 'PSD', titulo: 'PSD (55) - Votação do partido', cargos: [6, 7], cor: '#22c55e' },
   ],
 };
+
+/* ===== Multi-UF (Fase 0/1) — default SE preserves todos os deep links legados ===== */
+const UF_REGISTRY = {
+  se: { code: 'se', nome: 'Sergipe', status: 'ready', flagship: true },
+  al: { code: 'al', nome: 'Alagoas', status: 'ready' },
+  ac: { code: 'ac', nome: 'Acre', status: 'soon' },
+  am: { code: 'am', nome: 'Amazonas', status: 'soon' },
+  ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
+  ba: { code: 'ba', nome: 'Bahia', status: 'soon' },
+  ce: { code: 'ce', nome: 'Ceará', status: 'soon' },
+  df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
+  es: { code: 'es', nome: 'Espírito Santo', status: 'soon' },
+  go: { code: 'go', nome: 'Goiás', status: 'soon' },
+  ma: { code: 'ma', nome: 'Maranhão', status: 'soon' },
+  mg: { code: 'mg', nome: 'Minas Gerais', status: 'soon' },
+  ms: { code: 'ms', nome: 'Mato Grosso do Sul', status: 'soon' },
+  mt: { code: 'mt', nome: 'Mato Grosso', status: 'soon' },
+  pa: { code: 'pa', nome: 'Pará', status: 'soon' },
+  pb: { code: 'pb', nome: 'Paraíba', status: 'soon' },
+  pe: { code: 'pe', nome: 'Pernambuco', status: 'soon' },
+  pi: { code: 'pi', nome: 'Piauí', status: 'soon' },
+  pr: { code: 'pr', nome: 'Paraná', status: 'soon' },
+  rj: { code: 'rj', nome: 'Rio de Janeiro', status: 'soon' },
+  rn: { code: 'rn', nome: 'Rio Grande do Norte', status: 'soon' },
+  ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
+  rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
+  rs: { code: 'rs', nome: 'Rio Grande do Sul', status: 'soon' },
+  sc: { code: 'sc', nome: 'Santa Catarina', status: 'soon' },
+  sp: { code: 'sp', nome: 'São Paulo', status: 'soon' },
+  to: { code: 'to', nome: 'Tocantins', status: 'soon' },
+};
+const UF_ORDER = ['se','al','ba','pe','ce','pb','rn','pi','ma','sp','mg','rj','es','pr','sc','rs','go','df','mt','ms','pa','am','ac','ro','rr','ap','to'];
+let currentUf = 'se';
+let MAPA_BASE = 'mapa';
+const CONFIG_SE_CARGOS = CONFIG.cargos;
+const CONFIG_SE_UF = CONFIG.uf;
+
+function normalizeUf(u) {
+  u = String(u || 'se').toLowerCase();
+  return UF_REGISTRY[u] ? u : 'se';
+}
+function ufMeta(u) { return UF_REGISTRY[normalizeUf(u)]; }
+function mapaBase(u) {
+  u = normalizeUf(u);
+  return u === 'se' ? 'mapa' : ('mapa/' + u);
+}
+function resetMapaCaches() {
+  MAPA_INDEX = null; MAPA_GEO = null; SE_MUN_GEO = null;
+  SECAO_META_P = null; secaoCandCache.clear();
+  if (typeof mapaCache !== 'undefined' && mapaCache.clear) mapaCache.clear();
+  MAPA_MOUNT.mapa = null; MAPA_MOUNT.comparar = null;
+  if (typeof window.RelatoriosResetUf === 'function') window.RelatoriosResetUf();
+  if (typeof window !== 'undefined') {
+    window.MAPA_BASE = MAPA_BASE;
+    window.CURRENT_UF = currentUf;
+  }
+}
+function applyUf(uf, { refresh } = {}) {
+  const next = normalizeUf(uf);
+  const changed = next !== currentUf;
+  currentUf = next;
+  MAPA_BASE = mapaBase(currentUf);
+  CONFIG.uf = currentUf;
+  window.MAPA_BASE = MAPA_BASE;
+  window.CURRENT_UF = currentUf;
+  if (currentUf === 'se') {
+    CONFIG.cargos = CONFIG_SE_CARGOS;
+  } else if (currentUf === 'al') {
+    // Live TSE: mesmos códigos de eleição; todos os candidatos; sem cards exclusivos de SE.
+    CONFIG.cargos = [
+      { codigo: 3, titulo: 'Governador', matematico: 'maioria', todosCandidatos: true, verTodosLim: 99, candidatos: [
+        { nome: 'JHC', numero: 45 }, { nome: 'Renan Filho', numero: 15 },
+      ]},
+      { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', matematico: 'maioria', todosCandidatos: true, candidatos: [] },
+      { chave: 'pres-al', codigo: 1, eleicao: '6257', uf: 'al', titulo: 'Presidente - Alagoas', todosCandidatos: true, candidatos: [] },
+      { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', todosCandidatos: true, verTodosLim: 99, candidatos: [
+        { nome: 'Arthur Lira', numero: 111 }, { nome: 'Marina JHC', numero: 456 },
+      ]},
+      { codigo: 6, titulo: 'Deputado Federal', todosCandidatos: true, verTodosLim: 12, candidatos: [] },
+      { codigo: 7, titulo: 'Deputado Estadual', todosCandidatos: true, verTodosLim: 24, candidatos: [] },
+    ];
+  }
+  if (changed) resetMapaCaches();
+  paintUfPicker();
+  paintUfChrome();
+  if (refresh && changed && typeof atualizar === 'function') atualizar();
+  return currentUf;
+}
+function paintUfPicker() {
+  const host = document.getElementById('uf-picker');
+  if (!host) return;
+  const ready = UF_ORDER.filter(c => UF_REGISTRY[c].status === 'ready');
+  const soon = UF_ORDER.filter(c => UF_REGISTRY[c].status !== 'ready');
+  const mk = (code) => {
+    const m = UF_REGISTRY[code];
+    const b = document.createElement(m.status === 'ready' ? 'a' : 'button');
+    b.className = 'uf-chip ' + (m.status === 'ready' ? 'is-ready' : 'is-soon');
+    if (m.status === 'ready') {
+      b.href = buildLocationHash('inicio', { uf: code });
+      if (code === currentUf) b.setAttribute('aria-current', 'true');
+    } else {
+      b.type = 'button'; b.disabled = true; b.title = 'Em breve';
+    }
+    b.innerHTML = `<span class="uf-sigla">${code.toUpperCase()}</span><span class="uf-nome">${m.nome}</span><span class="uf-st">${m.status === 'ready' ? (m.flagship ? 'Referência' : 'Disponível') : 'Em breve'}</span>`;
+    return b;
+  };
+  const label = el('div', 'uf-picker-label', 'Escolha o estado');
+  const grid = el('div', 'uf-grid');
+  ready.forEach(c => grid.appendChild(mk(c)));
+  soon.slice(0, 8).forEach(c => grid.appendChild(mk(c)));
+  const more = el('div', 'uf-chip is-soon'); more.innerHTML = `<span class="uf-sigla">+${Math.max(0, soon.length - 8)}</span><span class="uf-nome">estados</span><span class="uf-st">Em breve</span>`;
+  if (soon.length > 8) grid.appendChild(more);
+  host.replaceChildren(label, grid);
+}
+function paintUfChrome() {
+  const m = ufMeta(currentUf);
+  const eye = document.getElementById('hero-eyebrow');
+  if (eye) eye.textContent = currentUf === 'se'
+    ? 'Eleições 2026 · Sergipe (referência) · Alagoas disponível · mais estados em breve'
+    : `Eleições 2026 · ${m.nome} · Dados oficiais do TSE`;
+  const title = document.getElementById('hero-panel-title');
+  if (title) title.innerHTML = `${m.nome} 2026 em números <span>fonte: TSE</span>`;
+  const panel = document.getElementById('hero-panel');
+  if (panel) panel.setAttribute('aria-label', m.nome + ' 2026 em números');
+  const sec = document.getElementById('sec-resultados-title');
+  if (sec) sec.textContent = 'Resultados em ' + m.nome;
+  const cta = document.getElementById('cta-mapa');
+  if (cta) cta.href = buildLocationHash('mapa', { uf: currentUf });
+  document.body.dataset.uf = currentUf;
+  document.querySelectorAll('a[data-view]').forEach(a => {
+    try { a.href = buildLocationHash(a.dataset.view, { uf: currentUf }); } catch (_) {}
+  });
+  document.querySelectorAll('.view .eyebrow').forEach(e => {
+    if (e.textContent.includes('Resultados')) {
+      if (e.textContent.includes('Brasil')) e.textContent = 'Resultados · Brasil e ' + m.nome;
+      else if (e.closest('#view-mapa') || e.closest('#view-comparar') || e.closest('#view-relatorios')) { /* keep */ }
+      else e.textContent = 'Resultados · ' + m.nome;
+    }
+  });
+  fillHeroPanelStats();
+}
+async function fillHeroPanelStats() {
+  const grid = document.querySelector('#hero-panel .hp-grid');
+  if (!grid) return;
+  try {
+    const idx = await loadMapaIndex();
+    const geo = await loadMapaGeo();
+    const meta = idx.meta || {};
+    const nCand = Object.values(idx.cargos || {}).reduce((a, L) => a + (L ? L.length : 0), 0);
+    let secoesN = meta.secoes || 0;
+    if (!secoesN) {
+      try { const sc = await getJSON(MAPA_BASE + '/secao/secoes.json'); secoesN = (sc.s || []).length; } catch (_) {}
+    }
+    const aptos = meta.aptos || 0;
+    const comp = meta.comparecimento || 0;
+    const pct = aptos ? (100 * comp / aptos) : 0;
+    const fmt = (n) => fmtInt.format(n);
+    const cells = [
+      [fmt(geo.mun.length), 'municípios'],
+      [fmt(geo.loc.length), 'locais de votação'],
+      [fmt(secoesN), 'seções eleitorais'],
+      [fmt(aptos), 'eleitores aptos'],
+      [fmt(comp), `compareceram (${pct.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%)`],
+      [fmt(nCand), 'candidatos e legendas com mapa'],
+    ];
+    grid.innerHTML = cells.map(([a, b]) => `<div><strong>${a}</strong><span>${b}</span></div>`).join('');
+  } catch (e) { console.warn('hero stats', e); }
+}
+
+
 /* ===================================================================== */
 
 // Meta de votação - Senado 2026 por município (relatório enviado pelo Marcel; comparativo com 2018).
@@ -2425,15 +2612,16 @@ const mapaCache = new Map();
 
 async function loadMapaIndex() {
   if (MAPA_INDEX) return MAPA_INDEX;
-  try { MAPA_INDEX = await getJSON('mapa/index.json'); if (typeof syncRelGlobals === 'function') syncRelGlobals(); }
-  catch (e) { console.warn('mapa/index.json', e); MAPA_INDEX = { cargos: {} }; }
+  const path = MAPA_BASE + '/index.json';
+  try { MAPA_INDEX = await getJSON(path); if (typeof syncRelGlobals === 'function') syncRelGlobals(); }
+  catch (e) { console.warn(path, e); MAPA_INDEX = { cargos: {} }; }
   return MAPA_INDEX;
 }
 
 async function loadMapaGeo() {
   if (MAPA_GEO) return MAPA_GEO;
   const idx = await loadMapaIndex();
-  const path = (idx && idx.geo) || 'mapa/geo-se.json';
+  const path = (idx && idx.geo) || (MAPA_BASE + (currentUf === 'se' ? '/geo-se.json' : '/geo-' + currentUf + '.json'));
   try { MAPA_GEO = await getJSON(path); }
   catch (e) { console.warn('mapa geo', e); MAPA_GEO = { mun: [], loc: [] }; }
   return MAPA_GEO;
@@ -2548,11 +2736,11 @@ let SECAO_META_P = null;
 const secaoCandCache = new Map();
 function loadSecaoMetaSite() {
   if (!SECAO_META_P) {
-    SECAO_META_P = getJSON('mapa/secao/secoes.json').then(raw => {
+    SECAO_META_P = getJSON(MAPA_BASE + '/secao/secoes.json').then(raw => {
       const byLoc = new Map();
       raw.s.forEach((r, i) => { let a = byLoc.get(r[0]); if (!a) { a = []; byLoc.set(r[0], a); } a.push(i); });
       for (const a of byLoc.values()) a.sort((x, y) => raw.s[x][1] - raw.s[y][1]);
-      return { s: raw.s, byLoc, pres: new Map((raw.pres || []).map(q => [q[0], [q[1], q[2]]])) };
+      return { s: raw.s, byLoc, pres: new Map((Array.isArray(raw.pres) ? raw.pres : []).map(q => [q[0], [q[1], q[2]]])) };
     });
     SECAO_META_P.catch(() => { SECAO_META_P = null; });
   }
@@ -2561,7 +2749,7 @@ function loadSecaoMetaSite() {
 function loadSecaoCandSite(ck) {
   if (!secaoCandCache.has(ck)) {
     const [c, n] = ck.split(':');
-    const pr = getJSON(`mapa/secao/${c}/${n}.json`).then(d => new Map(d.s || []));
+    const pr = getJSON(`${MAPA_BASE}/secao/${c}/${n}.json`).then(d => new Map(d.s || []));
     pr.catch(() => secaoCandCache.delete(ck));
     secaoCandCache.set(ck, pr);
   }
@@ -2735,11 +2923,15 @@ function parseLocationHash() {
   const qs = q >= 0 ? raw.slice(q + 1) : '';
   const view = VIEWS.includes(viewPart) ? viewPart : 'inicio';
   const p = new URLSearchParams(qs);
-  return { view, c: p.get('c') || '', a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
+  const uf = normalizeUf(p.get('uf') || currentUf || 'se');
+  return { view, uf, c: p.get('c') || '', a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
 }
 
 function buildLocationHash(view, params) {
   const p = new URLSearchParams();
+  const uf = normalizeUf((params && params.uf) || currentUf || 'se');
+  // Omit uf=se to preserve legacy deep links (#mapa?c=3&a=55).
+  if (uf !== 'se') p.set('uf', uf);
   if (params && params.c) p.set('c', String(params.c));
   if (params && params.a) p.set('a', params.a);
   if (params && params.b) p.set('b', params.b);
@@ -2803,7 +2995,9 @@ function renderMapaDiffTable(dataA, dataB, labelA, labelB, filtro) {
 let SE_MUN_GEO = null;
 async function loadSeMunGeo() {
   if (SE_MUN_GEO) return SE_MUN_GEO;
-  SE_MUN_GEO = await getJSON('mapa/se-mun.geojson');
+  const idx = await loadMapaIndex();
+  const path = (idx && idx.munGeo) || (currentUf === 'se' ? 'mapa/se-mun.geojson' : (MAPA_BASE + '/' + currentUf + '-mun.geojson'));
+  SE_MUN_GEO = await getJSON(path);
   return SE_MUN_GEO;
 }
 
@@ -3441,7 +3635,7 @@ function paintCargoSwitch(view, c) {
     for (const [cd, lab] of CARGO_SWITCH) {
       const b = el('button', null, lab); b.type = 'button'; b.dataset.c = cd;
       b.addEventListener('click', () => {
-        const want = buildLocationHash(view, { c: cd });
+        const want = buildLocationHash(view, { c: cd, uf: currentUf });
         if (location.hash !== want) location.hash = want;
       });
       box.appendChild(b);
@@ -3454,21 +3648,23 @@ function mountMapaView(view) {
   const root = document.getElementById(view + '-root');
   if (!root) return;
   const h = parseLocationHash();
+  applyUf(h.uf || currentUf);
   const cur = MAPA_MOUNT[view];
   const fromHash = h.view === view && h.c && MAPA_CARGO_LABEL[h.c] ? h.c : '';
   const c = fromHash || (cur ? cur.c : '3');
   paintCargoSwitch(view, c);
-  if (cur && cur.c === c) {
+  if (cur && cur.c === c && cur.uf === currentUf) {
     const sel = cur.card._getSel ? cur.card._getSel() : {};
     const wantA = h.view === view ? h.a : '';
     const wantB = h.view === view ? h.b : '';
     const same = (!wantA || wantA === sel.a) && (!wantB || wantB === sel.b);
     if (same) { if (cur.card._syncHash) cur.card._syncHash(); return; }
   }
-  const title = (view === 'comparar' ? 'Comparar · ' : 'Mapa de Votação · ') + (MAPA_CARGO_LABEL[c] || '');
+  const ufn = ufMeta(currentUf).nome;
+  const title = (view === 'comparar' ? 'Comparar · ' : 'Mapa de Votação · ') + (MAPA_CARGO_LABEL[c] || '') + ' · ' + ufn;
   const card = renderMapaPanel(c, title, view, { autoCompare: view === 'comparar' });
   root.replaceChildren(card);
-  MAPA_MOUNT[view] = { c, card };
+  MAPA_MOUNT[view] = { c, card, uf: currentUf };
 }
 
 function pdfFromMapa(view) {
@@ -3670,8 +3866,8 @@ function renderInicio() {
     (el2.length ? el2 : all.slice(0, 2)).forEach(c => a.appendChild(kpiRow(c)));
   }));
   cards.push(kpiCard('#presidente', 'Presidente · votação em SE', 'Ver Presidente', a => {
-    const cfg = CONFIG.cargos.find(c => c.chave === 'pres-se');
-    const top = topDe('pres-se', 2); if (!top.length) return vazio(a);
+    const cfg = CONFIG.cargos.find(c => c.chave === 'pres-' + currentUf) || CONFIG.cargos.find(c => c.chave === 'pres-se');
+    const top = topDe(cfg ? (cfg.chave || cfg.codigo) : 'pres-se', 2); if (!top.length) return vazio(a);
     top.forEach(c => a.appendChild(kpiRow(c, cfg && cfg.uf, cfg && cfg.eleicao)));
   }));
   for (const [cod, href, label] of [[6, '#federais', 'Deputados Federais'], [7, '#estaduais', 'Deputados Estaduais']]) {
@@ -3688,7 +3884,7 @@ function renderInicio() {
   host.replaceChildren(...cards);
   const st = document.getElementById('inicio-status');
   if (st) {
-    const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === 'se').map(c => estado[chaveDe(c)] && estado[chaveDe(c)].dados).find(Boolean);
+    const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === currentUf).map(c => estado[chaveDe(c)] && estado[chaveDe(c)].dados).find(Boolean);
     if (!ref) st.textContent = 'Carregando dados do TSE…';
     else {
       const h = horaTSE(ref);
@@ -3699,7 +3895,10 @@ function renderInicio() {
 
 function setView(name, pushHash) {
   if (!VIEWS.includes(name)) name = 'inicio';
-  const changed = viewAtual !== name;
+  const h0 = parseLocationHash();
+  const prevUf = currentUf;
+  applyUf(h0.uf || currentUf);
+  const changed = viewAtual !== name || prevUf !== currentUf;
   viewAtual = name;
   document.body.dataset.view = name;
   document.body.classList.toggle('is-result', RESULT_VIEWS.includes(name));
@@ -3710,7 +3909,8 @@ function setView(name, pushHash) {
     if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
   if (pushHash !== false) {
-    const want = buildLocationHash(name, {});
+    const keep = parseLocationHash();
+    const want = buildLocationHash(name, { uf: currentUf, c: keep.view === name ? keep.c : '', a: keep.view === name ? keep.a : '', b: keep.view === name ? keep.b : '', bc: keep.view === name ? keep.bc : '' });
     if (location.hash !== want) history.pushState(null, '', want);
   }
   const qe = document.getElementById('qe-ref-wrap');
@@ -3725,7 +3925,8 @@ function setView(name, pushHash) {
       if (det) det.open = false;
     }
   }
-  document.title = PAGE_TITLES[name] || PAGE_TITLES.inicio;
+  const _ufn = ufMeta(currentUf).nome;
+  document.title = (PAGE_TITLES[name] || PAGE_TITLES.inicio).replace(/Sergipe/g, _ufn);
   const tabs = document.getElementById('nav-tabs');
   const actTab = tabs && tabs.querySelector('a.active');
   if (tabs && actTab) tabs.scrollLeft = Math.max(0, actTab.offsetLeft - (tabs.clientWidth - actTab.offsetWidth) / 2);
@@ -3916,7 +4117,7 @@ function bootChat() {
     if (open) {
       lastFocus = document.activeElement;
       if (!msgs.childElementCount) {
-        addBubble('bot', 'Olá! Sou o assistente do Cadê Meu Voto. Posso responder sobre as eleições de Sergipe 2026 (e referências a 2022), incluindo Presidente no Brasil/SE. Fonte: TSE.');
+        addBubble('bot', 'Olá! Sou o assistente do Cadê Meu Voto. Posso falar das eleições 2026 em ' + ufMeta(currentUf).nome + ' (e Presidente no Brasil). Fonte: TSE.');
       }
       syncSuggest();
       setTimeout(() => input.focus(), 50);
@@ -3981,7 +4182,7 @@ function bootChat() {
       const r = await fetch(CHAT_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, uf: currentUf }),
       });
       const data = await r.json().catch(() => ({}));
       typing.remove();
@@ -4067,7 +4268,8 @@ function bootNav() {
   bootWaShare();
   const applyHashView = () => {
     legacyRedirect();
-    const { view } = parseLocationHash();
+    const { view, uf } = parseLocationHash();
+    applyUf(uf);
     setView(view, false);
     if (view === 'relatorios' && window.Relatorios && window.Relatorios.applyHashFromLocation) {
       window.Relatorios.applyHashFromLocation();
@@ -4131,7 +4333,7 @@ function renderTudo() {
   const gsu = document.getElementById('grid-suplentes');
   if (gsu) gsu.replaceChildren(...renderSuplentes());
 
-  const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === 'se').map(c => estado[chaveDe(c)]?.dados).find(Boolean);
+  const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === currentUf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);
   document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';
   const h = ref ? horaTSE(ref) : '';
   document.getElementById('atualizado-geral').textContent =

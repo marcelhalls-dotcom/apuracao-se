@@ -14,6 +14,15 @@
   let fontCache = null;
   let geoMunCache = null;
   let geoLocCache = null;
+  function resetUfCaches() {
+    geoLocCache = null; munIdxCache = null; secMetaCache = null;
+    if (typeof secCandCache !== 'undefined' && secCandCache.clear) secCandCache.clear();
+  }
+  window.RelatoriosResetUf = resetUfCaches;
+  function mapaBaseRel() {
+    return (typeof window !== 'undefined' && window.MAPA_BASE) ? window.MAPA_BASE : 'mapa';
+  }
+
   let munIdxCache = null;
 
   function JsPDFCtor() {
@@ -112,12 +121,14 @@
   }
   async function loadGeoLoc() {
     if (geoLocCache) return geoLocCache;
-    geoLocCache = await global.getJSON('mapa/geo-se.json');
+    const idx0 = await global.getJSON(mapaBaseRel() + '/index.json').catch(() => null);
+    const gpath = (idx0 && idx0.geo) || (mapaBaseRel() + '/geo-se.json');
+    geoLocCache = await global.getJSON(gpath);
     return geoLocCache;
   }
   async function loadMunIndex() {
     if (munIdxCache) return munIdxCache;
-    munIdxCache = await global.getJSON('mapa/mun-index.json');
+    munIdxCache = await global.getJSON(mapaBaseRel() + '/mun-index.json');
     return munIdxCache;
   }
   async function loadCandFile(cargo, numero) {
@@ -131,7 +142,7 @@
   async function loadSecaoMeta() {
     if (secMetaCache) return secMetaCache;
     secMetaCache = (async () => {
-      const raw = await global.getJSON('mapa/secao/secoes.json');
+      const raw = await global.getJSON(mapaBaseRel() + '/secao/secoes.json');
       const byLoc = new Map();
       raw.s.forEach((r, i) => { let a = byLoc.get(r[0]); if (!a) { a = []; byLoc.set(r[0], a); } a.push(i); });
       for (const a of byLoc.values()) a.sort((x, y) => raw.s[x][1] - raw.s[y][1]);
@@ -144,7 +155,7 @@
   async function loadSecaoCand(cargo, numero) {
     const k = cargo + ':' + numero;
     if (!secCandCache.has(k)) {
-      secCandCache.set(k, global.getJSON('mapa/secao/' + cargo + '/' + numero + '.json')
+      secCandCache.set(k, global.getJSON(mapaBaseRel() + '/secao/' + cargo + '/' + numero + '.json')
         .then(d => ({ t: d.t || 0, m: new Map(d.s || []), n: (d.s || []).length }))
         .catch(() => null));
     }
@@ -1249,7 +1260,7 @@
     if (!mun) y = bodyText(doc, 'Município não encontrado.', y);
     else {
       let munData = null;
-      try { munData = await global.getJSON('mapa/mun/' + mun.cd + '.json'); } catch (_) {}
+      try { munData = await global.getJSON(mapaBaseRel() + '/mun/' + mun.cd + '.json'); } catch (_) {}
       for (const cg of ['3', '5', '1', '6', '7']) {
         const rows = (munData && munData.cargos && munData.cargos[cg]) || [];
         if (!rows.length) continue;

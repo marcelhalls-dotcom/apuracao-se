@@ -1,6 +1,6 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE.
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe e Alagoas; outros estados em breve).
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
@@ -286,8 +286,10 @@ function aggregateCandidateInMun(geo, cand, munIdx, mode) {
   return { total, top };
 }
 
-async function buildRetrieval(env, messages) {
+async function buildRetrieval(env, messages, uf) {
   const pages = (env.PAGES_BASE || 'https://marcelhalls-dotcom.github.io/apuracao-se').replace(/\/$/, '');
+  const ufNorm = String(uf || 'se').toLowerCase();
+  const mapaBase = ufNorm === 'se' ? `${pages}/mapa` : `${pages}/mapa/${ufNorm}`;
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
   const blob = messages.map(m => m.content).join('\n');
   // Pergunta atual manda; histórico só como fallback (evita "contaminar" com nomes de turnos anteriores)
@@ -297,13 +299,13 @@ async function buildRetrieval(env, messages) {
 
   let munIndex, mapaIndex, geo;
   try {
-    munIndex = await cachedJson(`${pages}/mapa/mun-index.json`);
+    munIndex = await cachedJson(`${mapaBase}/mun-index.json`);
   } catch (e) {
     out.erro = 'Não foi possível carregar índice de municípios.';
     return out;
   }
   try {
-    mapaIndex = await cachedJson(`${pages}/mapa/index.json?v=nu1`);
+    mapaIndex = await cachedJson(`${mapaBase}/index.json`);
   } catch (e) {
     mapaIndex = { cargos: {} };
   }
@@ -325,7 +327,7 @@ async function buildRetrieval(env, messages) {
   // Fetch mun rankings
   for (const mun of muns.slice(0, 3)) {
     try {
-      const munData = await cachedJson(`${pages}/mapa/mun/${mun.cd}.json`);
+      const munData = await cachedJson(`${mapaBase}/mun/${mun.cd}.json`);
       const slice = { municipio: munData.nm, cd: munData.cd, rankings: {} };
       const useCargos = cargos.length ? cargos : Object.keys(munData.cargos || {});
       for (const cg of useCargos) {
@@ -358,7 +360,7 @@ async function buildRetrieval(env, messages) {
   // Bairro/zona/local detail for candidate (+ mun opcional)
   if (wantsGeoDetail(text) && cands.length) {
     try {
-      geo = await cachedJson(`${pages}/mapa/geo-se.json`);
+      geo = await cachedJson(mapaIndex && mapaIndex.geo ? (mapaIndex.geo.startsWith('http') ? mapaIndex.geo : `${pages}/${mapaIndex.geo}`) : `${mapaBase}/geo-${ufNorm}.json`);
     } catch { geo = null; }
     if (geo) {
       const mode = /zona/.test(text.toLowerCase()) ? 'zona' : (/col[eé]gio|local|escola/.test(text.toLowerCase()) ? 'local' : 'bairro');
@@ -369,7 +371,7 @@ async function buildRetrieval(env, messages) {
       if (localHits.length && cands.length) {
         for (const c of cands.slice(0, 2)) {
           try {
-            const cand = await cachedJson(`${pages}/mapa/${c.cargo}/${c.n}.json`);
+            const cand = await cachedJson(`${mapaBase}/${c.cargo}/${c.n}.json`);
             const locais = [];
             for (const hit of localHits.slice(0, 3)) {
               const L = hit.L;
@@ -403,7 +405,7 @@ async function buildRetrieval(env, messages) {
         for (const mun of muns.slice(0, 2)) {
           for (const c of cands.slice(0, 2)) {
             try {
-              const cand = await cachedJson(`${pages}/mapa/${c.cargo}/${c.n}.json`);
+              const cand = await cachedJson(`${mapaBase}/${c.cargo}/${c.n}.json`);
               const agg = aggregateCandidateInMun(geo, cand, mun.i, mode);
               out.itens.push({
                 detalhe: mode,
@@ -715,15 +717,26 @@ export default {
 
     let retrieval = { itens: [] };
     try {
-      retrieval = await buildRetrieval(env, parsed.messages);
+      retrieval = await buildRetrieval(env, parsed.messages, body.uf || 'se');
     } catch (e) {
       retrieval = { erro: 'Falha na recuperação de dados municipais.', itens: [] };
     }
 
+    const ufReq = String(body.uf || 'se').toLowerCase();
+    let ctxJson = CONTEXT;
+    if (ufReq === 'al') {
+      try {
+        const pages = (env.PAGES_BASE || 'https://cademeuvoto.com.br').replace(/\/$/, '');
+        ctxJson = await cachedJson(`${pages}/mapa/al/context.json`);
+      } catch (_) { /* keep SE context as fallback note */ }
+    }
+
     const system = `${SYSTEM_BASE}
 
-CONTEXTO_DADOS (JSON compacto estadual):
-${JSON.stringify(CONTEXT)}
+UF_ATIVA: ${ufReq.toUpperCase()}
+
+CONTEXTO_DADOS (JSON compacto da UF ativa):
+${JSON.stringify(ctxJson)}
 
 BLOCO_RETRIEVAL (município/bairro/zona sob demanda a partir dos arquivos mapa do painel):
 ${JSON.stringify(retrieval)}`;

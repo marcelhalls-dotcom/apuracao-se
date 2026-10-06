@@ -14,7 +14,7 @@ RATE_HOUR = "20"
 RATE_DAY = "60"
 CONTATO_RATE_HOUR = "5"
 CONTATO_RATE_DAY = "20"
-PAGES_BASE = "https://marcelhalls-dotcom.github.io/apuracao-se"
+PAGES_BASE = "https://cademeuvoto.com.br"
 
 [[kv_namespaces]]
 binding = "CONTATO"

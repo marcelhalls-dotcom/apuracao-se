@@ -19,11 +19,11 @@
 <meta name="twitter:description" content="Saiba onde estão os votos, até a seção eleitoral. Dados oficiais do TSE.">
 <meta name="twitter:image" content="https://cademeuvoto.com.br/og-cademeuvoto.jpg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="icon" href="favicon.svg?v=20261006e1" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png?v=20261006e1" sizes="32x32" type="image/png">
-<link rel="icon" href="favicon-16.png?v=20261006e1" sizes="16x16" type="image/png">
-<link rel="shortcut icon" href="favicon.ico?v=20261006e1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006e1" sizes="180x180">
+<link rel="icon" href="favicon.svg?v=20261006e2" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png?v=20261006e2" sizes="32x32" type="image/png">
+<link rel="icon" href="favicon-16.png?v=20261006e2" sizes="16x16" type="image/png">
+<link rel="shortcut icon" href="favicon.ico?v=20261006e2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261006e2" sizes="180x180">
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#0A1428">
 <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
@@ -1462,9 +1462,9 @@
   </form>
 </div>
 
-<script src="vendor/jspdf.umd.min.js?v=20261006e1"></script>
-<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e1"></script>
-<script src="relatorios.js?v=20261006e1"></script>
+<script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
+<script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
+<script src="relatorios.js?v=20261006e2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1609,10 +1609,17 @@ function applyUf(uf, { refresh } = {}) {
       { codigo: 7, titulo: 'Deputado Estadual', todosCandidatos: true, verTodosLim: 24, candidatos: [] },
     ];
   }
-  if (changed) resetMapaCaches();
+  if (changed) {
+    resetMapaCaches();
+    // Mostra “carregando” na UF nova em vez de deixar números da UF anterior.
+    try { if (typeof renderInicio === 'function') renderInicio(); } catch (_) {}
+    try { if (typeof renderTudo === 'function') renderTudo(); } catch (_) {}
+  }
   paintUfPicker();
   paintUfChrome();
-  if (refresh && changed && typeof atualizar === 'function') atualizar();
+  if (changed || refresh) {
+    if (typeof atualizar === 'function') atualizar();
+  }
   return currentUf;
 }
 function paintUfPicker() {
@@ -1827,7 +1834,15 @@ function badgeStatus(st, eleito) {
   return b;
 }
 
-const chaveDe = cargo => cargo.chave || cargo.codigo;
+const chaveDe = cargo => {
+  if (cargo.chave) return cargo.chave;
+  const uf = String(cargo.uf || CONFIG.uf || currentUf || 'se').toLowerCase();
+  return uf + ':' + cargo.codigo;
+};
+/** estado[] da UF ativa para um código de cargo (3/5/6/7). */
+function estadoCargo(cod) {
+  return estado[currentUf + ':' + cod] || estado[cod] || {};
+}
 function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; }
 
 let HIST = null;
@@ -2051,7 +2066,7 @@ function renderPartido(pd) {
   card.appendChild(el('div', 'meta', 'Soma de votos nominais dos candidatos + votos na legenda, em Sergipe.'));
   for (const cod of pd.cargos) {
     const cargo = CONFIG.cargos.find(c => c.codigo === cod);
-    const d = estado[cod]?.dados;
+    const d = estadoCargo(cod).dados;
     const p = d ? d.partidos.get(pd.numero) : null;
     const total = p ? p.nominais + p.legenda : 0;
     const pct = d && d.votosValidos > 0 ? (total / d.votosValidos) * 100 : 0;
@@ -2078,7 +2093,7 @@ function renderPartido(pd) {
 }
 
 function renderRanking(rk) {
-  const d = estado[rk.codigo]?.dados;
+  const d = estadoCargo(rk.codigo).dados;
   const card = el('section', 'card ranking');
   card.appendChild(el('h2', null, rk.titulo));
   card.appendChild(el('div', 'meta', d ? `Urnas apuradas: ${fmtPct(d.pst)} • Ranking por votação nominal. Verde = eleito (projeção pelas vagas que o TSE calcula agora para cada partido/federação, quociente + sobras). Amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
@@ -2113,7 +2128,7 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
   // legado (ainda usado se chamado); preferir renderTopTodosPartidos
   const card = el('section', 'card toppart');
   card.appendChild(el('h2', null, titulo));
-  const algum = [6, 7].map(c => estado[c]?.dados).find(Boolean);
+  const algum = [6, 7].map(c => estadoCargo(c).dados).find(Boolean);
   card.appendChild(el('div', 'meta', algum ? `Urnas apuradas: ${fmtPct(algum.pst)} • Votação nominal de cada candidato dentro do próprio partido. Verde = eleito, amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
   const g = el('div', 'toppart-grid');
   for (const pd of (partidos || [])) {
@@ -2122,7 +2137,7 @@ function renderTopPartidos(titulo = '7 mais votados por partido - PSD, União Br
     for (const cod of (pd.cargos || [6, 7])) {
       const cargo = CONFIG.cargos.find(c => c.codigo === cod);
       col.appendChild(el('h4', null, cargo ? cargo.titulo : `Cargo ${cod}`));
-      const d = estado[cod]?.dados;
+      const d = estadoCargo(cod).dados;
       if (!d || d.pst === 0) { col.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE começar a divulgar votos')); continue; }
       const meus = new Set((cargo?.candidatos || []).map(c => String(c.numero)));
       const lista = d.todos.filter(c => c.n.startsWith(pd.numero) && c.n.length > 2).sort((a, b) => b.vap - a.vap).slice(0, pd.top || 7);
@@ -2171,7 +2186,7 @@ function appendRankCand(wrap, c, i, d, cod, meus) {
 }
 
 function renderTopTodosPartidos(codigo, titulo) {
-  const d = estado[codigo]?.dados;
+  const d = estadoCargo(codigo).dados;
   const cargo = CONFIG.cargos.find(c => c.codigo === codigo);
   const card = el('section', 'card toppart span-all');
   card.appendChild(el('h2', null, titulo || (`Mais votados por partido/federação · ${cargo ? cargo.titulo : ''}`)));
@@ -2222,7 +2237,7 @@ function renderSuplentes() {
   const wrapNodes = [];
   // --- Proporcionais ---
   for (const codigo of [6, 7]) {
-    const d = estado[codigo]?.dados;
+    const d = estadoCargo(codigo).dados;
     const cargo = CONFIG.cargos.find(c => c.codigo === codigo);
     const card = el('section', 'card suplentes');
     card.appendChild(el('h2', null, `Suplentes · ${cargo ? cargo.titulo : ('Cargo ' + codigo)}`));
@@ -2276,7 +2291,7 @@ function renderSuplentes() {
   // --- Senado (vs do TSE no JSON do eleito) ---
   const senCard = el('section', 'card suplentes');
   senCard.appendChild(el('h2', null, 'Suplentes · Senado'));
-  const sd = estado[5]?.dados;
+  const sd = estadoCargo(5).dados;
   senCard.appendChild(el('div', 'meta', sd
     ? `Urnas: ${fmtPct(sd.pst)} • 1º e 2º suplentes oficiais vinculados a cada senador eleito (campo vs do TSE). Sem votos próprios.`
     : 'Aguardando TSE'));
@@ -2323,7 +2338,7 @@ const PALETA_EXTRA = ['#a3e635', '#c084fc', '#2dd4bf', '#fca5a5', '#93c5fd', '#f
 function corLista(nome, i) { return CORES_LISTA[nome] || PALETA_EXTRA[i % PALETA_EXTRA.length]; }
 
 function renderAlese() {
-  const d = estado[7]?.dados;
+  const d = estadoCargo(7).dados;
   const card = el('section', 'card alese');
   card.appendChild(el('h2', null, 'Alese - distribuição das 24 cadeiras'));
   if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE calcular as vagas de Deputado Estadual')); return card; }
@@ -2363,13 +2378,13 @@ function renderEleitos(cods) {
   const card = el('section', 'card eleitos');
   const cg0 = CONFIG.cargos.find(c => c.codigo === cods[0]);
   card.appendChild(el('h2', null, cods.length === 1 ? `Eleitos por partido/federação · ${cg0 ? cg0.titulo : ''}` : 'Eleitos - Deputado Federal e Estadual'));
-  const algum = cods.map(c => estado[c]?.dados).find(Boolean);
+  const algum = cods.map(c => estadoCargo(c).dados).find(Boolean);
   const final = algum && algum.totalFinal;
   card.appendChild(el('div', 'meta', algum ? `Urnas apuradas: ${fmtPct(algum.pst)} • ${final ? 'Resultado final do TSE.' : 'PROJEÇÃO: vagas que o TSE calcula agora para cada partido/federação (quociente + sobras) e os mais votados de cada um. Pode mudar até 100% das urnas.'} Amarelo = candidatos acompanhados.` : 'Aguardando TSE'));
   const g = el('div', 'eleitos-grid');
   for (const cod of cods) {
     const cargo = CONFIG.cargos.find(c => c.codigo === cod);
-    const d = estado[cod]?.dados;
+    const d = estadoCargo(cod).dados;
     const col = el('div');
     col.appendChild(el('h3', null, `${cargo ? cargo.titulo : 'Cargo ' + cod}${d && d.vagas ? ` (${d.vagas} vagas)` : ''}${d && d.qe ? ` • QE ${fmtInt.format(d.qe)}` : ''}`));
     if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { col.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE começar a calcular as vagas')); g.appendChild(col); continue; }
@@ -2923,15 +2938,17 @@ function parseLocationHash() {
   const qs = q >= 0 ? raw.slice(q + 1) : '';
   const view = VIEWS.includes(viewPart) ? viewPart : 'inicio';
   const p = new URLSearchParams(qs);
-  const uf = normalizeUf(p.get('uf') || currentUf || 'se');
+  // Sem ?uf= → SE (deep links legados). Com ?uf= → essa UF. Nunca “grudar” na UF anterior.
+  const uf = p.has('uf') ? normalizeUf(p.get('uf')) : 'se';
   return { view, uf, c: p.get('c') || '', a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
 }
 
 function buildLocationHash(view, params) {
   const p = new URLSearchParams();
   const uf = normalizeUf((params && params.uf) || currentUf || 'se');
-  // Omit uf=se to preserve legacy deep links (#mapa?c=3&a=55).
-  if (uf !== 'se') p.set('uf', uf);
+  // Sempre grava uf (incl. se) para o picker e nav trocarem de estado de forma inequívoca.
+  // Deep links antigos sem ?uf= continuam = SE via parseLocationHash.
+  p.set('uf', uf);
   if (params && params.c) p.set('c', String(params.c));
   if (params && params.a) p.set('a', params.a);
   if (params && params.b) p.set('b', params.b);
@@ -3846,33 +3863,39 @@ function topDe(key, n) {
   return [...d.todos].sort((x, y) => y.vap - x.vap).slice(0, n);
 }
 function bancadas(cod) {
-  const d = estado[cod] && estado[cod].dados;
+  // cod may be namespaced key (al:6) or bare codigo
+  const d = (estado[cod] || estadoCargo(cod)).dados;
   if (!d || !d.listasVagas || !d.listasVagas.length) return null;
   const listas = [...d.listasVagas].sort((a, b) => b.vag - a.vag || b.votos - a.votos);
   return { total: d.vagas || listas.reduce((t, l) => t + l.vag, 0), listas, final: d.totalFinal, pst: d.pst };
+}
+function cargoKeyByCodigo(cod) {
+  const c = CONFIG.cargos.find(x => String(x.codigo) === String(cod) && !(x.chave || '').startsWith('pres-br'));
+  return c ? chaveDe(c) : (currentUf + ':' + cod);
 }
 function renderInicio() {
   const host = document.getElementById('inicio-kpis');
   if (!host) return;
   const vazio = (a) => a.appendChild(el('div', 'kpi-empty', 'Aguardando dados do TSE…'));
+  const ufn = ufMeta(currentUf).nome;
   const cards = [];
-  cards.push(kpiCard('#governo', 'Governador', 'Ver resultado', a => {
-    const top = topDe(3, 2); if (!top.length) return vazio(a);
+  cards.push(kpiCard(buildLocationHash('governo', { uf: currentUf }), 'Governador · ' + ufn, 'Ver resultado', a => {
+    const top = topDe(cargoKeyByCodigo(3), 2); if (!top.length) return vazio(a);
     top.forEach(c => a.appendChild(kpiRow(c)));
   }));
-  cards.push(kpiCard('#senado', 'Senado · 2 vagas', 'Ver Senado', a => {
-    const all = topDe(5, 99); if (!all.length) return vazio(a);
+  cards.push(kpiCard(buildLocationHash('senado', { uf: currentUf }), 'Senado · 2 vagas · ' + ufn, 'Ver Senado', a => {
+    const all = topDe(cargoKeyByCodigo(5), 99); if (!all.length) return vazio(a);
     const el2 = all.filter(c => String(c.st || '').toLowerCase().startsWith('eleito'));
     (el2.length ? el2 : all.slice(0, 2)).forEach(c => a.appendChild(kpiRow(c)));
   }));
-  cards.push(kpiCard('#presidente', 'Presidente · votação em SE', 'Ver Presidente', a => {
+  cards.push(kpiCard(buildLocationHash('presidente', { uf: currentUf }), 'Presidente · votação em ' + currentUf.toUpperCase(), 'Ver Presidente', a => {
     const cfg = CONFIG.cargos.find(c => c.chave === 'pres-' + currentUf) || CONFIG.cargos.find(c => c.chave === 'pres-se');
-    const top = topDe(cfg ? (cfg.chave || cfg.codigo) : 'pres-se', 2); if (!top.length) return vazio(a);
+    const top = topDe(cfg ? chaveDe(cfg) : ('pres-' + currentUf), 2); if (!top.length) return vazio(a);
     top.forEach(c => a.appendChild(kpiRow(c, cfg && cfg.uf, cfg && cfg.eleicao)));
   }));
-  for (const [cod, href, label] of [[6, '#federais', 'Deputados Federais'], [7, '#estaduais', 'Deputados Estaduais']]) {
-    cards.push(kpiCard(href, label, 'Ver eleitos', a => {
-      const b = bancadas(cod); if (!b) return vazio(a);
+  for (const [cod, view, label] of [[6, 'federais', 'Deputados Federais'], [7, 'estaduais', 'Deputados Estaduais']]) {
+    cards.push(kpiCard(buildLocationHash(view, { uf: currentUf }), label + ' · ' + ufn, 'Ver eleitos', a => {
+      const b = bancadas(cargoKeyByCodigo(cod)); if (!b) return vazio(a);
       const big = el('div', 'kpi-big', String(b.total));
       big.appendChild(el('small', null, b.final ? 'cadeiras · resultado final' : 'cadeiras · projeção com ' + fmtPct(b.pst)));
       a.appendChild(big);
@@ -4303,35 +4326,49 @@ function renderTudo() {
   if (gpr) gpr.replaceChildren(...pres.map(renderCard));
 
   const gs = document.getElementById('grid-senado');
-  if (gs) gs.replaceChildren(...(sen ? [renderCard(sen)] : []), renderEleitosSE(['5']), renderSenado81(), renderMetaSenado());
+  if (gs) {
+    const nodes = sen ? [renderCard(sen)] : [];
+    if (currentUf === 'se') nodes.push(renderEleitosSE(['5']), renderSenado81(), renderMetaSenado());
+    gs.replaceChildren(...nodes);
+  }
 
   const gf = document.getElementById('grid-federais');
   if (gf) {
     const nodes = [];
     if (fed) nodes.push(renderCard(fed));
     nodes.push(renderEleitos([6]));
-    nodes.push(renderEleitosSE(['6']));
-    (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [6], titulo: pd.titulo.replace(' - Votação do partido', ' · Federal') })));
-    const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
-    nodes.push(renderTopTodosPartidos(6, 'Mais votados por partido/federação · Deputado Federal'));
-    nodes.push(renderCusto());
+    if (currentUf === 'se') {
+      nodes.push(renderEleitosSE(['6']));
+      (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [6], titulo: pd.titulo.replace(' - Votação do partido', ' · Federal') })));
+      const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
+      nodes.push(renderTopTodosPartidos(6, 'Mais votados por partido/federação · Deputado Federal'));
+      nodes.push(renderCusto());
+    } else {
+      const rk = (CONFIG.rankings || []).find(r => r.codigo === 6); if (rk) nodes.push(renderRanking(rk));
+      nodes.push(renderTopTodosPartidos(6, 'Mais votados por partido/federação · Deputado Federal'));
+    }
     gf.replaceChildren(...nodes);
   }
 
   const ge = document.getElementById('grid-estaduais');
   if (ge) {
-    const nodes = [renderAlese()];
+    const nodes = [];
+    if (currentUf === 'se') nodes.push(renderAlese());
     if (est) nodes.push(renderCard(est));
     nodes.push(renderEleitos([7]));
-    nodes.push(renderEleitosSE(['7']));
-    (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [7], titulo: pd.titulo.replace(' - Votação do partido', ' · Estadual') })));
+    if (currentUf === 'se') {
+      nodes.push(renderEleitosSE(['7']));
+      (CONFIG.partidosDestaque || []).forEach(pd => nodes.push(renderPartido({ ...pd, cargos: [7], titulo: pd.titulo.replace(' - Votação do partido', ' · Estadual') })));
+    }
     const rk = (CONFIG.rankings || []).find(r => r.codigo === 7); if (rk) nodes.push(renderRanking(rk));
     nodes.push(renderTopTodosPartidos(7, 'Mais votados por partido/federação · Deputado Estadual'));
     ge.replaceChildren(...nodes);
   }
 
   const gsu = document.getElementById('grid-suplentes');
-  if (gsu) gsu.replaceChildren(...renderSuplentes());
+  if (gsu) gsu.replaceChildren(...(currentUf === 'se' ? renderSuplentes() : [
+    el('div', 'aviso-card info', 'Suplentes detalhados para ' + ufMeta(currentUf).nome + ' entram em breve. Use o Mapa de Votação e os rankings acima.')
+  ]));
 
   const ref = CONFIG.cargos.filter(c => !c.uf || c.uf === currentUf).map(c => estado[chaveDe(c)]?.dados).find(Boolean);
   document.getElementById('urnas-geral').textContent = ref ? fmtPct(ref.pst) : '—';

@@ -268,6 +268,7 @@
   .legenda .sw.turno2 { background: #f59e0b; }
   .qe2022-wrap { display: none; max-width: 960px; margin: 12px auto 0; text-align: left; }
   .qe2022-wrap.show { display: block; }
+  .qe2022-wrap[data-uf-hidden] { display: none !important; }
   .qe2022-wrap > details { border: 2px dashed #f59e0b; border-radius: 12px; background: rgba(245,158,11,0.10); padding: 8px 12px; }
   .qe2022-wrap summary {
     cursor: pointer; font-weight: 700; color: #fcd34d; list-style: none;
@@ -1464,7 +1465,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261006e2"></script>
+<script src="relatorios.js?v=20261006f1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1530,8 +1531,8 @@ const CONFIG = {
 
 /* ===== Multi-UF (Fase 0/1) — default SE preserves todos os deep links legados ===== */
 const UF_REGISTRY = {
-  se: { code: 'se', nome: 'Sergipe', status: 'ready', flagship: true },
-  al: { code: 'al', nome: 'Alagoas', status: 'ready' },
+  se: { code: 'se', nome: 'Sergipe', status: 'ready', flagship: true, capital: 'Aracaju', fed: 8, est: 24, ale: 'Alese' },
+  al: { code: 'al', nome: 'Alagoas', status: 'ready', capital: 'Maceió', fed: 9, est: 27, ale: 'ALE-AL' },
   ac: { code: 'ac', nome: 'Acre', status: 'soon' },
   am: { code: 'am', nome: 'Amazonas', status: 'soon' },
   ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
@@ -1561,6 +1562,20 @@ const UF_REGISTRY = {
 const UF_ORDER = ['se','al','ba','pe','ce','pb','rn','pi','ma','sp','mg','rj','es','pr','sc','rs','go','df','mt','ms','pa','am','ac','ro','rr','ap','to'];
 let currentUf = 'se';
 let MAPA_BASE = 'mapa';
+let UF_BOOTED = false;
+const UF_STORE_KEY = 'cmv_uf';
+window.UF_REGISTRY = UF_REGISTRY;
+function storedUf() {
+  try {
+    const u = String(localStorage.getItem(UF_STORE_KEY) || '').toLowerCase();
+    return (UF_REGISTRY[u] && UF_REGISTRY[u].status === 'ready') ? u : '';
+  } catch (_) { return ''; }
+}
+/** UF quando o hash não traz ?uf=: deep links legados de candidato (a/b) = SE; senão a UF corrente (ou a salva). */
+function ufFallback(p) {
+  if (p && (p.get('a') || p.get('b'))) return 'se';
+  return UF_BOOTED ? currentUf : (storedUf() || 'se');
+}
 const CONFIG_SE_CARGOS = CONFIG.cargos;
 const CONFIG_SE_UF = CONFIG.uf;
 
@@ -1578,6 +1593,7 @@ function resetMapaCaches() {
   SECAO_META_P = null; secaoCandCache.clear();
   if (typeof mapaCache !== 'undefined' && mapaCache.clear) mapaCache.clear();
   MAPA_MOUNT.mapa = null; MAPA_MOUNT.comparar = null;
+  window.MAPA_INDEX = null;
   if (typeof window.RelatoriosResetUf === 'function') window.RelatoriosResetUf();
   if (typeof window !== 'undefined') {
     window.MAPA_BASE = MAPA_BASE;
@@ -1588,6 +1604,8 @@ function applyUf(uf, { refresh } = {}) {
   const next = normalizeUf(uf);
   const changed = next !== currentUf;
   currentUf = next;
+  UF_BOOTED = true;
+  try { localStorage.setItem(UF_STORE_KEY, currentUf); } catch (_) {}
   MAPA_BASE = mapaBase(currentUf);
   CONFIG.uf = currentUf;
   window.MAPA_BASE = MAPA_BASE;
@@ -1622,6 +1640,17 @@ function applyUf(uf, { refresh } = {}) {
   }
   return currentUf;
 }
+/** Troca referências de SE em textos-modelo pela UF corrente (nome, capital, cadeiras, assembleia). */
+function ufText(t) {
+  const m = ufMeta(currentUf);
+  if (currentUf === 'se') return t;
+  return String(t)
+    .replace(/As 8 cadeiras de Sergipe/g, 'As ' + m.fed + ' cadeiras de ' + m.nome)
+    .replace(/As 24 cadeiras da Assembleia Legislativa \(Alese\)/g, 'As ' + m.est + ' cadeiras da Assembleia Legislativa de ' + m.nome + ' (' + m.ale + ')')
+    .replace(/Aracaju/g, m.capital || m.nome)
+    .replace(/Alese/g, m.ale || 'Assembleia')
+    .replace(/Sergipe/g, m.nome);
+}
 function paintUfPicker() {
   const host = document.getElementById('uf-picker');
   if (!host) return;
@@ -1631,6 +1660,7 @@ function paintUfPicker() {
     const m = UF_REGISTRY[code];
     const b = document.createElement(m.status === 'ready' ? 'a' : 'button');
     b.className = 'uf-chip ' + (m.status === 'ready' ? 'is-ready' : 'is-soon');
+    b.dataset.uf = code;
     if (m.status === 'ready') {
       b.href = buildLocationHash('inicio', { uf: code });
       if (code === currentUf) b.setAttribute('aria-current', 'true');
@@ -1666,6 +1696,19 @@ function paintUfChrome() {
   document.querySelectorAll('a[data-view]').forEach(a => {
     try { a.href = buildLocationHash(a.dataset.view, { uf: currentUf }); } catch (_) {}
   });
+  // todos os links internos (#view…) carregam ?uf= da UF corrente (header, rodapé, cards, FAQ…)
+  document.querySelectorAll('a[href^="#"]:not([data-view]):not([data-uf])').forEach(a => {
+    const h = a.getAttribute('href') || '';
+    const v = h.slice(1).split('?')[0];
+    if (VIEWS.includes(v)) a.setAttribute('href', withUf(h, currentUf));
+  });
+  document.querySelectorAll('.view .page-head p, [data-sugg-tpl], #view-sobre p').forEach(e => {
+    if (e.dataset.suggTpl) { e.textContent = ufText(e.dataset.suggTpl); return; }
+    if (e.dataset.tplSe == null) { if (!/Sergipe|Alese|8 cadeiras|24 cadeiras/.test(e.innerHTML)) return; e.dataset.tplSe = e.innerHTML; }
+    e.innerHTML = ufText(e.dataset.tplSe);
+  });
+  const qeW = document.getElementById('qe-ref-wrap');
+  if (qeW) qeW.toggleAttribute('data-uf-hidden', currentUf !== 'se');
   document.querySelectorAll('.view .eyebrow').forEach(e => {
     if (e.textContent.includes('Resultados')) {
       if (e.textContent.includes('Brasil')) e.textContent = 'Resultados · Brasil e ' + m.nome;
@@ -2063,7 +2106,7 @@ function renderPartido(pd) {
   card.style.borderTopColor = pd.cor;
   const h = el('h2', null, pd.titulo); h.style.color = pd.cor;
   card.appendChild(h);
-  card.appendChild(el('div', 'meta', 'Soma de votos nominais dos candidatos + votos na legenda, em Sergipe.'));
+  card.appendChild(el('div', 'meta', 'Soma de votos nominais dos candidatos + votos na legenda, em ' + ufMeta(currentUf).nome + '.'));
   for (const cod of pd.cargos) {
     const cargo = CONFIG.cargos.find(c => c.codigo === cod);
     const d = estadoCargo(cod).dados;
@@ -2698,7 +2741,7 @@ function expandMapaCompact(raw, geo) {
     const et = raw.t || 1;
     data.estados = (raw.e || []).map(x => ({ uf: x.u, votos: x.v, pct: x.v / et }));
     data.municipios_se = municipios;
-    if (!municipios.length) data.nota_se = 'Sem votos nominais em Sergipe neste arquivo.';
+    if (!municipios.length) data.nota_se = 'Sem votos nominais em ' + ufMeta(currentUf).nome + ' neste arquivo.';
   } else {
     data.municipios = municipios;
   }
@@ -2706,10 +2749,10 @@ function expandMapaCompact(raw, geo) {
 }
 
 async function loadMapaCand(cargo, numero) {
-  const key = `${cargo}:${numero}`;
+  const key = `${currentUf}:${cargo}:${numero}`;
   if (mapaCache.has(key)) return mapaCache.get(key);
   const [raw, geo] = await Promise.all([
-    getJSON(`mapa/${cargo}/${numero}.json`),
+    getJSON(`${MAPA_BASE}/${cargo}/${numero}.json`),
     loadMapaGeo()
   ]);
   const data = (raw && raw.v && !raw.municipios && !raw.municipios_se)
@@ -2919,8 +2962,9 @@ function renderMapaEstados(estados) {
   for (const e of estados) {
     const det = el('details');
     det.appendChild(mapaNodeRow(e.uf, e.votos, e.pct));
-    if (e.uf !== 'SE') det.appendChild(el('div', 'mapa-empty', 'Detalhe municipal disponível para Sergipe. Demais UFs: total do estado (TSE).'));
-    else det.appendChild(el('div', 'meta', 'O detalhe de Sergipe está na seção abaixo.'));
+    const _n = ufMeta(currentUf).nome;
+    if (e.uf !== currentUf.toUpperCase()) det.appendChild(el('div', 'mapa-empty', 'Detalhe municipal disponível para ' + _n + '. Demais UFs: total do estado (TSE).'));
+    else det.appendChild(el('div', 'meta', 'O detalhe de ' + _n + ' está na seção abaixo.'));
     wrap.appendChild(det);
   }
   return wrap;
@@ -2938,9 +2982,20 @@ function parseLocationHash() {
   const qs = q >= 0 ? raw.slice(q + 1) : '';
   const view = VIEWS.includes(viewPart) ? viewPart : 'inicio';
   const p = new URLSearchParams(qs);
-  // Sem ?uf= → SE (deep links legados). Com ?uf= → essa UF. Nunca “grudar” na UF anterior.
-  const uf = p.has('uf') ? normalizeUf(p.get('uf')) : 'se';
+  // Com ?uf= → essa UF. Sem ?uf=: link de candidato legado (a/b) → SE; demais links internos → mantém a UF corrente.
+  const uf = p.has('uf') ? normalizeUf(p.get('uf')) : ufFallback(p);
   return { view, uf, c: p.get('c') || '', a: p.get('a') || '', b: p.get('b') || '', ac: p.get('ac') || '', bc: p.get('bc') || '' };
+}
+
+/** Acrescenta/atualiza ?uf= num hash interno, preservando os outros parâmetros (ex.: #relatorios?t=…). */
+function withUf(hash, uf) {
+  const raw = String(hash || '#inicio').replace(/^#/, '');
+  const q = raw.indexOf('?');
+  const v = (q >= 0 ? raw.slice(0, q) : raw) || 'inicio';
+  const p = new URLSearchParams(q >= 0 ? raw.slice(q + 1) : '');
+  p.delete('uf');
+  const rest = p.toString();
+  return '#' + v + '?uf=' + normalizeUf(uf) + (rest ? '&' + rest : '');
 }
 
 function buildLocationHash(view, params) {
@@ -3071,7 +3126,7 @@ async function mountSeChoropleth(host, opts) {
   try { geojson = await loadSeMunGeo(); }
   catch (e) {
     console.warn(e);
-    host.replaceChildren(el('div', 'mapa-empty', 'Não foi possível carregar o mapa de Sergipe.'));
+    host.replaceChildren(el('div', 'mapa-empty', 'Não foi possível carregar o mapa de ' + ufMeta(currentUf).nome + '.'));
     return;
   }
   const mode = o.mode || 'seq';
@@ -3323,7 +3378,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
       const total = Number(data.total_se != null ? data.total_se : data.total) || [...valueByI.values()].reduce((s, v) => s + v, 0);
       await mountSeChoropleth(mapSlot, {
         mode: 'seq', valueByI, total,
-        heading: 'Mapa SE — ' + (label || data.nome || 'candidato') + ' (quantis)',
+        heading: 'Mapa ' + currentUf.toUpperCase() + ' — ' + (label || data.nome || 'candidato') + ' (quantis)',
         onSelect: (nm) => drillFromMap(mapSlot.parentElement, nm),
       });
     } catch (e) {
@@ -3340,10 +3395,10 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
     if (Number(cargo) === 1) {
       tree.appendChild(el('h3', null, 'Por estado'));
       tree.appendChild(renderMapaEstados(data.estados || []));
-      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio → seção'));
+      tree.appendChild(el('h3', null, ufMeta(currentUf).nome + ' — município → zona → bairro → colégio → seção'));
       if (data.nota_se) tree.appendChild(el('div', 'meta', data.nota_se));
     } else {
-      tree.appendChild(el('h3', null, 'Sergipe — município → zona → bairro → colégio → seção'));
+      tree.appendChild(el('h3', null, ufMeta(currentUf).nome + ' — município → zona → bairro → colégio → seção'));
     }
     const hostTree = el('div');
     hostTree.appendChild(renderMapaMunicipios(munListOf(data), filtroGeo.value, syncOpts));
@@ -3393,7 +3448,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
         };
         await mountSeChoropleth(winSlot, {
           mode: 'win', valueByI: aByI, aByI, bByI, winByI,
-          heading: 'Comparativo SE — quem venceu o município (intensidade = margem)',
+          heading: 'Comparativo ' + currentUf.toUpperCase() + ' — quem venceu o município (intensidade = margem)',
           onSelect: onWin,
         });
         const totA = Number(dataA.total_se != null ? dataA.total_se : dataA.total) || 0;
@@ -3432,7 +3487,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
       data.nome || ('Nº ' + numero),
       data.partido || null,
       data.total != null ? `${fmtInt.format(data.total)} votos` : null,
-      data.total_se != null ? `SE: ${fmtInt.format(data.total_se)}` : null,
+      data.total_se != null ? `${currentUf.toUpperCase()}: ${fmtInt.format(data.total_se)}` : null,
     ].filter(Boolean).join(' · ');
   };
 
@@ -3976,18 +4031,19 @@ function waNomeCand(c, n) {
 }
 function waShareText(kind) {
   const deep = SITE_URL + (location.hash && location.hash !== '#inicio' ? location.hash : '');
-  if (kind === 'inicio') return 'Cadê Meu Voto: resultados oficiais do TSE das Eleições 2026 em Sergipe, com mapa de votação até a seção eleitoral 🗳️ ' + SITE_URL;
+  const _un = ufMeta(currentUf).nome;
+  if (kind === 'inicio') return 'Cadê Meu Voto: resultados oficiais do TSE das Eleições 2026 em ' + _un + ', com mapa de votação até a seção eleitoral 🗳️ ' + SITE_URL + (currentUf !== 'se' ? '#inicio?uf=' + currentUf : '');
   if (kind === 'mapa' || kind === 'comparar') {
     const m = MAPA_MOUNT[kind]; const sel = m && m.card && m.card._getSel ? m.card._getSel() : null;
     const url = sel ? SITE_URL + '#' + buildLocationHash(kind, (kind === 'comparar' || sel.compareOn) ? { c: sel.c, a: sel.a, b: sel.b, bc: sel.bc } : { c: sel.c, a: sel.a }).replace(/^#/, '') : deep;
     const cargo = sel ? (MAPA_CARGO_LABEL[String(sel.c)] || '') : '';
     const na = sel && sel.a ? waNomeCand(sel.c, sel.a) : '';
     const nb = sel && sel.b && (kind === 'comparar' || sel.compareOn) ? waNomeCand(sel.bc || sel.c, sel.b) : '';
-    if (kind === 'comparar' && na && nb) return 'Compare ' + na + ' × ' + nb + ' voto a voto em Sergipe, por município, bairro e seção eleitoral (dados oficiais do TSE): ' + url;
-    if (na) return 'Veja onde ' + na + (cargo ? ' (' + cargo + ')' : '') + ' teve votos em Sergipe, até a seção eleitoral (dados oficiais do TSE): ' + url;
-    return (kind === 'comparar' ? 'Compare candidatos' : 'Mapa de votação') + ' das Eleições 2026 em Sergipe, até a seção eleitoral: ' + url;
+    if (kind === 'comparar' && na && nb) return 'Compare ' + na + ' × ' + nb + ' voto a voto em ' + _un + ', por município, bairro e seção eleitoral (dados oficiais do TSE): ' + url;
+    if (na) return 'Veja onde ' + na + (cargo ? ' (' + cargo + ')' : '') + ' teve votos em ' + _un + ', até a seção eleitoral (dados oficiais do TSE): ' + url;
+    return (kind === 'comparar' ? 'Compare candidatos' : 'Mapa de votação') + ' das Eleições 2026 em ' + _un + ', até a seção eleitoral: ' + url;
   }
-  return 'Cadê Meu Voto · Eleições 2026 em Sergipe, dados oficiais do TSE até a seção eleitoral: ' + deep;
+  return 'Cadê Meu Voto · Eleições 2026 em ' + _un + ', dados oficiais do TSE até a seção eleitoral: ' + deep;
 }
 function waShareHref(kind) { return 'https://wa.me/?text=' + encodeURIComponent(waShareText(kind)); }
 function bootWaShare() {
@@ -4001,7 +4057,7 @@ function bootWaShare() {
 async function compartilhar() {
   const url = SITE_URL + (location.hash || '');
   const title = 'Cadê Meu Voto';
-  const text = 'Eleições 2026 em Sergipe com dados oficiais do TSE, até a seção eleitoral';
+  const text = 'Eleições 2026 em ' + ufMeta(currentUf).nome + ' com dados oficiais do TSE, até a seção eleitoral';
   try {
     if (navigator.share) { await navigator.share({ title, text, url }); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -4159,9 +4215,10 @@ function bootChat() {
   CHAT_SUGGEST.forEach(q => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = q;
+    b.dataset.suggTpl = q;
+    b.textContent = ufText(q);
     b.addEventListener('click', () => {
-      input.value = q;
+      input.value = ufText(q);
       form.requestSubmit();
     });
     suggest.appendChild(b);
@@ -4293,6 +4350,10 @@ function bootNav() {
     legacyRedirect();
     const { view, uf } = parseLocationHash();
     applyUf(uf);
+    // URL sempre explícita: hash sem ?uf= ganha a UF efetiva (compartilhar/recarregar mantém o estado)
+    if (location.hash && !/[?&]uf=/.test(location.hash) && VIEWS.includes(location.hash.slice(1).split('?')[0])) {
+      try { history.replaceState(null, '', withUf(location.hash, currentUf)); } catch (_) {}
+    }
     setView(view, false);
     if (view === 'relatorios' && window.Relatorios && window.Relatorios.applyHashFromLocation) {
       window.Relatorios.applyHashFromLocation();

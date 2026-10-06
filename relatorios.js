@@ -5,9 +5,9 @@
   const CARGO_NOME = { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Dep. Federal', 7: 'Dep. Estadual' };
   const BLOCKS = [
     { id: 'gov', label: 'Governador' }, { id: 'sen', label: 'Senado' },
-    { id: 'pres', label: 'Presidente (SE)' }, { id: 'fed', label: 'Dep. Federal' },
+    { id: 'pres', label: 'Presidente (no estado)' }, { id: 'fed', label: 'Dep. Federal' },
     { id: 'est', label: 'Dep. Estadual' }, { id: 'eleitos', label: 'Eleitos' },
-    { id: 'alese', label: 'Cadeiras Alese / Senado' }, { id: 'hist', label: 'Histórico' },
+    { id: 'alese', label: 'Cadeiras (Assembleia) / Senado' }, { id: 'hist', label: 'Histórico' },
     { id: 'meta', label: 'Meta do Senado' },
   ];
 
@@ -15,12 +15,17 @@
   let geoMunCache = null;
   let geoLocCache = null;
   function resetUfCaches() {
-    geoLocCache = null; munIdxCache = null; secMetaCache = null;
+    geoLocCache = null; munIdxCache = null; secMetaCache = null; geoMunCache = null;
     if (typeof secCandCache !== 'undefined' && secCandCache.clear) secCandCache.clear();
   }
   window.RelatoriosResetUf = resetUfCaches;
   function mapaBaseRel() {
     return (typeof window !== 'undefined' && window.MAPA_BASE) ? window.MAPA_BASE : 'mapa';
+  }
+  function ufRel() { return String((typeof window !== 'undefined' && window.CURRENT_UF) || 'se').toLowerCase(); }
+  function ufNomeRel() {
+    const R = (typeof window !== 'undefined' && window.UF_REGISTRY) || {};
+    return (R[ufRel()] && R[ufRel()].nome) || ({ se: 'Sergipe', al: 'Alagoas' })[ufRel()] || ufRel().toUpperCase();
   }
 
   let munIdxCache = null;
@@ -74,8 +79,8 @@
   function cargoDados(codigo) {
     const cargos = (global.CONFIG && global.CONFIG.cargos) || [];
     const cargo = codigo === 1
-      ? (cargos.find(c => c.codigo === 1 && c.uf === 'se') || cargos.find(c => c.codigo === 1))
-      : cargos.find(c => c.codigo === codigo && (!c.uf || c.uf === 'se'));
+      ? (cargos.find(c => c.codigo === 1 && c.uf === ufRel()) || cargos.find(c => c.codigo === 1))
+      : cargos.find(c => c.codigo === codigo && (!c.uf || c.uf === ufRel()));
     const key = global.chaveDe ? global.chaveDe(cargo || { codigo }) : ((cargo && cargo.chave) || codigo);
     const st = (global.estado && global.estado[key]) || {};
     return { cargo, dados: st.dados || null, key };
@@ -83,7 +88,7 @@
 
   function histOf(codigo, numero) {
     const H = global.HIST;
-    if (!H || !H.historico) return null;
+    if (!H || !H.historico || ufRel() !== 'se') return null;
     return H.historico[codigo + ':' + numero + ':se'] || null;
   }
   function histLine(h) {
@@ -97,6 +102,9 @@
   }
 
   function fotoPath(cargo, numero) {
+    // presidente: fotos/1 é nacional; demais cargos têm pasta por UF (SE na raiz, legado)
+    const u = ufRel();
+    if (u !== 'se' && String(cargo) !== '1') return 'fotos/' + u + '/' + cargo + '/' + numero + '.jpg';
     return 'fotos/' + cargo + '/' + numero + '.jpg';
   }
 
@@ -116,7 +124,8 @@
 
   async function loadGeoMun() {
     if (geoMunCache) return geoMunCache;
-    geoMunCache = await global.getJSON('mapa/se-mun.geojson');
+    const idx0 = await global.getJSON(mapaBaseRel() + '/index.json').catch(() => null);
+    geoMunCache = await global.getJSON((idx0 && idx0.munGeo) || (ufRel() === 'se' ? 'mapa/se-mun.geojson' : mapaBaseRel() + '/' + ufRel() + '-mun.geojson'));
     return geoMunCache;
   }
   async function loadGeoLoc() {
@@ -132,7 +141,7 @@
     return munIdxCache;
   }
   async function loadCandFile(cargo, numero) {
-    try { return await global.getJSON('mapa/' + cargo + '/' + numero + '.json'); }
+    try { return await global.getJSON(mapaBaseRel() + '/' + cargo + '/' + numero + '.json'); }
     catch { return null; }
   }
 
@@ -360,7 +369,7 @@
     // tenta buscar direto
     try {
       if (typeof global.buscarCargo === 'function' && global.CONFIG) {
-        const cfg = (global.CONFIG.cargos || []).find(c => c.codigo === code && (!c.uf || c.uf === 'se' || c.uf === global.CONFIG.uf));
+        const cfg = (global.CONFIG.cargos || []).find(c => c.codigo === code && (!c.uf || c.uf === ufRel()));
         if (cfg) {
           const norm = await global.buscarCargo(cfg);
           const key = global.chaveDe ? global.chaveDe(cfg) : code;
@@ -800,7 +809,7 @@
       doc.text('cademeuvoto.com.br · dados oficiais do TSE até a seção eleitoral', lx + ls + 10, ly + 27);
     } catch (e) {}
     doc.setFont('NotoSans', 'bold'); doc.setFontSize(22); doc.setTextColor(15, 23, 42);
-    doc.text('Eleições 2026 · Sergipe', m.l, 110);
+    doc.text('Eleições 2026 · ' + ufNomeRel(), m.l, 110);
     doc.setFontSize(15); doc.setTextColor(30, 64, 120);
     const lines = doc.splitTextToSize(title, w - m.l - m.r - ((photoUrls && photoUrls.length) ? 130 : 0));
     doc.text(lines, m.l, 135);
@@ -884,7 +893,7 @@
     const photo = await loadImageDataUrl(fotoPath(cargo, numero));
     const doc = newDoc(opts); await ensureFonts(doc);
     const title = 'Relatório completo — ' + st.nome;
-    const scope = (CARGO_NOME[cargo] || cargo) + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '');
+    const scope = (CARGO_NOME[cargo] || cargo) + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '') + ' · ' + ufNomeRel();
     const wantSec = opts.secoes !== false;
     await writeCover(doc, title, scope, 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola' + (wantSec ? ' → seção eleitoral.' : '.'), photo ? [photo] : []);
 
@@ -998,7 +1007,7 @@
     const photoB = await loadImageDataUrl(fotoPath(cargo, bN));
     const doc = newDoc(opts); await ensureFonts(doc);
     const title = 'Comparativo — ' + stA.nome + ' × ' + stB.nome;
-    const scope = (CARGO_NOME[cargo] || cargo) + ' · ' + aN + ' vs ' + bN;
+    const scope = (CARGO_NOME[cargo] || cargo) + ' · ' + aN + ' vs ' + bN + ' · ' + ufNomeRel();
     const wantSec = opts.secoes !== false;
     await writeCover(doc, title, scope, 'Comparativo zoneado completo (município → zona → bairro → escola' + (wantSec ? ' → seção' : '') + '). Fotos do repositório local.', [photoA, photoB].filter(Boolean));
 
@@ -1162,7 +1171,7 @@
     // keep lightweight resumo from before (simplified)
     const opts = Object.assign({ landscape: false, hist: true }, spec.options || {});
     const doc = newDoc(opts); await ensureFonts(doc);
-    await writeCover(doc, 'Resumo da eleição — Sergipe', 'Estado de Sergipe (SE)', null, []);
+    await writeCover(doc, 'Resumo da eleição — ' + ufNomeRel(), 'Estado de ' + ufNomeRel() + ' (' + ufRel().toUpperCase() + ')', null, []);
     doc.addPage(); const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
     const bookmarks = []; doc.addPage(); let y = margins().t;
     const blocks = spec.blocks || ['gov', 'sen', 'pres', 'fed', 'est', 'eleitos'];
@@ -1172,13 +1181,13 @@
       if (topN) list = list.slice(0, topN);
       return list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—')]);
     }
-    for (const [id, cod, label, top] of [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente em Sergipe', 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]]) {
+    for (const [id, cod, label, top] of [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente em ' + ufNomeRel(), 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]]) {
       if (!blocks.includes(id)) continue;
       y = sectionTitle(doc, label, y, bookmarks);
       y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.']], body: rowsFor(cod, top), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 10;
     }
     writeToc(doc, bookmarks, tocPage);
-    addFooterAll(doc, { subtitle: 'Resumo da eleição — Sergipe' });
+    addFooterAll(doc, { subtitle: 'Resumo da eleição — ' + ufNomeRel() });
     return { doc };
   }
 
@@ -1265,7 +1274,7 @@
         const rows = (munData && munData.cargos && munData.cargos[cg]) || [];
         if (!rows.length) continue;
         y = sectionTitle(doc, CARGO_NOME[cg] || cg, y, bookmarks);
-        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total SE']], body: rows.slice(0, opts.topN || 10).map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t)]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 8;
+        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total ' + ufRel().toUpperCase()]], body: rows.slice(0, opts.topN || 10).map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t)]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 8;
       }
       if (opts.secoes !== false) {
         try { y = await writeMunicipioSecoes(doc, y, mun, munData, bookmarks, opts); }
@@ -1327,7 +1336,7 @@
     if (s.template === 'comparar' && s.a && s.b) tag = 'comparar_' + s.a + '_vs_' + s.b;
     else if (s.template === 'candidato' && (s.numero || s.n)) tag = 'candidato_' + (s.numero || s.n);
     else if (s.template === 'municipio' && (s.cd || s.mun)) tag = 'municipio_' + (s.cd || s.mun);
-    const fname = safeFilename('relatorio_' + tag) + '.pdf';
+    const fname = safeFilename('relatorio_' + ufRel() + '_' + tag) + '.pdf';
     doc.save(fname);
     return { doc, filename: fname, spec: s };
   }
@@ -1356,6 +1365,7 @@
     const p = new URLSearchParams();
     let t = spec.template || 'resumo';
     if (t === 'comparativo') t = 'comparar';
+    p.set('uf', ufRel());
     p.set('t', t);
     if (spec.cargo || spec.c) p.set('c', String(spec.cargo || spec.c));
     if (t === 'comparar') {
@@ -1787,7 +1797,7 @@
     const { dados } = cargoDados(7);
     const top = sortedTodos(dados).slice(0, 8);
     let rows = top.map((k, i) => '<tr><td>' + (i + 1) + '</td><td>' + k.n + '</td><td>' + (k.nome || '') + '</td><td>' + (k.partido || '') + '</td><td>' + fmtN(k.vap) + '</td></tr>').join('');
-    return '<p class="meta">Resumo da eleição em Sergipe — amostra Dep. Estadual (top 8). O PDF traz os blocos marcados.</p>'
+    return '<p class="meta">Resumo da eleição em ' + ufNomeRel() + ' — amostra Dep. Estadual (top 8). O PDF traz os blocos marcados.</p>'
       + '<table class="rel-esc"><thead><tr><th>#</th><th>Nº</th><th>Nome</th><th>Partido</th><th>Votos</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
@@ -1860,7 +1870,7 @@
       root.innerHTML = [
         '<section class="card span-all rel-card">',
         '<h2>Relatórios (PDF)</h2>',
-        '<p class="meta">PDFs no navegador com mapas coropléticos de Sergipe, fotos e detalhe completo (município → zona → bairro → escola → seção eleitoral). Sumário clicável + favoritos.</p>',
+        '<p class="meta">PDFs no navegador com mapas coropléticos de <span class="rel-uf-nome">' + ufNomeRel() + '</span>, fotos e detalhe completo (município → zona → bairro → escola → seção eleitoral). Sumário clicável + favoritos.</p>',
         '<div class="rel-modes" role="radiogroup">',
         '<label><input type="radio" name="rel-mode" value="resumo" checked> Resumo</label>',
         '<label><input type="radio" name="rel-mode" value="candidato"> Candidato</label>',
@@ -1933,6 +1943,14 @@
       });
     }
 
+    root.querySelectorAll('.rel-uf-nome').forEach(e => { e.textContent = ufNomeRel(); });
+    if (root.dataset.uf && root.dataset.uf !== ufRel()) {
+      // trocou de UF: limpa seleção e prévia da UF anterior
+      root.querySelectorAll('.rel-picker input').forEach(i => { i.value = ''; });
+      root.querySelectorAll('.rel-picker-chosen').forEach(e => { e.hidden = true; e.innerHTML = ''; });
+      const pv = root.querySelector('#rel-preview'); if (pv) pv.textContent = 'Escolha um modelo e atualize a prévia.';
+    }
+    root.dataset.uf = ufRel();
     const applyHash = !root.dataset.hashReady;
     const pending = applyHash ? parseRelHash() : null;
     fillSelectors(root).then(() => {

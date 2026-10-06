@@ -1096,7 +1096,7 @@
       <div class="hero-copy">
         <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Sergipe e Alagoas · mais estados em breve</div>
         <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
-        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e <strong>Alagoas</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência), <strong>Alagoas</strong> e <strong>Bahia</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
         <div class="uf-picker" id="uf-picker" aria-label="Escolha o estado"></div>
         <div class="hero-actions">
           <a class="btn-primary" href="#mapa" id="cta-mapa">Abrir o Mapa de Votação</a>
@@ -1465,7 +1465,7 @@
   <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros.</div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL)…" required></textarea>
+    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL/BA)…" required></textarea>
     <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
@@ -1544,7 +1544,7 @@ const UF_REGISTRY = {
   ac: { code: 'ac', nome: 'Acre', status: 'soon' },
   am: { code: 'am', nome: 'Amazonas', status: 'soon' },
   ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
-  ba: { code: 'ba', nome: 'Bahia', status: 'soon' },
+  ba: { code: 'ba', nome: 'Bahia', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', status: 'soon' },
   df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
   es: { code: 'es', nome: 'Espírito Santo', status: 'soon' },
@@ -1620,19 +1620,25 @@ function applyUf(uf, { refresh } = {}) {
   window.CURRENT_UF = currentUf;
   if (currentUf === 'se') {
     CONFIG.cargos = CONFIG_SE_CARGOS;
-  } else if (currentUf === 'al') {
-    // Live TSE: mesmos códigos de eleição; todos os candidatos; sem cards exclusivos de SE.
+  } else if (currentUf === 'al' || currentUf === 'ba') {
+    // Live TSE: mesmos códigos de eleição; destaques por UF; sem cards exclusivos de SE.
+    const m = ufMeta(currentUf);
+    const destaque = currentUf === 'al'
+      ? {
+          gov: [{ nome: 'JHC', numero: 45 }, { nome: 'Renan Filho', numero: 15 }],
+          sen: [{ nome: 'Arthur Lira', numero: 111 }, { nome: 'Marina JHC', numero: 456 }],
+        }
+      : {
+          gov: [{ nome: 'Jerônimo', numero: 13 }, { nome: 'ACM Neto', numero: 44 }],
+          sen: [{ nome: 'Rui Costa', numero: 133 }, { nome: 'Jaques Wagner', numero: 130 }],
+        };
     CONFIG.cargos = [
-      { codigo: 3, titulo: 'Governador', matematico: 'maioria', todosCandidatos: true, verTodosLim: 99, candidatos: [
-        { nome: 'JHC', numero: 45 }, { nome: 'Renan Filho', numero: 15 },
-      ]},
+      { codigo: 3, titulo: 'Governador', matematico: 'maioria', todosCandidatos: true, verTodosLim: 99, candidatos: destaque.gov },
       { chave: 'pres-br', codigo: 1, eleicao: '6257', uf: 'br', titulo: 'Presidente - Brasil', matematico: 'maioria', todosCandidatos: true, candidatos: [] },
-      { chave: 'pres-al', codigo: 1, eleicao: '6257', uf: 'al', titulo: 'Presidente - Alagoas', todosCandidatos: true, candidatos: [] },
-      { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', todosCandidatos: true, verTodosLim: 99, candidatos: [
-        { nome: 'Arthur Lira', numero: 111 }, { nome: 'Marina JHC', numero: 456 },
-      ]},
-      { codigo: 6, titulo: 'Deputado Federal', todosCandidatos: true, verTodosLim: 12, candidatos: [] },
-      { codigo: 7, titulo: 'Deputado Estadual', todosCandidatos: true, verTodosLim: 24, candidatos: [] },
+      { chave: 'pres-' + currentUf, codigo: 1, eleicao: '6257', uf: currentUf, titulo: 'Presidente - ' + m.nome, todosCandidatos: true, candidatos: [] },
+      { codigo: 5, titulo: 'Senador', matematico: 'mais-votados', todosCandidatos: true, verTodosLim: 99, candidatos: destaque.sen },
+      { codigo: 6, titulo: 'Deputado Federal', todosCandidatos: true, verTodosLim: Math.max(12, m.fed || 12), candidatos: [] },
+      { codigo: 7, titulo: 'Deputado Estadual', todosCandidatos: true, verTodosLim: Math.max(24, Math.min(30, m.est || 24)), candidatos: [] },
     ];
   }
   if (changed) {
@@ -1690,7 +1696,7 @@ function paintUfChrome() {
   const m = ufMeta(currentUf);
   const eye = document.getElementById('hero-eyebrow');
   if (eye) eye.textContent = currentUf === 'se'
-    ? 'Eleições 2026 · Sergipe (referência) · Alagoas disponível · mais estados em breve'
+    ? 'Eleições 2026 · Sergipe (referência) · Alagoas e Bahia · mais estados em breve'
     : `Eleições 2026 · ${m.nome} · Dados oficiais do TSE`;
   const title = document.getElementById('hero-panel-title');
   if (title) title.innerHTML = `${m.nome} 2026 em números <span>fonte: TSE</span>`;

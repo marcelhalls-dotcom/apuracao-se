@@ -1,11 +1,11 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe e Alagoas; outros estados em breve).
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, Alagoas e Bahia; outros estados em breve).
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
-- Eleições em Sergipe 2026 (Governador, Senador, Dep. Federal, Dep. Estadual)
-- Presidente 2026 no Brasil e o recorte de Sergipe
+- Eleições 2026 na UF ativa (UF_ATIVA): Governador, Senador, Dep. Federal, Dep. Estadual
+- Presidente 2026 no Brasil e o recorte da UF ativa
 - Comparativos/referências a 2022 quando houver no contexto
 - Suplentes, cadeiras por partido/federação
 - Votos por município, zona, bairro e colégio quando houver no BLOCO_RETRIEVAL ou no CONTEXTO_DADOS
@@ -724,10 +724,10 @@ export default {
 
     const ufReq = String(body.uf || 'se').toLowerCase();
     let ctxJson = CONTEXT;
-    if (ufReq === 'al') {
+    if (ufReq === 'al' || ufReq === 'ba') {
       try {
         const pages = (env.PAGES_BASE || 'https://cademeuvoto.com.br').replace(/\/$/, '');
-        ctxJson = await cachedJson(`${pages}/mapa/al/context.json`);
+        ctxJson = await cachedJson(`${pages}/mapa/${ufReq}/context.json`);
       } catch (_) { /* keep SE context as fallback note */ }
     }
 

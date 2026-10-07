@@ -684,6 +684,7 @@
     background: rgba(96,165,250,.10); border: 1px solid rgba(96,165,250,.35); color: #BFDBFE; border-radius: 999px; white-space: nowrap;
   }
   .site-header #status.status.final { background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.40); color: #86EFAC; }
+  .site-header #status.status.pendente { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.4); color: #cbd5e1; }
   .site-header #status.status.erro { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.5); color: #FCA5A5; }
   .site-header #status .dot { width: 8px; height: 8px; }
   .status-pop {
@@ -1767,6 +1768,10 @@ async function fillHeroPanelStats() {
 const META_SENADO = [{"regiao": "Agreste Central", "v2018": 40067, "meta": 29390, "mun": [["Itabaiana", 19312, 12000], ["Carira", 2809, 1500], ["Malhador", 2671, 300], ["Areia Branca", 3181, 3500], ["Campo do Brito", 3860, 3000], ["São Domingos", 1282, 1282], ["Macambira", 1308, 1308], ["Moita Bonita", 2239, 2500], ["Frei Paulo", 2137, 3200], ["Pedra Mole", 521, 800], ["Pinhão", 747, 0]]}, {"regiao": "Alto Sertão", "v2018": 18538, "meta": 19225, "mun": [["Canindé", 2165, 1500], ["Gararu", 1729, 2000], ["Monte Alegre", 1225, 1225], ["Poço Redondo", 1485, 2000], ["Porto da Folha", 4422, 2500], ["Lourdes", 1640, 2000], ["Glória", 5872, 8000]]}, {"regiao": "Baixo São Francisco", "v2018": 16760, "meta": 16754, "mun": [["Propriá", 5117, 5117], ["Canhoba", 1113, 300], ["Ilha das Flores", 803, 1300], ["Cedro de São João", 1195, 1195], ["Amparo do São Francisco", 379, 400], ["Telha", 488, 600], ["Japoatã", 1590, 600], ["Neópolis", 2442, 2442], ["Pacatuba", 1078, 2000], ["Brejo Grande", 555, 700], ["São Francisco", 900, 1000], ["Malhada dos Bois", 699, 699], ["Santana do São Francisco", 401, 401]]}, {"regiao": "Centro Sul", "v2018": 40447, "meta": 41500, "mun": [["Boquim", 4227, 3500], ["Salgado", 2481, 2500], ["Pedrinhas", 1278, 2000], ["Poço Verde", 2909, 3500], ["Riachão do Dantas", 2129, 0], ["Simão Dias", 4819, 6000], ["Tobias Barreto", 8680, 9000], ["Lagarto", 13924, 15000]]}, {"regiao": "Grande Aracaju", "v2018": 266029, "meta": 151000, "mun": [["Barra dos Coqueiros", 7311, 9000], ["Aracaju", 191909, 80000], ["N. Sra. do Socorro", 38851, 42000], ["São Cristóvão", 20159, 12000], ["Laranjeiras", 7799, 8000]]}, {"regiao": "Leste", "v2018": 30110, "meta": 19774, "mun": [["Siriri", 1901, 1500], ["Santa Rosa de Lima", 841, 1000], ["Santo Amaro das Brotas", 2085, 1000], ["Rosário do Catete", 2462, 1000], ["Pirambu", 1782, 700], ["Maruim", 3816, 2000], ["Riachuelo", 2288, 1000], ["Japaratuba", 3595, 2000], ["General Maynard", 774, 774], ["Carmópolis", 3030, 2000], ["Divina Pastora", 1093, 800], ["Capela", 6443, 6000]]}, {"regiao": "Médio Sertão", "v2018": 24153, "meta": 17703, "mun": [["Ribeirópolis", 4421, 1000], ["Gracho Cardoso", 1401, 1401], ["Muribeca", 1674, 0], ["Aleixo", 720, 1000], ["Aquidabã", 3788, 2000], ["Cumbe", 1312, 1312], ["Feira Nova", 1402, 1000], ["Itabi", 1388, 1388], ["Aparecida", 1602, 1602], ["Dores", 6445, 7000]]}, {"regiao": "Sul", "v2018": 38345, "meta": 31300, "mun": [["Itaporanga d'Ajuda", 6152, 4000], ["Cristinápolis", 3107, 1000], ["Estância", 11193, 8000], ["Umbaúba", 3996, 3000], ["Santa Luzia do Itanhy", 913, 2000], ["Indiaroba", 1319, 3000], ["Arauá", 2076, 1800], ["Itabaianinha", 8454, 6000], ["Tomar do Geru", 1135, 2500]]}];
 
 const BASE = 'https://resultados.tse.jus.br/oficial';
+// Resultado final (100% apurado): cópia estática e idêntica dos JSON/fotos do TSE servida pelo próprio site.
+// É a fonte primária; o TSE ao vivo só é consultado se o arquivo local faltar (ex.: UF nova sem snapshot).
+const SNAP = 'tse';
+let FONTE_DADOS = 'snapshot';
 const fmtInt = new Intl.NumberFormat('pt-BR');
 const pad = (n, w) => String(n).padStart(w, '0');
 const num = s => { const v = parseFloat(String(s ?? '').replace(/\./g, '').replace(',', '.')); return isNaN(v) ? 0 : v; };
@@ -1787,7 +1792,7 @@ async function getJSON(url) {
 // Descobre o código da eleição estadual (1º turno) no config do TSE.
 async function descobrirEleicao() {
   try {
-    const cfg = await getJSON(`${BASE}/comum/config/ele-c.json`);
+    const cfg = await getJSON(`${SNAP}/comum/config/ele-c.json`).catch(() => getJSON(`${BASE}/comum/config/ele-c.json`));
     for (const pl of cfg.pl || []) {
       if (pl.c !== CONFIG.ciclo) continue;
       for (const e of pl.e || []) {
@@ -1804,13 +1809,16 @@ async function descobrirEleicao() {
 async function buscarCargo(cargo) {
   const ele = cargo.eleicao || codigoEleicao;
   const c = pad(cargo.codigo, 4), e = pad(ele, 6), uf = cargo.uf || CONFIG.uf;
+  // 1) cópia local (mesmo domínio, sem limite de requisições do TSE)
+  try { const d = normalizar(await getJSON(`${SNAP}/${CONFIG.ciclo}/${ele}/dados/${uf}/${uf}-c${c}-e${e}-u.json`)); d.__fonte = 'snapshot'; return d; }
+  catch (_) { /* sem snapshot para esta UF/cargo: tenta o TSE */ }
   const urls = [
     `${BASE}/${CONFIG.ciclo}/${ele}/dados/${uf}/${uf}-c${c}-e${e}-u.json`,
     `${BASE}/${CONFIG.ciclo}/${ele}/dados-simplificados/${uf}/${uf}-c${c}-e${e}-r.json`,
   ];
   let ultimoErro;
   for (const url of urls) {
-    try { return normalizar(await getJSON(url)); }
+    try { const d = normalizar(await getJSON(url)); d.__fonte = 'tse'; return d; }
     catch (err) { ultimoErro = err; if (err.status !== 404 && err.status !== 403) break; }
   }
   throw ultimoErro;
@@ -1922,7 +1930,8 @@ function fotoUfDe(uf, eleicao) {
 function fotoUrl(sqcand, uf, eleicao) {
   if (!sqcand) return '';
   const ele = eleicao || codigoEleicao || CONFIG.codigoEleicaoPadrao;
-  return `${BASE}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`;
+  // fotos espelhadas localmente (evita centenas de pedidos ao TSE, que respondem 429 em rajada)
+  return `${SNAP}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`;
 }
 function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
@@ -2044,7 +2053,7 @@ function renderCard(cargo) {
 
   if (st.erro) {
     const quando = st.recebidoEm ? ` Mostrando os últimos dados recebidos às ${st.recebidoEm.toLocaleTimeString('pt-BR')}.` : '';
-    card.appendChild(el('div', 'aviso-card erro', `Erro ao consultar o TSE (${st.erro}).${quando}`));
+    card.appendChild(el('div', 'aviso-card erro', `Não foi possível carregar este cargo agora. Toque em “Atualizar agora”.${quando}`));
   } else if (d && d.pst === 0 && !d.ht) {
     card.appendChild(el('div', 'aviso-card espera', 'Aguardando divulgação do TSE'));
   }
@@ -4492,7 +4501,8 @@ function renderTudo() {
 function renderStatus() {
   const algumErro = CONFIG.cargos.some(c => estado[chaveDe(c)]?.erro);
   const box = document.getElementById('status');
-  box.classList.toggle('erro', algumErro);
+  box.classList.toggle('erro', false);
+  box.classList.toggle('pendente', algumErro);
   box.classList.toggle('final', !algumErro && resultadoFinal);
   const autoHint = (typeof autoUpdateOn !== 'undefined' && autoUpdateOn)
     ? (resultadoFinal
@@ -4502,20 +4512,22 @@ function renderStatus() {
   const curto = document.getElementById('status-curto');
   if (curto) {
     curto.textContent = buscando ? 'Atualizando…'
-      : algumErro ? 'Falha no TSE'
+      : algumErro ? 'Dados em atualização'
       : resultadoFinal ? 'Resultado final'
       : (window.__pstRef != null ? (autoUpdateOn ? 'Ao vivo · ' : 'Parcial · ') + fmtPct(window.__pstRef) : 'Conectando…');
   }
   document.getElementById('status-texto').textContent = buscando
     ? 'Atualizando…'
     : algumErro
-      ? (autoUpdateOn ? `Falha ao consultar o TSE • Nova tentativa em ${segundos}s` : 'Falha ao consultar o TSE • Toque em “Atualizar agora”')
-      : autoHint;
+      ? (autoUpdateOn ? `Alguns números ainda carregando • nova tentativa em ${segundos}s` : 'Alguns números ainda carregando • toque em “Atualizar agora”')
+      : (resultadoFinal ? 'Resultado final • dados oficiais do TSE (cópia verificada)' : autoHint);
 }
 function intervaloAtual() { return resultadoFinal ? CONFIG.intervaloFinalSegundos : CONFIG.intervaloSegundos; }
 
 async function atualizar() {
-  if (buscando) return;
+  // troca de UF durante uma busca: refaz assim que a atual terminar (antes a UF nova ficava sem dados)
+  if (buscando) { atualizar._pendente = true; return; }
+  atualizar._pendente = false;
   buscando = true; renderStatus();
   try {
     if (!codigoEleicao) codigoEleicao = await descobrirEleicao();
@@ -4537,6 +4549,7 @@ async function atualizar() {
     buscando = false;
     segundos = intervaloAtual();
     renderTudo(); renderStatus(); if (typeof syncRelGlobals === 'function') syncRelGlobals();
+    if (atualizar._pendente) setTimeout(atualizar, 0);
   }
 }
 

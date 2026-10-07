@@ -19,6 +19,15 @@
     if (typeof secCandCache !== 'undefined' && secCandCache.clear) secCandCache.clear();
   }
   window.RelatoriosResetUf = resetUfCaches;
+  /* Plano (assinatura.js): sem Assinatura, relatórios só até o município (DF: zona), sem seções, com marca-d'água. */
+  function relMun() { return !(global.CMV && global.CMV.pro && global.CMV.pro()); }
+  let RELCTX = null; // { marca, licenciado, id } do relatório em geração
+  function detalheCapa(wantSec, comparativo) {
+    if (relMun()) return (comparativo ? 'Comparativo por município' : 'Detalhamento por município') + ' (versão gratuita). Zona, bairro, local de votação e seção: Assinatura.';
+    return comparativo
+      ? 'Comparativo zoneado completo (município → zona → bairro → escola' + (wantSec ? ' → seção' : '') + '). Fotos do repositório local.'
+      : 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola' + (wantSec ? ' → seção eleitoral.' : '.');
+  }
   function mapaBaseRel() {
     return (typeof window !== 'undefined' && window.MAPA_BASE) ? window.MAPA_BASE : 'mapa';
   }
@@ -137,7 +146,14 @@
     if (geoLocCache) return geoLocCache;
     const idx0 = await global.getJSON(mapaBaseRel() + '/index.json').catch(() => null);
     const gpath = (idx0 && idx0.geo) || (mapaBaseRel() + '/geo-se.json');
-    geoLocCache = await global.getJSON(gpath);
+    const base = await global.getJSON(gpath);
+    if (relMun()) {
+      // um "local" por município: os arquivos públicos m/ trazem v = [[índice do município, votos]]
+      geoLocCache = { mun: base.mun || [], loc: (base.mun || []).map((m, i) => ({ m: i, z: 0, nl: '', nm: m.nm, b: '' })), __municipal: true };
+    } else if (!(base.loc && base.loc.length)) {
+      const gl = await global.getJSON((idx0 && idx0.geoLoc) || (mapaBaseRel() + '/geo-loc-' + ufRel() + '.json'));
+      geoLocCache = Object.assign({}, base, { loc: gl.loc || [] });
+    } else geoLocCache = base;
     return geoLocCache;
   }
   async function loadMunIndex() {
@@ -146,7 +162,7 @@
     return munIdxCache;
   }
   async function loadCandFile(cargo, numero) {
-    try { return await global.getJSON(mapaBaseRel() + '/' + cargo + '/' + numero + '.json'); }
+    try { return await global.getJSON(mapaBaseRel() + (relMun() ? '/m/' : '/') + cargo + '/' + numero + '.json'); }
     catch { return null; }
   }
 
@@ -425,6 +441,7 @@
     }
     const munList = [...muns.values()].sort((a, b) => b.v - a.v);
     for (const m of munList) {
+      if (geo && geo.__municipal) { m.zonaList = []; continue; }
       m.zonaList = [...m.zonas.values()].sort((a, b) => b.v - a.v || a.z - b.z);
       for (const z of m.zonaList) {
         z.bairroList = [...z.bairros.values()].sort((a, b) => b.v - a.v || a.nm.localeCompare(b.nm, 'pt-BR'));
@@ -765,8 +782,25 @@
   function addFooterAll(doc, meta) {
     const n = doc.internal.getNumberOfPages();
     const { w, h } = pageSize(doc);
+    const ctx = RELCTX || { marca: relMun(), licenciado: null, id: null };
     for (let i = 1; i <= n; i++) {
       doc.setPage(i);
+      if (ctx.marca) {
+        // marca-d'água discreta (versão gratuita): diagonal, ~12% de opacidade
+        try {
+          doc.saveGraphicsState();
+          if (doc.GState) doc.setGState(new doc.GState({ opacity: 0.12 }));
+          doc.setFont('NotoSans', 'bold'); doc.setFontSize(46); doc.setTextColor(30, 64, 120);
+          doc.text('cademeuvoto.com.br', w / 2, h / 2, { align: 'center', angle: 35 });
+          doc.setFontSize(18);
+          doc.text('versão gratuita', w / 2 + 40, h / 2 + 50, { align: 'center', angle: 35 });
+          doc.restoreGraphicsState();
+        } catch (e) { /* jsPDF sem GState: segue sem marca */ }
+      }
+      doc.setFont('NotoSans', 'normal'); doc.setFontSize(7); doc.setTextColor(110);
+      const lic = ctx.licenciado ? 'Licenciado para ' + String(ctx.licenciado).slice(0, 60) : (ctx.marca ? 'Versão gratuita' : '');
+      const linha2 = [lic, ctx.id ? 'Relatório ' + String(ctx.id).slice(0, 8) : ''].filter(Boolean).join(' · ');
+      if (linha2) doc.text(linha2, 40, h - 12);
       doc.setFont('NotoSans', 'normal'); doc.setFontSize(8); doc.setTextColor(100);
       doc.text('Cadê Meu Voto · cademeuvoto.com.br · Fonte: TSE — resultados oficiais 2026', 40, h - 22);
       doc.text('p. ' + i + ' de ' + n, w - 40, h - 22, { align: 'right' });
@@ -983,10 +1017,10 @@
     addBookmark(doc, 'Sumário', tocPage);
   }
 
-  function reserveTocPages(doc, approxEntries) {
+  function reserveTocPages(doc, approxEntries, minPages) {
     const m = margins(); const { h } = pageSize(doc);
     const linesPer = Math.max(20, Math.floor((h - m.t - m.b - 22) / 13));
-    const need = Math.max(2, Math.ceil((approxEntries + 2) / linesPer));
+    const need = Math.max(minPages || 2, Math.ceil((approxEntries + 2) / linesPer));
     doc.addPage();
     const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
     for (let i = 1; i < need; i++) doc.addPage();
@@ -1014,9 +1048,9 @@
     const title = 'Relatório completo — ' + st.nome;
     const scope = (CARGO_NOME[cargo] || cargo) + ' · nº ' + numero + (st.partido ? ' · ' + st.partido : '') + ' · ' + ufNomeRel();
     const wantSec = opts.secoes !== false;
-    await writeCover(doc, title, scope, 'Foto local (repositório). Detalhamento completo município → zona → bairro → escola' + (wantSec ? ' → seção eleitoral.' : '.'), photo ? [photo] : []);
+    await writeCover(doc, title, scope, detalheCapa(wantSec, false), photo ? [photo] : []);
 
-    const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
+    const { tocPage, tocPageCount } = reserveTocPages(doc, relMun() ? 10 : 90, relMun() ? 1 : 2);
     const bookmarks = [];
     doc.addPage(); let y = margins().t;
     const m0 = margins();
@@ -1078,7 +1112,8 @@
       margin: { left: margins().l, right: margins().r },
     }) + 10;
 
-    for (const m of tree.munList) {
+    if (geo.__municipal) y = bodyText(doc, 'Versão gratuita: votos por município. O detalhe por zona, bairro, local de votação e seção faz parte da Assinatura (cademeuvoto.com.br/#planos).', y);
+    for (const m of (geo.__municipal ? [] : tree.munList)) {
       const nm = munNames.get(m.i) || String(m.i);
       y = sectionTitle(doc, 'Município: ' + nm + ' (' + fmtN(m.v) + ')', y, bookmarks, 'mun-' + m.i);
       munPageMap.set(m.i, doc.internal.getCurrentPageInfo().pageNumber);
@@ -1128,9 +1163,9 @@
     const title = 'Comparativo — ' + stA.nome + ' × ' + stB.nome;
     const scope = (CARGO_NOME[cargo] || cargo) + ' · ' + aN + ' vs ' + bN + ' · ' + ufNomeRel();
     const wantSec = opts.secoes !== false;
-    await writeCover(doc, title, scope, 'Comparativo zoneado completo (município → zona → bairro → escola' + (wantSec ? ' → seção' : '') + '). Fotos do repositório local.', [photoA, photoB].filter(Boolean));
+    await writeCover(doc, title, scope, detalheCapa(wantSec, true), [photoA, photoB].filter(Boolean));
 
-    const { tocPage, tocPageCount } = reserveTocPages(doc, 90);
+    const { tocPage, tocPageCount } = reserveTocPages(doc, relMun() ? 10 : 90, relMun() ? 1 : 2);
     const bookmarks = [];
     doc.addPage(); let y = margins().t;
     const m = margins();
@@ -1214,8 +1249,9 @@
       margin: { left: margins().l, right: margins().r },
     }) + 14;
 
-    // Full drill-down per município
-    for (const r of cmpRows) {
+    // Full drill-down per município (só na Assinatura)
+    if (relMun()) y = bodyText(doc, 'Versão gratuita: comparativo por município. O detalhe por zona, bairro, local de votação e seção faz parte da Assinatura (cademeuvoto.com.br/#planos).', y);
+    for (const r of (relMun() ? [] : cmpRows)) {
       y = sectionTitle(doc, r.nm + ' — A ' + fmtN(r.a) + ' · B ' + fmtN(r.b) + ' · Δ ' + fmtN(r.d), y, bookmarks, 'mun-' + r.i, 70);
       y = backLink(doc, y, tocPage);
 
@@ -1426,6 +1462,7 @@
     } else if (t === 'custom') {
       // custom decide abaixo em generate
     }
+    if (relMun()) s.options = Object.assign({}, s.options || {}, { secoes: false });
     return s;
   }
 
@@ -1448,16 +1485,112 @@
     return String(s || 'relatorio').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '_').replace(/_+/g, '_').slice(0, 80);
   }
 
-  async function generateAndDownload(spec) {
-    const s = normalizeSpec(spec);
-    const doc = await generate(s);
+  function relTag(s) {
     let tag = s.template || 'resumo';
     if (s.template === 'comparar' && s.a && s.b) tag = 'comparar_' + s.a + '_vs_' + s.b;
     else if (s.template === 'candidato' && (s.numero || s.n)) tag = 'candidato_' + (s.numero || s.n);
     else if (s.template === 'municipio' && (s.cd || s.mun)) tag = 'municipio_' + (s.cd || s.mun);
-    const fname = safeFilename('relatorio_' + ufRel() + '_' + tag) + '.pdf';
-    doc.save(fname);
-    return { doc, filename: fname, spec: s };
+    return safeFilename('relatorio_' + ufRel() + '_' + tag);
+  }
+  /** Reserva 1 relatório na cota (API), gera e baixa. Falha na geração devolve o crédito. */
+  async function comCota(spec, formatos, fn) {
+    const C = global.CMV;
+    if (C) await C.ready;
+    const s0 = normalizeSpec(spec);
+    let ctx = { marca: relMun(), licenciado: null, id: null };
+    if (C) {
+      const r = await C.iniciarRelatorio(s0, formatos); // pede login / mostra aviso de plano quando preciso
+      ctx = { marca: !!r.marca_dagua, licenciado: r.licenciado_para || null, id: r.id };
+    }
+    const s = normalizeSpec(spec); // o plano pode ter mudado no login
+    RELCTX = ctx;
+    try { const out = await fn(s, ctx); if (C) C.concluir(ctx.id); return out; }
+    catch (e) { if (C) C.falhou(ctx.id); throw e; }
+    finally { RELCTX = null; }
+  }
+  async function generateAndDownload(spec) {
+    return comCota(spec, ['pdf'], async (s) => {
+      const doc = await generate(s);
+      const fname = relTag(s) + '.pdf';
+      doc.save(fname);
+      return { doc, filename: fname, spec: s };
+    });
+  }
+
+  /* ---------- Excel (somente Assinatura) ---------- */
+  async function buildExcelBook(s) {
+    const X = await global.CMV.loadXlsx();
+    const wb = X.utils.book_new();
+    const munIdx = await loadMunIndex();
+    const munNm = new Map((munIdx.muns || []).map(m => [m.i, m.nm]));
+    const add = (nome, rows) => X.utils.book_append_sheet(wb, X.utils.aoa_to_sheet(rows), nome.slice(0, 31));
+    const info = [['Cadê Meu Voto — cademeuvoto.com.br'], ['Fonte: TSE — resultados oficiais 2026'], ['UF', ufRel().toUpperCase()],
+      ['Licenciado para', (RELCTX && RELCTX.licenciado) || ''], ['Relatório', (RELCTX && RELCTX.id) || ''], ['Gerado em', new Date().toLocaleString('pt-BR')]];
+    const t = s.template === 'custom' ? ((s.a && s.b) ? 'comparar' : ((s.numero || s.n || s.a) ? 'candidato' : (s.cd || s.mun ? 'municipio' : 'resumo'))) : s.template;
+    const cargo = String(s.cargo || s.c || '7');
+    const wantSec = !(s.options && s.options.secoes === false);
+    const linhasLocais = (tree, rotulo) => {
+      const rows = [['Município', 'Zona', 'Bairro', 'Nº local', 'Local de votação', 'Votos' + (rotulo ? ' ' + rotulo : '')]];
+      for (const m of tree.munList) for (const z of m.zonaList) for (const b of z.bairroList) for (const e of b.escolaList) rows.push([munNm.get(m.i) || m.i, z.z, b.nm, e.nl, e.nm, e.v]);
+      return rows;
+    };
+    if (t === 'candidato') {
+      const numero = String(s.numero || s.n || s.a || '');
+      await ensureCargoEstado(cargo);
+      const st = candState(cargo, numero);
+      info.push(['Candidato', st.nome], ['Número', numero], ['Cargo', CARGO_NOME[cargo] || cargo], ['Partido', st.partido || '']);
+      add('Info', info);
+      const geo = await loadGeoLoc();
+      const tree = buildVoteTree(geo, await loadCandFile(cargo, numero) || { v: [] });
+      add('Municípios', [['Município', 'Votos']].concat(tree.munList.map(m => [munNm.get(m.i) || m.i, m.v])));
+      add('Locais de votação', linhasLocais(tree));
+      if (wantSec) {
+        const [meta, sc] = await Promise.all([loadSecaoMeta(), loadSecaoCand(cargo, numero)]);
+        if (meta && sc) {
+          const rows = [['Município', 'Zona', 'Nº local', 'Local de votação', 'Seção', 'Aptos', 'Comparecimento', 'Votos']];
+          for (const [si, v] of sc.m) { const r = meta.s[si]; if (!r) continue; const L = geo.loc[r[0]] || {}; rows.push([munNm.get(L.m) || L.m, L.z, L.nl, L.nm, r[1], r[2], r[3], v]); }
+          add('Seções', rows);
+        }
+      }
+    } else if (t === 'comparar') {
+      await ensureCargoEstado(cargo);
+      const stA = candState(cargo, s.a), stB = candState(cargo, s.b);
+      info.push(['Candidato A', stA.nome + ' (' + s.a + ')'], ['Candidato B', stB.nome + ' (' + s.b + ')'], ['Cargo', CARGO_NOME[cargo] || cargo]);
+      add('Info', info);
+      const geo = await loadGeoLoc();
+      const tA = buildVoteTree(geo, await loadCandFile(cargo, s.a) || { v: [] });
+      const tB = buildVoteTree(geo, await loadCandFile(cargo, s.b) || { v: [] });
+      const ids = new Set([...tA.byI.keys(), ...tB.byI.keys()]);
+      add('Municípios', [['Município', 'Votos A', 'Votos B', 'Diferença (A−B)']].concat([...ids].map(i => { const a = (tA.byI.get(i) || {}).v || 0, b = (tB.byI.get(i) || {}).v || 0; return [munNm.get(i) || i, a, b, a - b]; }).sort((x, y) => (y[1] + y[2]) - (x[1] + x[2]))));
+      add('Locais A', linhasLocais(tA, 'A'));
+      add('Locais B', linhasLocais(tB, 'B'));
+    } else if (t === 'municipio') {
+      const mun = (munIdx.muns || []).find(m => String(m.cd) === String(s.cd || s.mun));
+      info.push(['Município', mun ? mun.nm : '']);
+      add('Info', info);
+      const md = mun ? await global.getJSON(mapaBaseRel() + '/mun/' + mun.cd + '.json').catch(() => null) : null;
+      for (const cg of ['3', '5', '1', '6', '7']) {
+        const rows = (md && md.cargos && md.cargos[cg]) || [];
+        if (rows.length) add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos no município', 'Total ' + ufRel().toUpperCase()]].concat(rows.map(r => [r.n, r.nm, r.sg, r.v, r.t])));
+      }
+    } else {
+      add('Info', info);
+      const idx = await global.getJSON(mapaBaseRel() + '/index.json');
+      for (const cg of ['3', '5', '1', '6', '7']) {
+        const lst = (idx.cargos && idx.cargos[cg]) || [];
+        if (lst.length) add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos']].concat(lst.map(c => [c.n, c.nm, c.sg, Number(c.t) || 0]).sort((a, b) => b[3] - a[3])));
+      }
+    }
+    return { X, wb };
+  }
+  async function excelAndDownload(spec) {
+    if (relMun()) { if (global.CMV) global.CMV.paywall('excel'); const e = new Error('Excel é exclusivo da Assinatura.'); e.cancelado = true; throw e; }
+    return comCota(spec, ['xlsx'], async (s) => {
+      const { X, wb } = await buildExcelBook(s);
+      const fname = relTag(s) + '.xlsx';
+      X.writeFile(wb, fname, { compression: true });
+      return { filename: fname, spec: s };
+    });
   }
 
   /* ---------- Hash / UI ---------- */
@@ -1553,7 +1686,8 @@
     const blocks = root.querySelector('#rel-blocks');
     if (blocks) blocks.hidden = !(mode === 'custom' || mode === 'resumo');
     const sw = root.querySelector('#rel-secoes-wrap');
-    if (sw) sw.hidden = mode === 'resumo';
+    const xb = root.querySelector('#rel-xlsx-btn'); if (xb) xb.textContent = relMun() ? 'Baixar Excel (Assinatura)' : 'Baixar Excel';
+    if (sw) sw.hidden = mode === 'resumo' || relMun();
   }
 
   function updateHashFromUI(root) {
@@ -1902,14 +2036,15 @@
       const svg = buildChoroplethSVG(geojson, valueByI, { w: 480, h: 360, title: st.nome + ' (quantis)', mode: 'seq', munNames });
       return '<div class="rel-exec-cards">' + candCardHtml('Candidato', st, spec.cargo, numero) + '</div>'
         + '<div class="rel-maps">' + svg + '</div>'
-        + '<p class="meta">PDF completo: mapa + município → zona → bairro → escola' + (spec.options && spec.options.secoes === false ? '' : ' → seção (aptos, comparecimento, votos)') + '.</p>';
+        + (relMun() ? '<p class="meta">PDF da versão gratuita: mapa + votos por município (com marca-d’água). Zona, bairro, local e seção: <a href="#planos">Assinatura</a>.</p>'
+          : '<p class="meta">PDF completo: mapa + município → zona → bairro → escola' + (spec.options && spec.options.secoes === false ? '' : ' → seção (aptos, comparecimento, votos)') + '.</p>');
     }
     if (t === 'municipio' && (spec.cd || spec.mun)) {
       const cd = spec.cd || spec.mun;
       const idx = await loadMunIndex();
       const mun = (idx.muns || []).find(m => String(m.cd) === String(cd));
       return '<p><strong>Município:</strong> ' + (mun ? mun.nm : cd) + ' <span class="meta">(código ' + cd + ')</span></p>'
-        + '<p class="meta">O PDF lista os mais votados por cargo neste município' + (spec.options && spec.options.secoes === false ? '' : ' e todas as seções eleitorais por local de votação (aptos, comparecimento, abstenção, 1º e 2º para Governador)') + '.</p>';
+        + '<p class="meta">O PDF lista os mais votados por cargo neste município' + (relMun() || (spec.options && spec.options.secoes === false) ? '' : ' e todas as seções eleitorais por local de votação (aptos, comparecimento, abstenção, 1º e 2º para Governador)') + '.</p>';
     }
     // resumo
     await ensureCargoEstado(7);
@@ -2012,6 +2147,7 @@
         '<div class="rel-actions">',
         '<button type="button" class="btn-mapa" id="rel-preview-btn">Atualizar prévia</button>',
         '<button type="button" class="btn-mapa" id="rel-pdf-btn">Gerar PDF</button>',
+        '<button type="button" class="btn-mapa" id="rel-xlsx-btn" title="Planilha Excel (Assinatura)">Baixar Excel</button>',
         '</div>',
         '<div id="rel-preview" class="rel-preview">Escolha um modelo e atualize a prévia.</div>',
         '</section>'
@@ -2057,7 +2193,24 @@
           root.querySelector('#rel-preview-btn').click();
         } catch (e) {
           console.error(e);
-          root.querySelector('#rel-preview').textContent = 'Erro: ' + (e.message || e);
+          root.querySelector('#rel-preview').textContent = e && e.cancelado ? (e.message || 'Cancelado.') : 'Erro: ' + (e.message || e);
+        } finally { btn.disabled = false; }
+      });
+
+      root.querySelector('#rel-xlsx-btn').addEventListener('click', async () => {
+        const btn = root.querySelector('#rel-xlsx-btn');
+        const spec = collectUISpec(root);
+        if (spec.template === 'comparar' && (!spec.a || !spec.b)) { root.querySelector('#rel-preview').textContent = 'Selecione candidatos A e B.'; return; }
+        if (spec.template === 'candidato' && !(spec.numero || spec.n)) { root.querySelector('#rel-preview').textContent = 'Selecione um candidato.'; return; }
+        if (spec.template === 'municipio' && !(spec.cd || spec.mun)) { root.querySelector('#rel-preview').textContent = 'Selecione um município.'; return; }
+        btn.disabled = true;
+        root.querySelector('#rel-preview').textContent = 'Gerando Excel…';
+        try {
+          const { filename } = await excelAndDownload(spec);
+          root.querySelector('#rel-preview').textContent = 'Excel gerado: ' + filename;
+        } catch (e) {
+          console.error(e);
+          root.querySelector('#rel-preview').textContent = e && e.cancelado ? (e.message || 'Cancelado.') : 'Erro: ' + (e.message || e);
         } finally { btn.disabled = false; }
       });
     }
@@ -2101,8 +2254,9 @@
     if (root) applySpecToUI(root, hs);
   }
 
+  function resetPlano() { resetUfCaches(); const r = document.getElementById('grid-relatorios'); if (r && r.dataset.uf) syncModePanels(r); }
   global.Relatorios = {
-    generate, generateAndDownload, openInPanel, bootUI, parseRelHash, buildRelHash,
+    generate, generateAndDownload, excelAndDownload, resetPlano, openInPanel, bootUI, parseRelHash, buildRelHash,
     applySpecToUI, applyHashFromLocation, BLOCKS, CARGO_NOME,
     buildChoroplethSVG, buildVoteTree, // exposed for mapa panel reuse
     loadSecaoMeta, loadSecaoCand,

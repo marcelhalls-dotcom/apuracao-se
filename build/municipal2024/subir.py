@@ -42,7 +42,9 @@ def listar(bucket, prefix):
 def md5b(b): return hashlib.md5(b).hexdigest()
 
 def put(bucket, key, body):
-    client().put_object(Bucket=bucket, Key=key, Body=body, ContentType='application/json; charset=utf-8', CacheControl=CC[bucket])
+    cc = CC[bucket]
+    if bucket == BUCKET_PUB and key.endswith('/index.json'): cc = 'public, max-age=300, stale-while-revalidate=3600'   # índices mudam a cada UF
+    client().put_object(Bucket=bucket, Key=key, Body=body, ContentType='application/json; charset=utf-8', CacheControl=cc)
 
 def subir_dir(bucket, base, prefix, dry=False):
     assert prefix.split('/')[0] in (PREFIX, 'e2026') and prefix.endswith('/') and prefix.count('/') >= 2

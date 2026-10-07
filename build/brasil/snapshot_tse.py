@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Snapshot TSE resultados (JSON + fotos) para site/tse/ (espelho de resultados.tse.jus.br/oficial/).
-Uso: snapshot_tse.py ce ma ...   — retry/backoff exponencial, 6 threads, nunca sobrescreve foto existente.
+Uso: snapshot_tse.py ce ma ...   — retry/backoff exponencial (respeita Retry-After), poucas threads (CMV_TSE_THREADS, padrão 3)
+e pausa entre pedidos (CMV_TSE_PAUSA, padrão 0.25 s) para não sobrecarregar o TSE; nunca sobrescreve foto existente.
 Também grava cópias em /tmp/tse-{uf}/api/ para o build_uf_mapa.py."""
 import json, os, sys, time, random, shutil, urllib.request, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 SITE = os.environ.get('CMV_SITE') or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))  # raiz do repo (ou CMV_SITE)
 BASE = 'https://resultados.tse.jus.br/oficial'
+THREADS = int(os.environ.get('CMV_TSE_THREADS', '3')); PAUSA = float(os.environ.get('CMV_TSE_PAUSA', '0.25'))
 UA = {'User-Agent': 'Mozilla/5.0 (cademeuvoto snapshot)', 'Accept': '*/*'}
 
 def get(url, tries=8):
@@ -13,7 +15,9 @@ def get(url, tries=8):
     for t in range(tries):
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=40) as r:
-                return r.read()
+                b = r.read()
+            time.sleep(PAUSA * (0.5 + random.random()))
+            return b
         except urllib.error.HTTPError as e:
             if e.code == 404: raise
             ra = e.headers.get('Retry-After') if e.headers else None
@@ -48,7 +52,7 @@ def snap(uf):
         try: save(rel, get(f'{BASE}/{rel}')); return 'ok'
         except urllib.error.HTTPError as e: miss.append((sq, e.code)); return 'miss'
         except Exception as e: miss.append((sq, str(e))); return 'miss'
-    with ThreadPoolExecutor(6) as ex: res = list(ex.map(foto, sqs))
+    with ThreadPoolExecutor(THREADS) as ex: res = list(ex.map(foto, sqs))
     print(uf, 'json ok; fotos', len(sqs), {k: res.count(k) for k in set(res)}, 'faltando', miss[:5])
 
 for uf in [a.lower() for a in sys.argv[1:]]: snap(uf)

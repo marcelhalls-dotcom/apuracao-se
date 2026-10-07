@@ -637,6 +637,8 @@
     }
 
     let paths = '';
+    // contorno mais fino em UFs com muitos municípios (MG 853, SP 645) para o mapa não ficar "riscado"
+    const nF = geojson.features.length, sw = nF > 600 ? 0.16 : nF > 300 ? 0.25 : 0.45;
     for (const f of geojson.features) {
       const i = f.properties.i;
       let fill = '#e2e8f0';
@@ -660,7 +662,7 @@
       }
       const d = geomPath(f.geometry, proj);
       const tip = (f.properties.nm || '') + ': ' + fmtN(v);
-      paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="0.45" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></path>`;
+      paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="${sw}" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></path>`;
     }
 
     let labels = '';

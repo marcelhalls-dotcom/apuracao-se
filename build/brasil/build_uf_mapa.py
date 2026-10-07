@@ -14,7 +14,8 @@ SITE = os.environ.get('CMV_SITE') or os.path.abspath(os.path.join(os.path.dirnam
 OUT = os.path.join(SITE, 'mapa', uf)
 RAW = f'/tmp/tse-{uf}'
 API = os.path.join(RAW, 'api')
-IBGE_UF = {'AL': 27, 'SE': 28, 'BA': 29, 'PE': 26, 'CE': 23, 'MA': 21, 'PB': 25, 'PI': 22, 'RN': 24}.get(UF)
+IBGE_UF = {'AL': 27, 'SE': 28, 'BA': 29, 'PE': 26, 'CE': 23, 'MA': 21, 'PB': 25, 'PI': 22, 'RN': 24,
+           'ES': 32, 'RJ': 33, 'MG': 31, 'SP': 35}.get(UF)
 assert IBGE_UF, f'IBGE code missing for {UF}'
 
 os.makedirs(OUT, exist_ok=True)
@@ -209,15 +210,19 @@ mun_idx = {
 open(os.path.join(OUT, 'mun-index.json'), 'w').write(dumps(mun_idx))
 
 # ---------- detalhe: build sec order + aptos/comparecimento ----------
+# Guardamos só os números usados (aptos, comparecimento, brancos, nulos, legenda) por cargo — cabe SP/MG em memória.
 DET = os.path.join(RAW, f'detalhe_votacao_secao_2026_{UF}.csv')
-det = {}  # (cd,z,s) -> {cargo: row}
-with open(DET, encoding='latin1') as f:
-    for r in csv.DictReader(f, delimiter=';'):
-        if r['SG_UF'] != UF: continue
-        k = (ncd(r['CD_MUNICIPIO']), int(r['NR_ZONA']), int(r['NR_SECAO']))
-        det.setdefault(k, {})[r['CD_CARGO']] = r
-        nl = str(int(r['NR_LOCAL_VOTACAO']))
-        lk = (ncd(r['CD_MUNICIPIO']), int(r['NR_ZONA']), nl)
+det = {}  # (cd,z,s) -> {cargo: [aptos, comp, brancos, nulos, legenda]}
+with open(DET, encoding='latin1', newline='') as f:
+    rd = csv.reader(f, delimiter=';'); H = {h: i for i, h in enumerate(next(rd))}
+    iU, iM, iZ, iS, iC, iL = H['SG_UF'], H['CD_MUNICIPIO'], H['NR_ZONA'], H['NR_SECAO'], H['CD_CARGO'], H['NR_LOCAL_VOTACAO']
+    iA, iCo, iB, iN, iLe = H['QT_APTOS'], H['QT_COMPARECIMENTO'], H['QT_VOTOS_BRANCOS'], H['QT_VOTOS_NULOS'], H['QT_VOTOS_LEGENDA']
+    num = lambda x: int(x or 0)
+    for r in rd:
+        if r[iU] != UF: continue
+        cd = ncd(r[iM]); k = (cd, int(r[iZ]), int(r[iS]))
+        det.setdefault(k, {})[r[iC]] = [num(r[iA]), num(r[iCo]), num(r[iB]), num(r[iN]), num(r[iLe])]
+        lk = (cd, int(r[iZ]), str(int(r[iL])))
         if lk in loc_i:
             sec_loc[k] = loc_i[lk]
 
@@ -226,23 +231,13 @@ sec_keys = sorted(det.keys(), key=lambda k: (sec_loc.get(k, 10**9), k[0], k[1], 
 for i, k in enumerate(sec_keys):
     sec_i[k] = i
 
-# secoes.json rows: [loc, secao, aptos, comparecimento] using cargo 3 (gov) as ref; also pres
+# secoes.json rows: [loc, secao, aptos, comparecimento] using cargo 3 (gov) as ref
 rows = []
-pres_rows = []
 for k in sec_keys:
     li = sec_loc.get(k)
     if li is None: continue
     d3 = det[k].get('3') or next(iter(det[k].values()))
-    apt = int(d3.get('QT_APTOS') or 0)
-    comp = int(d3.get('QT_COMPARECIMENTO') or 0)
-    rows.append([li, k[2], apt, comp])
-    d1 = det[k].get('1')
-    if d1:
-        pres_rows.append([li, k[2], int(d1.get('QT_APTOS') or apt), int(d1.get('QT_COMPARECIMENTO') or comp)])
-
-# President sections may only be in BR detalhe — if missing, reuse estadual aptos
-if not any('1' in det[k] for k in sec_keys[:50]):
-    pres_rows = rows  # same section universe
+    rows.append([li, k[2], d3[0], d3[1]])
 
 secoes = {
     'fonte': f'TSE votacao_secao_2026_{UF} + detalhe_votacao_secao_2026 (1º turno)',
@@ -257,50 +252,66 @@ for c in ('1', '3', '5', '6', '7'):
     arr = []
     for k in sec_keys:
         r = det[k].get(c)
-        if not r:
-            arr.append([0, 0, 0])
-        else:
-            arr.append([
-                int(r.get('QT_VOTOS_BRANCOS') or 0),
-                int(r.get('QT_VOTOS_NULOS') or 0),
-                int(r.get('QT_VOTOS_LEGENDA') or 0),
-            ])
+        arr.append([0, 0, 0] if not r else [r[2], r[3], r[4]])
     open(os.path.join(OUT, 'secao', f'det-{c}.json'), 'w').write(dumps(arr))
-print('secoes', len(rows))
+print('secoes', len(rows), flush=True)
+n_secoes_det = len(sec_keys)
+del det
 
-# ---------- aggregate votes ----------
+# ---------- aggregate votes (numpy; memória ~12 bytes por linha do CSV) ----------
+import numpy as np
+from array import array
 VOT_FILES = [
     os.path.join(RAW, 'votacao', f'votacao_secao_2026_{UF}.csv'),
     os.path.join(RAW, f'votacao_secao_2026_pres_{UF}.csv'),
 ]
-# votes_loc[(c,n)][loc_idx] = v
-# votes_sec[(c,n)][sec_idx] = v
-votes_loc = collections.defaultdict(lambda: collections.defaultdict(int))
-votes_sec = collections.defaultdict(lambda: collections.defaultdict(int))
-votes_mun = collections.defaultdict(lambda: collections.defaultdict(int))  # (c,n)-> mun_i -> v
-
+cand_keys = [(c, meta['n']) for c in ('1', '3', '5', '6', '7') for meta in CANDS[c]]
+cand_id = {ck: i for i, ck in enumerate(cand_keys)}
+A_cid, A_si, A_v = array('i'), array('i'), array('i')
 missing_sec = 0
 for fn in VOT_FILES:
     if not os.path.exists(fn):
         print('SKIP missing', fn); continue
-    with open(fn, encoding='latin1') as f:
-        for r in csv.DictReader(f, delimiter=';'):
-            if r.get('SG_UF') and r['SG_UF'] != UF: continue
-            c, n = r['CD_CARGO'], str(r['NR_VOTAVEL'])
-            if n not in wanted.get(c, ()): continue
-            k = (ncd(r['CD_MUNICIPIO']), int(r['NR_ZONA']), int(r['NR_SECAO']))
-            v = int(r['QT_VOTOS'])
-            si = sec_i.get(k)
+    with open(fn, encoding='latin1', newline='') as f:
+        rd = csv.reader(f, delimiter=';'); H = {h: i for i, h in enumerate(next(rd))}
+        iU, iM, iZ, iS, iC, iN, iV = H['SG_UF'], H['CD_MUNICIPIO'], H['NR_ZONA'], H['NR_SECAO'], H['CD_CARGO'], H['NR_VOTAVEL'], H['QT_VOTOS']
+        for r in rd:
+            if r[iU] and r[iU] != UF: continue
+            ci = cand_id.get((r[iC], r[iN]))
+            if ci is None: continue
+            si = sec_i.get((ncd(r[iM]), int(r[iZ]), int(r[iS])))
             if si is None:
                 missing_sec += 1
                 continue
-            votes_sec[(c, n)][si] += v
-            li = sec_loc.get(k)
-            if li is not None:
-                votes_loc[(c, n)][li] += v
-                votes_mun[(c, n)][geo_loc[li]['m']] += v
-
+            A_cid.append(ci); A_si.append(si); A_v.append(int(r[iV]))
+    print('lido', os.path.basename(fn), len(A_v), flush=True)
 print('missing_sec rows', missing_sec)
+
+cid = np.frombuffer(A_cid, dtype=np.int32).astype(np.int64); si_a = np.frombuffer(A_si, dtype=np.int32).astype(np.int64)
+v_a = np.frombuffer(A_v, dtype=np.int32).astype(np.int64)
+loc_of_sec = np.full(n_secoes_det, -1, dtype=np.int64)
+for k, i in sec_i.items():
+    li = sec_loc.get(k)
+    if li is not None: loc_of_sec[i] = li
+mun_of_loc = np.array([L['m'] for L in geo_loc], dtype=np.int64)
+NS, NL, NM = n_secoes_det, max(1, len(geo_loc)), max(1, len(geo_mun))
+
+def group_sum(keys, vals):
+    u, inv = np.unique(keys, return_inverse=True)
+    return u, np.bincount(inv, weights=vals).astype(np.int64)
+
+# (cand, seção) / (cand, local) / (cand, município) somados; ordenados por cand e depois por índice
+sk, sv = group_sum(cid * NS + si_a, v_a)
+li_a = loc_of_sec[si_a]; okl = li_a >= 0
+lk_, lv_ = group_sum(cid[okl] * NL + li_a[okl], v_a[okl])
+mk_, mv_ = group_sum(cid[okl] * NM + mun_of_loc[li_a[okl]], v_a[okl])
+del cid, si_a, v_a, li_a, okl, A_cid, A_si, A_v
+
+def by_cand(keys, vals, base):
+    c_of = keys // base; idx = keys % base
+    bounds = np.searchsorted(c_of, np.arange(len(cand_keys) + 1))
+    return lambda ci: [[int(i), int(v)] for i, v in zip(idx[bounds[ci]:bounds[ci + 1]], vals[bounds[ci]:bounds[ci + 1]]) if v]
+sec_of, loc_of, mun_pairs_of = by_cand(sk, sv, NS), by_cand(lk_, lv_, NL), by_cand(mk_, mv_, NM)
 
 # write candidate files + index
 PRES_E = {}
@@ -308,17 +319,17 @@ for fn in os.listdir(os.path.join(SITE, 'mapa', 'pe', '1')):
     PRES_E[fn[:-5]] = json.load(open(os.path.join(SITE, 'mapa', 'pe', '1', fn))).get('e', [])
 idx_cargos = {}
 problems = []
+votes_mun = {}  # (c,n) -> {mun_i: v}
 for c in ('1', '3', '5', '6', '7'):
     lst = []
     for meta in CANDS[c]:
-        n = meta['n']
-        loc_pairs = sorted(([i, v] for i, v in votes_loc[(c, n)].items() if v), key=lambda x: x[0])
-        sec_pairs = sorted(([i, v] for i, v in votes_sec[(c, n)].items() if v), key=lambda x: x[0])
+        n = meta['n']; ci = cand_id[(c, n)]
+        loc_pairs = loc_of(ci)
+        sec_pairs = sec_of(ci)
+        votes_mun[(c, n)] = dict(mun_pairs_of(ci))
         tot = sum(v for _, v in loc_pairs)
         ref = meta['t']
-        # President: API t is UF total; same for others
         if abs(tot - ref) > 1 and c != '1':
-            # allow tiny drift; record
             if abs(tot - ref) > 5:
                 problems.append((c, n, tot, ref))
         obj = {'c': int(c), 'n': n, 'nm': meta['nm'], 'sg': meta['sg'], 't': tot, 'v': loc_pairs}
@@ -342,13 +353,16 @@ for c in ('1', '3', '5', '6', '7'):
     if c == '1': lst.sort(key=lambda x: -x['tse'])
     idx_cargos[c] = lst
 
+meta_idx = dict(CANDS.get('_meta') or {})
+# contagens p/ o painel da home (evita baixar geo-<uf>.json só para contar municípios/locais)
+meta_idx['nmun'] = len(geo_mun); meta_idx['nloc'] = len(geo_loc)
 index = {
     'geo': f'mapa/{uf}/geo-{uf}.json',
     'munGeo': f'mapa/{uf}/{uf}-mun.geojson',
     'formato': 'compact-v2',
     'gerado': '2026-10-07',
     'uf': UF,
-    'meta': CANDS.get('_meta') or {},
+    'meta': meta_idx,
     'nota': f'Arquivos compactos UF={UF}: votos por local. UI agrega município/zona/bairro/seção.',
     'cargos': idx_cargos,
 }
@@ -379,3 +393,5 @@ print('DONE', OUT)
 # size
 import subprocess
 subprocess.check_call(['du', '-sh', OUT])
+import resource
+print('pico de memória (MB)', resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024)

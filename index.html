@@ -1474,7 +1474,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261007r2"></script>
+<script src="relatorios.js?v=20261007s1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1548,10 +1548,10 @@ const UF_REGISTRY = {
   ba: { code: 'ba', nome: 'Bahia', prep: 'da', em: 'na', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', prep: 'do', em: 'no', status: 'ready', capital: 'Fortaleza', fed: 22, est: 46, ale: 'ALECE' },
   df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
-  es: { code: 'es', nome: 'Espírito Santo', status: 'soon' },
+  es: { code: 'es', nome: 'Espírito Santo', prep: 'do', em: 'no', status: 'ready', capital: 'Vitória', fed: 10, est: 30, ale: 'Ales' },
   go: { code: 'go', nome: 'Goiás', status: 'soon' },
   ma: { code: 'ma', nome: 'Maranhão', prep: 'do', em: 'no', status: 'ready', capital: 'São Luís', fed: 18, est: 42, ale: 'ALEMA' },
-  mg: { code: 'mg', nome: 'Minas Gerais', status: 'soon' },
+  mg: { code: 'mg', nome: 'Minas Gerais', prep: 'de', em: 'em', status: 'soon' },
   ms: { code: 'ms', nome: 'Mato Grosso do Sul', status: 'soon' },
   mt: { code: 'mt', nome: 'Mato Grosso', status: 'soon' },
   pa: { code: 'pa', nome: 'Pará', status: 'soon' },
@@ -1559,13 +1559,13 @@ const UF_REGISTRY = {
   pe: { code: 'pe', nome: 'Pernambuco', status: 'ready', capital: 'Recife', fed: 25, est: 49, ale: 'ALEPE' },
   pi: { code: 'pi', nome: 'Piauí', prep: 'do', em: 'no', status: 'ready', capital: 'Teresina', fed: 10, est: 30, ale: 'ALEPI' },
   pr: { code: 'pr', nome: 'Paraná', status: 'soon' },
-  rj: { code: 'rj', nome: 'Rio de Janeiro', status: 'soon' },
+  rj: { code: 'rj', nome: 'Rio de Janeiro', prep: 'do', em: 'no', status: 'soon' },
   rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
   ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
   rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
   rs: { code: 'rs', nome: 'Rio Grande do Sul', status: 'soon' },
   sc: { code: 'sc', nome: 'Santa Catarina', status: 'soon' },
-  sp: { code: 'sp', nome: 'São Paulo', status: 'soon' },
+  sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'soon' },
   to: { code: 'to', nome: 'Tocantins', status: 'soon' },
 };
 const UF_ORDER = ['se','al','ba','pe','ce','pb','rn','pi','ma','sp','mg','rj','es','pr','sc','rs','go','df','mt','ms','pa','am','ac','ro','rr','ap','to'];
@@ -1619,7 +1619,18 @@ const UF_DESTAQUES = {
   pb: { gov: [{ nome: 'Lucas Ribeiro', numero: 11 }, { nome: 'Efraim Filho', numero: 22 }], sen: [{ nome: 'João Azevêdo', numero: 400 }, { nome: 'Veneziano', numero: 155 }] },
   pi: { gov: [{ nome: 'Rafael Fonteles', numero: 13 }, { nome: 'Joel Rodrigues', numero: 11 }], sen: [{ nome: 'Marcelo Castro', numero: 151 }, { nome: 'Júlio César', numero: 555 }] },
   rn: { gov: [{ nome: 'Allyson', numero: 44 }, { nome: 'Cadu de Lula', numero: 13 }], sen: [{ nome: 'Styvenson Valentim', numero: 200 }, { nome: 'Samanda de Lula', numero: 131 }] },
+  es: { gov: [{ nome: 'Lorenzo Pazolini', numero: 10 }, { nome: 'Ricardo Ferraço', numero: 15 }], sen: [{ nome: 'Renato Casagrande', numero: 400 }, { nome: 'Evair de Melo', numero: 100 }] },
 };
+/** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
+function ufCobertura() {
+  const ready = c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready';
+  const REG = [['todo o Nordeste', ['al','ba','pe','ce','ma','pb','pi','rn']], ['todo o Sudeste', ['es','rj','mg','sp']]];
+  let rest = UF_ORDER.filter(c => c !== 'se' && ready(c));
+  const parts = [];
+  for (const [txt, ufs] of REG) if (ufs.every(ready)) { parts.push(txt); rest = rest.filter(c => !ufs.includes(c)); }
+  rest.forEach(c => parts.push(UF_REGISTRY[c].nome));
+  return parts.length > 1 ? parts.slice(0, -1).join(', ') + ' e ' + parts[parts.length - 1] : (parts[0] || '');
+}
 /** "Alagoas, Bahia e Pernambuco" a partir das UFs prontas (exceto SE). */
 function ufListaProntas() {
   const n = UF_ORDER.filter(c => c !== 'se' && UF_REGISTRY[c].status === 'ready').map(c => UF_REGISTRY[c].nome);
@@ -1707,7 +1718,7 @@ function paintUfChrome() {
   const m = ufMeta(currentUf);
   const eye = document.getElementById('hero-eyebrow');
   if (eye) eye.textContent = currentUf === 'se'
-    ? ('Eleições 2026 · Sergipe (referência) · ' + (['al','ba','pe','ce','ma','pb','pi','rn'].every(c => UF_REGISTRY[c].status === 'ready') ? 'todo o Nordeste' : ufListaProntas()) + ' · mais estados em breve')
+    ? ('Eleições 2026 · Sergipe (referência) · ' + ufCobertura() + ' · mais estados em breve')
     : `Eleições 2026 · ${m.nome} · Dados oficiais do TSE`;
   const title = document.getElementById('hero-panel-title');
   if (title) title.innerHTML = `${m.nome} 2026 em números <span>fonte: TSE</span>`;
@@ -1741,7 +1752,7 @@ function paintUfChrome() {
       else e.textContent = 'Resultados · ' + m.nome;
     }
   });
-  const su = document.getElementById('sobre-ufs'); if (su) su.textContent = ['al','ba','pe','ce','ma','pb','pi','rn'].every(c => UF_REGISTRY[c].status === 'ready') ? 'todo o Nordeste' : ufListaProntas();
+  const su = document.getElementById('sobre-ufs'); if (su) su.textContent = ufCobertura();
   fillHeroPanelStats();
 }
 async function fillHeroPanelStats() {
@@ -1749,8 +1760,9 @@ async function fillHeroPanelStats() {
   if (!grid) return;
   try {
     const idx = await loadMapaIndex();
-    const geo = await loadMapaGeo();
     const meta = idx.meta || {};
+    // nmun/nloc no index.json evitam baixar geo-<uf>.json (MB em SP/MG) só para contar
+    const geo = (meta.nmun && meta.nloc) ? { mun: { length: meta.nmun }, loc: { length: meta.nloc } } : await loadMapaGeo();
     const nCand = Object.values(idx.cargos || {}).reduce((a, L) => a + (L ? L.length : 0), 0);
     let secoesN = meta.secoes || 0;
     if (!secoesN) {
@@ -1952,6 +1964,9 @@ function fotoUrl(sqcand, uf, eleicao) {
   // fotos espelhadas localmente (evita centenas de pedidos ao TSE, que respondem 429 em rajada)
   return dataUrl(`${SNAP}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`);
 }
+const FOTO_IO = ('IntersectionObserver' in window) ? new IntersectionObserver((ents, io) => {
+  for (const e of ents) if (e.isIntersecting) { io.unobserve(e.target); const f = e.target.__fotoLoad; e.target.__fotoLoad = null; if (f) f(); }
+}, { rootMargin: '600px 0px' }) : null;
 function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
   wrap.setAttribute('aria-hidden', 'true');
@@ -1960,7 +1975,8 @@ function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   if (!url) return wrap;
   const img = document.createElement('img');
   img.alt = nome ? ('Foto de ' + nome) : 'Foto do candidato';
-  // eager: display:none + loading=lazy impede o Chrome de baixar a foto
+  // eager + src só quando o avatar chega perto da tela (IntersectionObserver): listas de SP/MG têm milhares de
+  // candidatos e não podem baixar todas as fotos na 1ª visita. (loading=lazy com display:none não baixava.)
   img.loading = 'eager';
   img.decoding = 'async';
   img.style.opacity = '0';
@@ -1983,10 +1999,11 @@ function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   img.addEventListener('load', reveal);
   wrap.style.position = wrap.style.position || 'relative';
   wrap.appendChild(img);
-  img.src = url; // after listeners — cache pode disparar load síncrono
-  if (img.complete) reveal();
+  const load = () => { img.src = url; if (img.complete) reveal(); }; // after listeners — cache pode disparar load síncrono
+  if (FOTO_IO) { wrap.__fotoLoad = load; FOTO_IO.observe(wrap); } else load();
   return wrap;
 }
+
 function prefersReducedMotion() {
   return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

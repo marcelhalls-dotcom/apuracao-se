@@ -6,6 +6,9 @@
     try { const q = new URLSearchParams(location.search).get('api'); if (q) return q.replace(/\/$/, ''); } catch (_) {}
     return 'https://api.cademeuvoto.com.br';
   })();
+  // Chave PÚBLICA do Turnstile (widget "cademeuvoto-contas", domínios cademeuvoto.com.br e www).
+  // A API manda a mesma chave em /config; esta só é usada se /config não responder.
+  const TURNSTILE_SITEKEY = '0x4AAAAAAFQo_ACurP4e8Mye';
   const PRIV_RE = /^mapa\/(?:[a-z]{2}\/)?(?:[1-7]\/\d{1,6}\.json|secao\/|geo-loc-[a-z]{2}\.json)/;
   const UFS = [['ac','Acre'],['al','Alagoas'],['am','Amazonas'],['ap','Amapá'],['ba','Bahia'],['ce','Ceará'],['df','Distrito Federal'],['es','Espírito Santo'],['go','Goiás'],['ma','Maranhão'],['mg','Minas Gerais'],['ms','Mato Grosso do Sul'],['mt','Mato Grosso'],['pa','Pará'],['pb','Paraíba'],['pe','Pernambuco'],['pi','Piauí'],['pr','Paraná'],['rj','Rio de Janeiro'],['rn','Rio Grande do Norte'],['ro','Rondônia'],['rr','Roraima'],['rs','Rio Grande do Sul'],['sc','Santa Catarina'],['se','Sergipe'],['sp','São Paulo'],['to','Tocantins']];
   const PERFIS = [['candidato','Candidato(a)'],['campanha','Equipe de campanha / partido'],['imprensa','Imprensa'],['pesquisa','Pesquisa / academia'],['orgao_publico','Órgão público'],['cidadao','Cidadão(ã)'],['outro','Outro']];
@@ -116,7 +119,7 @@
   function fecharModal() { const m = document.getElementById('cmv-modal'); if (m && m._close) m._close(); }
 
   /* ---------------- Turnstile (só se o servidor exigir) ---------------- */
-  async function cfg() { if (!CONFIG) { try { CONFIG = await api('/config'); } catch (_) { CONFIG = {}; } } return CONFIG; }
+  async function cfg() { if (!CONFIG) { try { CONFIG = await api('/config'); } catch (_) { CONFIG = { turnstile_sitekey: /(^|\.)cademeuvoto\.com\.br$/.test(location.hostname) ? TURNSTILE_SITEKEY : '' }; } } return CONFIG; }
   let tsLoad = null;
   function loadTurnstile() {
     if (!tsLoad) tsLoad = new Promise((res, rej) => {
@@ -358,7 +361,7 @@
           <button class="cmv-btn" type="submit">Salvar alterações</button>
           <div class="cmv-msg" aria-live="polite"></div>
         </form>
-        <p style="font-size:.82rem">Para trocar o e-mail, escreva para contato@cademeuvoto.com.br.</p>
+        <p style="font-size:.82rem">Para trocar o e-mail, escreva para acesso@cademeuvoto.com.br.</p>
       </div>
       <div class="card"><h2>Privacidade (LGPD)</h2>
         <p>Você pode baixar uma cópia dos seus dados ou excluir sua conta a qualquer momento.</p>

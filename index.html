@@ -1561,12 +1561,12 @@ const UF_REGISTRY = {
   pr: { code: 'pr', nome: 'Paraná', prep: 'do', em: 'no', status: 'ready', capital: 'Curitiba', fed: 30, est: 54, ale: 'Alep' },
   rj: { code: 'rj', nome: 'Rio de Janeiro', prep: 'do', em: 'no', status: 'ready', capital: 'Rio de Janeiro', capEm: 'no', fed: 46, est: 70, ale: 'Alerj' },
   rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
-  ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
+  ro: { code: 'ro', nome: 'Rondônia', prep: 'de', em: 'em', status: 'ready', capital: 'Porto Velho', fed: 8, est: 24, ale: 'ALE-RO' },
   rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
   rs: { code: 'rs', nome: 'Rio Grande do Sul', prep: 'do', em: 'no', status: 'ready', capital: 'Porto Alegre', fed: 31, est: 55, ale: 'ALRS' },
   sc: { code: 'sc', nome: 'Santa Catarina', prep: 'de', em: 'em', status: 'ready', capital: 'Florianópolis', fed: 16, est: 40, ale: 'Alesc' },
   sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'ready', capital: 'São Paulo', fed: 70, est: 94, ale: 'Alesp' },
-  to: { code: 'to', nome: 'Tocantins', status: 'soon' },
+  to: { code: 'to', nome: 'Tocantins', prep: 'do', em: 'no', status: 'ready', capital: 'Palmas', fed: 8, est: 24, ale: 'Aleto' },
 };
 const UF_ORDER = ['se','al','ba','pe','ce','pb','rn','pi','ma','sp','mg','rj','es','pr','sc','rs','go','df','mt','ms','pa','am','ac','ro','rr','ap','to'];
 let currentUf = 'se';
@@ -1632,6 +1632,8 @@ const UF_DESTAQUES = {
   df: { gov: [{ nome: 'Celina Leão', numero: 11 }, { nome: 'Leandro Grass', numero: 13 }], sen: [{ nome: 'Michelle Bolsonaro', numero: 222 }, { nome: 'Bia Kicis', numero: 223 }] },
   pa: { gov: [{ nome: 'Dr. Daniel', numero: 20 }, { nome: 'Hana Ghassan', numero: 15 }], sen: [{ nome: 'Helder', numero: 151 }, { nome: 'Chicão', numero: 444 }] },
   am: { gov: [{ nome: 'Omar Aziz', numero: 55 }, { nome: 'Professora Maria do Carmo', numero: 22 }], sen: [{ nome: 'Eduardo Braga', numero: 155 }, { nome: 'Plinio Valério', numero: 455 }] },
+  to: { gov: [{ nome: 'Professora Dorinha', numero: 44 }, { nome: 'Vicentinho Júnior', numero: 45 }], sen: [{ nome: 'Eduardo Gomes', numero: 222 }, { nome: 'Alexandre Guimarães', numero: 153 }] },
+  ro: { gov: [{ nome: 'Marcos Rogério', numero: 22 }, { nome: 'Adailton Furia', numero: 55 }], sen: [{ nome: 'Dr. Fernando Máximo', numero: 221 }, { nome: 'Bruno Scheid', numero: 222 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufTodasProntas() { return UF_ORDER.every(c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready'); }

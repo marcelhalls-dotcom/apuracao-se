@@ -2,21 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
-<meta property="og:description" content="Saiba onde estão os votos, até a seção eleitoral. Dados oficiais do TSE: mapa de votação, comparativos A × B e relatórios em PDF.">
+<meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em todo o Brasil">
+<meta property="og:description" content="Saiba onde estão os votos, até a seção eleitoral, nos 26 estados e no Distrito Federal. Dados oficiais do TSE: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto.jpg">
 <meta property="og:image:secure_url" content="https://cademeuvoto.com.br/og-cademeuvoto.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Cadê Meu Voto — Saiba onde estão os votos, até a seção eleitoral. Eleições 2026 · Sergipe · Dados oficiais do TSE">
+<meta property="og:image:alt" content="Cadê Meu Voto — Saiba onde estão os votos, até a seção eleitoral. Eleições 2026 · Todo o Brasil · Dados oficiais do TSE">
 <meta property="og:url" content="https://cademeuvoto.com.br/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Cadê Meu Voto">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Cadê Meu Voto — Eleições 2026 em Sergipe">
-<meta name="twitter:description" content="Saiba onde estão os votos, até a seção eleitoral. Dados oficiais do TSE.">
+<meta name="twitter:title" content="Cadê Meu Voto — Eleições 2026 em todo o Brasil">
+<meta name="twitter:description" content="Saiba onde estão os votos, até a seção eleitoral, nos 26 estados e no Distrito Federal. Dados oficiais do TSE.">
 <meta name="twitter:image" content="https://cademeuvoto.com.br/og-cademeuvoto.jpg">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="icon" href="favicon.svg?v=20261006e2" type="image/svg+xml">
@@ -27,8 +27,8 @@
 <link rel="manifest" href="site.webmanifest">
 <meta name="theme-color" content="#0A1428">
 <link rel="preload" href="fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
-<title>Cadê Meu Voto — Eleições 2026 em Sergipe, até a seção eleitoral</title>
-<meta name="description" content="Resultados oficiais do TSE das Eleições 2026 em Sergipe: governador, senado, presidente e deputados. Mapa de votação até a seção eleitoral, comparativos e relatórios em PDF.">
+<title>Cadê Meu Voto — Eleições 2026 em todo o Brasil, até a seção eleitoral</title>
+<meta name="description" content="Resultados oficiais do TSE das Eleições 2026 nos 26 estados e no Distrito Federal: governador, senado, presidente e deputados. Mapa de votação até a seção eleitoral, comparativos e relatórios em PDF.">
 <link rel="canonical" href="https://cademeuvoto.com.br/">
 <style>
   :root {
@@ -1095,9 +1095,9 @@
   <section class="view" id="view-inicio">
     <div class="hero">
       <div class="hero-copy">
-        <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Sergipe e Alagoas · mais estados em breve</div>
+        <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Todo o Brasil · 26 estados e o Distrito Federal</div>
         <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
-        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e já cobrimos <strong id="sobre-ufs">Alagoas, Bahia e Pernambuco</strong><span id="sobre-mais">; outros estados entram em seguida</span>. Do município ao bairro, ao local de votação e à seção.</p>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e já cobrimos <strong id="sobre-ufs">todo o Brasil: os 26 estados e o Distrito Federal</strong><span id="sobre-mais" hidden>; outros estados entram em seguida</span>. Do município ao bairro, ao local de votação e à seção.</p>
         <div class="uf-picker" id="uf-picker" aria-label="Escolha o estado"></div>
         <div class="hero-actions">
           <a class="btn-primary" href="#mapa" id="cta-mapa">Abrir o Mapa de Votação</a>
@@ -1542,9 +1542,9 @@ const CONFIG = {
 const UF_REGISTRY = {
   se: { code: 'se', nome: 'Sergipe', status: 'ready', flagship: true, capital: 'Aracaju', fed: 8, est: 24, ale: 'Alese' },
   al: { code: 'al', nome: 'Alagoas', status: 'ready', capital: 'Maceió', fed: 9, est: 27, ale: 'ALE-AL' },
-  ac: { code: 'ac', nome: 'Acre', status: 'soon' },
+  ac: { code: 'ac', nome: 'Acre', prep: 'do', em: 'no', status: 'ready', capital: 'Rio Branco', fed: 8, est: 24, ale: 'Aleac' },
   am: { code: 'am', nome: 'Amazonas', prep: 'do', em: 'no', status: 'ready', capital: 'Manaus', fed: 8, est: 24, ale: 'Aleam' },
-  ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
+  ap: { code: 'ap', nome: 'Amapá', prep: 'do', em: 'no', status: 'ready', capital: 'Macapá', fed: 8, est: 24, ale: 'Alap' },
   ba: { code: 'ba', nome: 'Bahia', prep: 'da', em: 'na', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', prep: 'do', em: 'no', status: 'ready', capital: 'Fortaleza', fed: 22, est: 46, ale: 'ALECE' },
   df: { code: 'df', nome: 'Distrito Federal', prep: 'do', em: 'no', status: 'ready', capital: 'Brasília', fed: 8, est: 24, ale: 'CLDF' },
@@ -1562,7 +1562,7 @@ const UF_REGISTRY = {
   rj: { code: 'rj', nome: 'Rio de Janeiro', prep: 'do', em: 'no', status: 'ready', capital: 'Rio de Janeiro', capEm: 'no', fed: 46, est: 70, ale: 'Alerj' },
   rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
   ro: { code: 'ro', nome: 'Rondônia', prep: 'de', em: 'em', status: 'ready', capital: 'Porto Velho', fed: 8, est: 24, ale: 'ALE-RO' },
-  rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
+  rr: { code: 'rr', nome: 'Roraima', prep: 'de', em: 'em', status: 'ready', capital: 'Boa Vista', fed: 8, est: 24, ale: 'ALE-RR' },
   rs: { code: 'rs', nome: 'Rio Grande do Sul', prep: 'do', em: 'no', status: 'ready', capital: 'Porto Alegre', fed: 31, est: 55, ale: 'ALRS' },
   sc: { code: 'sc', nome: 'Santa Catarina', prep: 'de', em: 'em', status: 'ready', capital: 'Florianópolis', fed: 16, est: 40, ale: 'Alesc' },
   sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'ready', capital: 'São Paulo', fed: 70, est: 94, ale: 'Alesp' },
@@ -1634,6 +1634,9 @@ const UF_DESTAQUES = {
   am: { gov: [{ nome: 'Omar Aziz', numero: 55 }, { nome: 'Professora Maria do Carmo', numero: 22 }], sen: [{ nome: 'Eduardo Braga', numero: 155 }, { nome: 'Plinio Valério', numero: 455 }] },
   to: { gov: [{ nome: 'Professora Dorinha', numero: 44 }, { nome: 'Vicentinho Júnior', numero: 45 }], sen: [{ nome: 'Eduardo Gomes', numero: 222 }, { nome: 'Alexandre Guimarães', numero: 153 }] },
   ro: { gov: [{ nome: 'Marcos Rogério', numero: 22 }, { nome: 'Adailton Furia', numero: 55 }], sen: [{ nome: 'Dr. Fernando Máximo', numero: 221 }, { nome: 'Bruno Scheid', numero: 222 }] },
+  ac: { gov: [{ nome: 'Mailza Assis', numero: 11 }, { nome: 'Alan Rick', numero: 10 }], sen: [{ nome: 'Marcio Bittar', numero: 222 }, { nome: 'Mara Rocha', numero: 100 }] },
+  ap: { gov: [{ nome: 'Dr. Furlan', numero: 55 }, { nome: 'Clécio', numero: 44 }], sen: [{ nome: 'Rayssa Furlan', numero: 200 }, { nome: 'Lucas Barreto', numero: 555 }] },
+  rr: { gov: [{ nome: 'Arthur Henrique', numero: 22 }, { nome: 'Soldado Sampaio', numero: 10 }], sen: [{ nome: 'Nicoletti', numero: 227 }, { nome: 'Teresa Surita', numero: 155 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufTodasProntas() { return UF_ORDER.every(c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready'); }

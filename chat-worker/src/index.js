@@ -1,10 +1,10 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, todo o Nordeste — Alagoas, Bahia, Pernambuco, Ceará, Maranhão, Paraíba, Piauí e Rio Grande do Norte — e todo o Sudeste — Espírito Santo, Rio de Janeiro, Minas Gerais e São Paulo — conforme liberados no seletor; outros estados em breve).
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE de todo o Brasil: os 26 estados e o Distrito Federal (Sergipe é a UF de referência). O usuário escolhe a UF no seletor do site.
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
-- Eleições 2026 na UF ativa (UF_ATIVA): Governador, Senador, Dep. Federal, Dep. Estadual
+- Eleições 2026 na UF ativa (UF_ATIVA): Governador, Senador, Dep. Federal, Dep. Estadual (no DF: Dep. Distrital)
 - Presidente 2026 no Brasil e o recorte da UF ativa
 - Comparativos/referências a 2022 quando houver no contexto
 - Suplentes, cadeiras por partido/federação
@@ -17,7 +17,9 @@ REGRAS DE DADOS:
 - Use APENAS números do CONTEXTO_DADOS e do BLOCO_RETRIEVAL (origem TSE / arquivos do painel).
 - NUNCA invente votos. Se faltar o detalhe, diga que não está disponível.
 - Cite brevemente a fonte TSE.
-- Quando o BLOCO_RETRIEVAL trouxer ranking municipal ou detalhe de bairro/zona, use esses números com prioridade.`;
+- Quando o BLOCO_RETRIEVAL trouxer ranking municipal ou detalhe de bairro/zona, use esses números com prioridade.
+- Situação "2º turno" = candidato vai ao segundo turno e NÃO está eleito. Nunca chame de eleito quem está no 2º turno.
+- DISTRITO FEDERAL (UF_ATIVA DF): não existe Assembleia Legislativa nem deputado estadual. Diga "Câmara Legislativa do Distrito Federal (CLDF)" e "deputado(s) distrital(is)". O DF não se divide em municípios: o detalhe geográfico é por zona eleitoral do TSE (no BLOCO_RETRIEVAL do DF, o campo "municipio" é a zona eleitoral).`;
 
 const CARGO_LABEL = { '1': 'Presidente', '3': 'Governador', '5': 'Senador', '6': 'Dep. Federal', '7': 'Dep. Estadual' };
 
@@ -121,8 +123,8 @@ function detectCargos(text) {
   const t = text.toLowerCase();
   const found = [];
   const rules = [
-    [/dep(utado)?s?\s*estadua|\bestadual\b|alese/, '7'],
-    [/dep(utado)?s?\s*feder|\bfederal\b|c[aâ]mara/, '6'],
+    [/dep(utado)?s?\s*estadua|\bestadual\b|alese|distrita|\bcldf\b|c[aâ]mara\s+legislativa|assembleia/, '7'],
+    [/dep(utado)?s?\s*feder|\bfederal\b|c[aâ]mara(?!\s+legislativa)/, '6'],
     [/senador|\bsenado\b/, '5'],
     [/governador|\bgoverno\b/, '3'],
     [/presidente|presid[eê]ncia/, '1'],
@@ -289,6 +291,8 @@ function aggregateCandidateInMun(geo, cand, munIdx, mode) {
 async function buildRetrieval(env, messages, uf) {
   const pages = (env.PAGES_BASE || 'https://marcelhalls-dotcom.github.io/apuracao-se').replace(/\/$/, '');
   const ufNorm = String(uf || 'se').toLowerCase();
+  // DF: a vaga 7 do painel é deputado distrital (CLDF, cargo 8 no TSE)
+  const CL = ufNorm === 'df' ? { ...CARGO_LABEL, '7': 'Dep. Distrital' } : CARGO_LABEL;
   // dados pesados (mapa/) ficam no R2 (dados.cademeuvoto.com.br); DATA_BASE vazio = mesmo host do site
   const data = (env.DATA_BASE || pages).replace(/\/$/, '');
   const mapaBase = ufNorm === 'se' ? `${data}/mapa` : `${data}/mapa/${ufNorm}`;
@@ -298,6 +302,7 @@ async function buildRetrieval(env, messages, uf) {
   const text = lastUser || blob;
 
   const out = { fonte: 'mapa TSE (arquivos do painel)', itens: [] };
+  if (ufNorm === 'df') out.nota_df = 'DF: "municipio" nestes itens = zona eleitoral do TSE (o DF não tem municípios); Dep. Distrital = Câmara Legislativa (CLDF).';
 
   let munIndex, mapaIndex, geo;
   try {
@@ -335,7 +340,7 @@ async function buildRetrieval(env, messages, uf) {
       for (const cg of useCargos) {
         const rows = (munData.cargos && munData.cargos[cg]) || [];
         const topN = /top\s*5/i.test(text) ? 5 : (/top\s*(\d+)/i.test(text) ? Number(RegExp.$1) : (wantsRank ? 10 : 8));
-        slice.rankings[CARGO_LABEL[cg] || cg] = rows.slice(0, Math.min(topN, 15)).map(r => ({
+        slice.rankings[CL[cg] || cg] = rows.slice(0, Math.min(topN, 15)).map(r => ({
           numero: r.n, nome: r.nm, partido: r.sg, votos_no_municipio: r.v, votos_totais_se: r.t,
         }));
       }
@@ -346,7 +351,7 @@ async function buildRetrieval(env, messages, uf) {
           const rows = (munData.cargos && munData.cargos[c.cargo]) || [];
           const hit = rows.find(r => String(r.n) === String(c.n));
           slice.candidatos_pedidos.push({
-            cargo: CARGO_LABEL[c.cargo] || c.cargo,
+            cargo: CL[c.cargo] || c.cargo,
             numero: c.n, nome: c.nm || (hit && hit.nm), partido: c.sg || (hit && hit.sg),
             votos_no_municipio: hit ? hit.v : 0,
             votos_totais_se: c.t || (hit && hit.t) || 0,
@@ -390,7 +395,7 @@ async function buildRetrieval(env, messages, uf) {
             out.itens.push({
               detalhe: 'local_exato',
               candidato: {
-                cargo: CARGO_LABEL[c.cargo] || c.cargo,
+                cargo: CL[c.cargo] || c.cargo,
                 numero: c.n,
                 nome: cand.nm || c.nm,
                 nome_urna: c.nu || cand.nu || null,
@@ -413,7 +418,7 @@ async function buildRetrieval(env, messages, uf) {
                 detalhe: mode,
                 municipio: mun.nm,
                 candidato: {
-                  cargo: CARGO_LABEL[c.cargo] || c.cargo,
+                  cargo: CL[c.cargo] || c.cargo,
                   numero: c.n,
                   nome: cand.nm || c.nm,
                   nome_urna: c.nu || null,
@@ -435,14 +440,14 @@ async function buildRetrieval(env, messages, uf) {
   if (!out.itens.length && cands.length) {
     out.itens.push({
       nota: 'Candidatos mencionados (totais estaduais no índice); peça o município para detalhe local.',
-      candidatos: cands.slice(0, 6).map(c => ({ cargo: CARGO_LABEL[c.cargo] || c.cargo, numero: c.n, nome: c.nm, partido: c.sg, votos_se: c.t })),
+      candidatos: cands.slice(0, 6).map(c => ({ cargo: CL[c.cargo] || c.cargo, numero: c.n, nome: c.nm, partido: c.sg, votos_se: c.t })),
     });
   }
 
   out.detectado = {
     municipios: muns.map(m => m.nm),
-    cargos: cargos.map(c => CARGO_LABEL[c] || c),
-    candidatos: cands.slice(0, 8).map(c => `${c.n} ${c.nu || c.nm} (${CARGO_LABEL[c.cargo] || c.cargo})`),
+    cargos: cargos.map(c => CL[c] || c),
+    candidatos: cands.slice(0, 8).map(c => `${c.n} ${c.nu || c.nm} (${CL[c.cargo] || c.cargo})`),
   };
   return out;
 }
@@ -686,7 +691,7 @@ export default {
       return json(200, {
         ok: true,
         service: 'apuracao-se-chat',
-        scope: 'Eleições Sergipe 2026/2022 + Presidente BR/SE + mapa municipal',
+        scope: 'Eleições 2026 — 26 estados e DF + Presidente + mapa municipal',
         limits: {
           max_chars: Number(env.MAX_MSG_CHARS || 1000),
           max_history: Number(env.MAX_HISTORY || 8),

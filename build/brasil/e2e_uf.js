@@ -37,6 +37,8 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   const pickUf = async u => { await clickTab('inicio'); await page.click(`#uf-picker a[data-uf="${u}"]`); await settle(2500); };
 
   const C = ctxOf(UF);
+  let NMUN = 20; try { NMUN = JSON.parse(fs.readFileSync(UF === 'se' ? `${SITE}/mapa/mun-index.json` : `${SITE}/mapa/${UF}/mun-index.json`, 'utf8')).muns.length; } catch (_) {}
+  const MINF = Math.min(20, NMUN - 1);
   await page.goto(BASE + '#inicio', { waitUntil: 'domcontentloaded' }); await settle(3000);
   const meta = await page.evaluate(u => ({ ...UF_REGISTRY[u] }), UF);
   const D = await page.evaluate(() => UF_DESTAQUES);
@@ -93,11 +95,11 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   // mapa via CTA da home
   await clickTab('inicio'); await page.click('#cta-mapa'); await settle(6000);
   ok('[mapa] uf no hash', (await hashUf()) === UF);
-  const mp = await page.evaluate(() => { const s = [...document.querySelectorAll('#view-mapa svg')].find(x => x.querySelectorAll('path').length > 20 || x.querySelectorAll('circle[data-i]').length > 10); if (!s) return null;
+  const mp = await page.evaluate((MINF) => { const s = [...document.querySelectorAll('#view-mapa svg')].find(x => x.querySelectorAll('path[data-i]').length > MINF || x.querySelectorAll('circle[data-i]').length > MINF); if (!s) return null;
     const gb = [...s.querySelectorAll('.choro-lab')].map(g => { const b = [...g.querySelectorAll('text')].map(t => t.getBBox()); return { x1: Math.min(...b.map(q => q.x)), y1: Math.min(...b.map(q => q.y)), x2: Math.max(...b.map(q => q.x + q.width)), y2: Math.max(...b.map(q => q.y + q.height)) }; });
     let ov = 0; for (let i = 0; i < gb.length; i++) for (let j = i + 1; j < gb.length; j++) { const A = gb[i], B = gb[j]; if (A.x1 < B.x2 && B.x1 < A.x2 && A.y1 < B.y2 && B.y1 < A.y2) ov++; }
-    return { paths: s.querySelectorAll('path[data-i], circle[data-i]').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; });
-  ok('[mapa] coroplético carregado', mp && mp.paths > (UF === 'df' ? 10 : 20), mp && (mp.paths + (UF === 'df' ? ' zonas eleitorais, ' : ' municípios, ') + mp.labels + ' rótulos'));
+    return { paths: s.querySelectorAll('path[data-i], circle[data-i]').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; }, MINF);
+  ok('[mapa] coroplético carregado', mp && mp.paths === NMUN, mp && (mp.paths + (UF === 'df' ? ' zonas eleitorais, ' : ' municípios, ') + mp.labels + ' rótulos'));
   ok('[mapa] rótulos sem sobreposição', mp && mp.ov === 0, mp && ('sobreposições ' + mp.ov));
   // mapa: município → zona → bairro → colégio → seção
   let secReq = 0; const onSec = r => { if (/\/secao\//.test(r.url())) secReq++; }; page.on('request', onSec);

@@ -912,16 +912,15 @@
 
   async function writeCover(doc, title, scope, notes, photoUrls) {
     const { w, h } = pageSize(doc); const m = margins();
-    // marca Cadê Meu Voto (desenhada em vetor)
     try {
+      // marca Cadê Meu Voto (contorno do Brasil, IBGE simplificado; mesma geometria de brand/logo-mark.svg)
       const lx = m.l, ly = 52, ls = 30, k = ls / 48;
+      const BR0 = [18.6, 23.6], BR = [[0.2, 2.3], [1.7, 0.0], [-0.1, 0.8], [0.9, 1.0], [-0.6, 1.4], [0.1, 2.1], [1.9, 0.2], [0.4, 1.6], [1.0, 0.1], [-0.3, 1.4], [0.7, 0.1], [0.1, 1.1], [-1.8, 1.2], [-1.7, 1.8], [0.7, -0.1], [0.8, 0.9], [0.3, -0.2], [2.2, 1.7], [0.5, -0.5], [-0.1, 0.7], [-0.7, 0.3], [0.1, 0.5], [1.7, -2.5], [0.2, -0.9], [0.6, 0.4], [-1.3, 1.5], [1.1, -0.9], [1.8, -2.4], [0.2, -2.4], [0.7, -1.0], [2.8, -1.7], [2.3, -0.1], [0.9, -0.8], [1.7, -4.0], [0.2, -4.1], [3.3, -4.0], [0.2, -2.2], [-0.5, -1.3], [-1.4, -0.2], [-2.5, -1.9], [-3.3, -0.5], [-0.9, 0.7], [0.2, -0.7], [-0.4, -0.8], [-2.3, -0.8], [-0.9, 0.3], [0.0, -0.6], [-1.5, -0.5], [0.2, -1.3], [-0.7, -0.4], [-0.8, -2.2], [-1.2, 2.1], [-2.7, -0.3], [0.0, 0.7], [-1.2, -0.2], [-1.4, 0.8], [-0.8, -0.6], [-0.2, -1.0], [0.4, -1.0], [-0.5, -1.2], [-2.6, 1.5], [-1.6, -0.6], [0.7, 1.7], [0.6, 0.2], [-1.8, 1.4], [-1.5, -0.4], [-0.3, -1.0], [-0.7, 0.5], [-1.5, 0.0], [0.0, 0.6], [0.7, 0.4], [-0.9, 0.0], [0.6, 1.6], [-0.5, 2.9], [-0.7, -0.1], [-1.9, 0.9], [-1.0, 2.2], [0.9, 1.3], [-0.2, 0.4], [0.8, 0.1], [0.1, 0.5], [1.5, -0.5], [-0.1, 1.4], [1.9, 0.1], [2.8, -1.3], [0.3, 2.1]];
       doc.setFillColor(37, 99, 235); doc.roundedRect(lx, ly, ls, ls, 12 * k, 12 * k, 'F');
-      doc.setFillColor(248, 250, 252); doc.roundedRect(lx + 9 * k, ly + 9 * k, 30 * k, 14 * k, 3.5 * k, 3.5 * k, 'F');
-      doc.setDrawColor(22, 163, 74); doc.setLineWidth(3.2 * k); doc.setLineCap('round'); doc.setLineJoin('round');
-      doc.lines([[3.6 * k, 3.4 * k], [7.4 * k, -7.3 * k]], lx + 18 * k, ly + 16.3 * k, [1, 1], 'S', false);
-      doc.setFillColor(219, 234, 254);
-      for (const [kx, ky] of [[9, 27], [20, 27], [31, 27], [9, 34.5], [20, 34.5]]) doc.roundedRect(lx + kx * k, ly + ky * k, 8 * k, 5 * k, 1.6 * k, 1.6 * k, 'F');
-      doc.setFillColor(34, 197, 94); doc.roundedRect(lx + 31 * k, ly + 34.5 * k, 8 * k, 5 * k, 1.6 * k, 1.6 * k, 'F');
+      doc.setFillColor(248, 250, 252);
+      doc.lines(BR, lx + BR0[0] * k, ly + BR0[1] * k, [k, k], 'F', true);
+      doc.setDrawColor(22, 163, 74); doc.setLineWidth(4.2 * k); doc.setLineCap('round'); doc.setLineJoin('round');
+      doc.lines([[4.7 * k, 4.4 * k], [9.6 * k, -9.5 * k]], lx + 18.6 * k, ly + 22.5 * k, [1, 1], 'S', false);
       doc.setLineWidth(1); doc.setLineCap('butt'); doc.setDrawColor(0);
       doc.setFont('NotoSans', 'bold'); doc.setFontSize(16); doc.setTextColor(15, 23, 42);
       doc.text('Cadê Meu Voto', lx + ls + 10, ly + 14);

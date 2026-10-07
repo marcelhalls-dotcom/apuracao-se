@@ -670,8 +670,8 @@
       const tip = (f.properties.nm || '') + ': ' + fmtN(v);
       if (f.geometry.type === 'Point') {
         const [cx, cy] = proj(f.geometry.coordinates[0], f.geometry.coordinates[1]);
-        const r = (3 + 15 * Math.sqrt(vmaxPt > 0 ? v / vmaxPt : 0)) * Math.max(0.6, W / 560);
-        circles += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" fill-opacity="0.9" stroke="#334155" stroke-width="0.7" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></circle>`;
+        const r = (2.5 + 8.5 * Math.sqrt(vmaxPt > 0 ? v / vmaxPt : 0)) * Math.max(0.6, W / 560);
+        circles += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" fill-opacity="0.85" stroke="#334155" stroke-width="0.7" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></circle>`;
         continue;
       }
       const d = geomPath(f.geometry, proj);

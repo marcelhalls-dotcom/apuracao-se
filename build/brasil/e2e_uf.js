@@ -97,7 +97,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     const gb = [...s.querySelectorAll('.choro-lab')].map(g => { const b = [...g.querySelectorAll('text')].map(t => t.getBBox()); return { x1: Math.min(...b.map(q => q.x)), y1: Math.min(...b.map(q => q.y)), x2: Math.max(...b.map(q => q.x + q.width)), y2: Math.max(...b.map(q => q.y + q.height)) }; });
     let ov = 0; for (let i = 0; i < gb.length; i++) for (let j = i + 1; j < gb.length; j++) { const A = gb[i], B = gb[j]; if (A.x1 < B.x2 && B.x1 < A.x2 && A.y1 < B.y2 && B.y1 < A.y2) ov++; }
     return { paths: s.querySelectorAll('path[data-i], circle[data-i]').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; });
-  ok('[mapa] coroplético carregado', mp && mp.paths > 20, mp && (mp.paths + ' municípios, ' + mp.labels + ' rótulos'));
+  ok('[mapa] coroplético carregado', mp && mp.paths > (UF === 'df' ? 10 : 20), mp && (mp.paths + (UF === 'df' ? ' zonas eleitorais, ' : ' municípios, ') + mp.labels + ' rótulos'));
   ok('[mapa] rótulos sem sobreposição', mp && mp.ov === 0, mp && ('sobreposições ' + mp.ov));
   // mapa: município → zona → bairro → colégio → seção
   let secReq = 0; const onSec = r => { if (/\/secao\//.test(r.url())) secReq++; }; page.on('request', onSec);

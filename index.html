@@ -1474,7 +1474,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261007b2"></script>
+<script src="relatorios.js?v=20261007b3"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1547,7 +1547,7 @@ const UF_REGISTRY = {
   ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
   ba: { code: 'ba', nome: 'Bahia', prep: 'da', em: 'na', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', prep: 'do', em: 'no', status: 'ready', capital: 'Fortaleza', fed: 22, est: 46, ale: 'ALECE' },
-  df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
+  df: { code: 'df', nome: 'Distrito Federal', prep: 'do', em: 'no', status: 'ready', capital: 'Brasília', fed: 8, est: 24, ale: 'CLDF' },
   es: { code: 'es', nome: 'Espírito Santo', prep: 'do', em: 'no', status: 'ready', capital: 'Vitória', fed: 10, est: 30, ale: 'Ales' },
   go: { code: 'go', nome: 'Goiás', prep: 'de', em: 'em', status: 'ready', capital: 'Goiânia', fed: 17, est: 41, ale: 'Alego' },
   ma: { code: 'ma', nome: 'Maranhão', prep: 'do', em: 'no', status: 'ready', capital: 'São Luís', fed: 18, est: 42, ale: 'ALEMA' },
@@ -1629,6 +1629,7 @@ const UF_DESTAQUES = {
   go: { gov: [{ nome: 'Daniel Vilela', numero: 15 }, { nome: 'Wilder Morais', numero: 22 }], sen: [{ nome: 'Gustavo Gayer', numero: 222 }, { nome: 'Gracinha Caiado', numero: 444 }] },
   mt: { gov: [{ nome: 'Otaviano Pivetta', numero: 10 }, { nome: 'Wellington Fagundes', numero: 22 }], sen: [{ nome: 'Mauro Mendes', numero: 444 }, { nome: 'Zé Medeiros', numero: 222 }] },
   ms: { gov: [{ nome: 'Eduardo Riedel', numero: 11 }, { nome: 'Fábio Trad', numero: 13 }], sen: [{ nome: 'Reinaldo Azambuja', numero: 222 }, { nome: 'Capitão Contar', numero: 221 }] },
+  df: { gov: [{ nome: 'Celina Leão', numero: 11 }, { nome: 'Leandro Grass', numero: 13 }], sen: [{ nome: 'Michelle Bolsonaro', numero: 222 }, { nome: 'Bia Kicis', numero: 223 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufTodasProntas() { return UF_ORDER.every(c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready'); }
@@ -1703,6 +1704,8 @@ const DF_TEXT = [
   [/Estaduais/g, 'Distritais'], [/Estadual/g, 'Distrital'], [/estaduais/g, 'distritais'], [/estadual/g, 'distrital'],
   [/Assembleia Legislativa/g, 'Câmara Legislativa'], [/Assembleia/g, 'Câmara Legislativa'],
   [/[Ee]stado do Distrito Federal/g, 'Distrito Federal'],
+  [/zona eleitoral, zona, /g, 'zona eleitoral, '], [/zonas eleitorais, zonas, /g, 'zonas eleitorais, '],
+  [/zona eleitoral → zona → /g, 'zona eleitoral → '], [/Zona eleitoral → zona → /g, 'Zona eleitoral → '],
 ];
 const DF_HIT = /unic[íi]pio|UNICÍPIO|stadua|STADUA|Assembleia|stado do Distrito/;
 function dfText(t) { let x = String(t == null ? '' : t); if (!DF_HIT.test(x)) return x; for (const [re, r] of DF_TEXT) x = x.replace(re, r); return x; }

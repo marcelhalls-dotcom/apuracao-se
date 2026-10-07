@@ -117,12 +117,14 @@ with open(ele_path, encoding='latin1') as f:
         cd, nm = unit_cd(r['CD_MUNICIPIO'], r['NR_ZONA']), r['NM_MUNICIPIO']
         mun_map[cd] = nm
         z, nl = int(r['NR_ZONA']), str(int(r['NR_LOCAL_VOTACAO']))
+        el = int(r.get('QT_ELEITOR_SECAO') or 0) or 1
+        la, lo = _f(r.get('NR_LATITUDE')), _f(r.get('NR_LONGITUDE'))
+        okxy = la is not None and lo is not None and la != -1 and lo != -1 and -34 < la < 6 and -74 < lo < -34
         if DFZ:
-            el = int(r.get('QT_ELEITOR_SECAO') or 0) or 1
             z_bairro[cd][(r.get('NM_BAIRRO') or '').strip().upper()] += el
-            la, lo = _f(r.get('NR_LATITUDE')), _f(r.get('NR_LONGITUDE'))
-            if la is not None and lo is not None and -16.1 < la < -15.4 and -48.4 < lo < -47.2:
-                a = z_xy[cd]; a[0] += la * el; a[1] += lo * el; a[2] += el
+            okxy = okxy and -16.1 < la < -15.4 and -48.4 < lo < -47.2
+        if okxy:
+            a = z_xy[cd]; a[0] += la * el; a[1] += lo * el; a[2] += el
         key = (cd, z, nl)
         if key not in seen_loc:
             seen_loc[key] = {
@@ -248,6 +250,14 @@ else:
     # ensure all mun present: if some missing from malha, warn
     have = {f['properties']['cd'] for f in features}
     missing_geo = [cd for cd in mun_map if cd not in have]
+    # município novo sem polígono na malha IBGE (ex.: Boa Esperança do Norte/MT, instalado depois da malha 2022):
+    # entra como ponto no centro (ponderado por eleitores) dos locais de votação do TSE, sem inventar contorno
+    for cd in list(missing_geo):
+        a = z_xy.get(cd)
+        if a and a[2]:
+            features.append({'type': 'Feature', 'properties': {'nm': mun_map[cd], 'cd': cd, 'i': mun_i[cd], 'ponto': 1},
+                             'geometry': {'type': 'Point', 'coordinates': [round(a[1] / a[2], 5), round(a[0] / a[2], 5)]}})
+            missing_geo.remove(cd); print('  ponto (sem polígono IBGE):', mun_map[cd])
     print('geojson features', len(features), 'missing_geo', missing_geo[:5], len(missing_geo))
     open(os.path.join(OUT, f'{uf}-mun.geojson'), 'w').write(dumps({'type': 'FeatureCollection', 'features': features}))
 

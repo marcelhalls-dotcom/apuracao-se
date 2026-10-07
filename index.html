@@ -1565,7 +1565,7 @@ const UF_REGISTRY = {
   rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
   rs: { code: 'rs', nome: 'Rio Grande do Sul', status: 'soon' },
   sc: { code: 'sc', nome: 'Santa Catarina', status: 'soon' },
-  sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'soon' },
+  sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'ready', capital: 'São Paulo', fed: 70, est: 94, ale: 'Alesp' },
   to: { code: 'to', nome: 'Tocantins', status: 'soon' },
 };
 const UF_ORDER = ['se','al','ba','pe','ce','pb','rn','pi','ma','sp','mg','rj','es','pr','sc','rs','go','df','mt','ms','pa','am','ac','ro','rr','ap','to'];
@@ -1622,6 +1622,7 @@ const UF_DESTAQUES = {
   es: { gov: [{ nome: 'Lorenzo Pazolini', numero: 10 }, { nome: 'Ricardo Ferraço', numero: 15 }], sen: [{ nome: 'Renato Casagrande', numero: 400 }, { nome: 'Evair de Melo', numero: 100 }] },
   rj: { gov: [{ nome: 'Douglas Ruas', numero: 22 }, { nome: 'Eduardo Paes', numero: 55 }], sen: [{ nome: 'Carlos Portinho', numero: 222 }, { nome: 'Carlos Jordy', numero: 221 }] },
   mg: { gov: [{ nome: 'Cleitinho Azevedo', numero: 10 }, { nome: 'Patrus Ananias', numero: 13 }], sen: [{ nome: 'Domingos Sávio', numero: 222 }, { nome: 'Marília Campos', numero: 131 }] },
+  sp: { gov: [{ nome: 'Tarcísio', numero: 10 }, { nome: 'Fernando Haddad', numero: 13 }], sen: [{ nome: 'Guilherme Derrite', numero: 111 }, { nome: 'André do Prado', numero: 222 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufCobertura() {

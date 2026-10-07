@@ -17,19 +17,21 @@ Regra de ouro: **nunca inventar números**. Tudo vem do TSE e é conferido contr
 
 | Script | O que faz |
 |---|---|
-| `snapshot_tse.py ce ma …` | Baixa o JSON oficial (`resultados.tse.jus.br/oficial`) para `tse/` (gov/sen/fed/est 6259 + presidente 6257) e **todas as fotos** dos candidatos (retry/backoff, 6 threads). O site lê `tse/` primeiro, então o navegador não faz pedido ao TSE. Também copia os JSON para `/tmp/tse-<uf>/api/`. |
-| `build_uf_mapa.py CE` | Gera `mapa/<uf>/` (index, geo, geojson IBGE, mun, secao, det) somando os CSVs por seção. Presidente: `t` = total nacional, `tse` = total na UF, `e` = quebra por UF. |
+| `prep_tse_csv.py ES RJ …` | Extrai/filtra os CSVs do TSE (zips em `/tmp/tsezip`, ou `TSEZIP=`) para `/tmp/tse-<uf>/`, numa passada só pelos arquivos BR. Só filtra linhas por `SG_UF`. |
+| `snapshot_tse.py ce ma …` | Baixa o JSON oficial (`resultados.tse.jus.br/oficial`) para `tse/` (gov/sen/fed/est 6259 + presidente 6257) e **todas as fotos** dos candidatos (retry/backoff com Retry-After, 3 threads + pausa entre pedidos — `CMV_TSE_THREADS`/`CMV_TSE_PAUSA` — para não sobrecarregar o TSE). O site lê `tse/` primeiro, então o navegador não faz pedido ao TSE. Também copia os JSON para `/tmp/tse-<uf>/api/`. |
+| `build_uf_mapa.py CE` | Gera `mapa/<uf>/` (index, geo, geojson IBGE, mun, secao, det) somando os CSVs por seção. Usa numpy e agrega um cargo por vez: SP (15,6 milhões de linhas) leva ~2 min com pico de ~1,1 GB de RAM. O `index.json` traz `meta.nmun`/`meta.nloc` para a home não precisar baixar o `geo-<uf>.json`. Presidente: `t` = total nacional, `tse` = total na UF, `e` = quebra por UF. |
 | `build_context.py ce` | Gera `mapa/<uf>/context.json` para o chat: cadeiras via `agr.vag`; "2º turno" não conta como eleito. |
 | `fetch_fotos.py ce` | Gera `fotos/<uf>/<cargo>/<n>.jpg` (114×160, usadas no PDF) a partir do snapshot local, sem usar a rede. |
 | `verify_uf.py ce` | Confere candidato a candidato (`index.json` × JSON do TSE), seções e aptos. Precisa dar **0 diferenças**. |
 | `e2e_uf.js <base> <uf> [outras…]` | Playwright por cliques: todas as abas, mapa, comparar, relatórios, gramática, hemiciclo = `agr.vag`, rótulos sem sobreposição, sem alerta, **0 pedidos ao TSE**, isolamento entre UFs. Gera `<uf>-home.png`, `<uf>-governo.png` e `<uf>-e2e.json`. Precisa de `playwright-core` (`PW_CORE=…`) e Chrome (`CHROME_PATH=…`). |
 | `upload_r2.py [prefixos…]` | Envia `mapa/`, `fotos/` e `tse/` locais para o R2 (incremental: só o que mudou, comparando MD5 × ETag; 24 threads). `--dry-run` mostra o que iria. Prefixos limitam o envio, ex.: `mapa/sp fotos/sp tse/ele2026/6259/dados/sp tse/ele2026/6259/fotos/sp`. Credenciais **só por variável de ambiente**: `R2_ACCESS_KEY_ID` + `R2_SECRET_ACCESS_KEY`, ou `CLOUDFLARE_API_TOKEN` (+ `CLOUDFLARE_ACCOUNT_ID`), do qual deriva as chaves S3 como manda a doc da Cloudflare. Define `Content-Type` (json, geo+json, jpeg) e `Cache-Control` (dados 1 dia + stale-while-revalidate 7 dias; fotos do PDF 7 dias; fotos do TSE 30 dias). |
+| `firstview_uf.js <base> <uf>` | Mede a 1ª visita (cache vazio) de início, governo e mapa: pedidos, KB, pedidos ao R2, ao TSE e ao Pages. Grava `<uf>-firstview.json`. |
 | `golive.sh <uf> "<Nome>" "<msg>" <outras…>` | Commit + push do front, espera o deploy do Pages e roda o E2E ao vivo. |
 | `progress.py` | Atualiza `nordeste-progress.md` (estado local em `progress.json`, que não é versionado). |
 
 ## Adicionar uma UF nova (ex.: SP)
 
-1. **CSVs do TSE** em `/tmp/tse-<uf>/`, a partir de `https://cdn.tse.jus.br/estatistica/sead/odsele/`:
+1. **CSVs do TSE** em `/tmp/tse-<uf>/` (`prep_tse_csv.py <UF>` faz tudo isto a partir dos zips), a partir de `https://cdn.tse.jus.br/estatistica/sead/odsele/`:
    - `votacao_secao/votacao_secao_2026_<UF>.zip` → `votacao/votacao_secao_2026_<UF>.csv`
    - `votacao_secao/votacao_secao_2026_BR.zip`, filtrado por `SG_UF` → `votacao_secao_2026_pres_<UF>.csv` (com cabeçalho)
    - `detalhe_votacao_secao/detalhe_votacao_secao_2026.zip`: o arquivo `_<UF>.csv` mais as linhas da UF no `_BR.csv` → `detalhe_votacao_secao_2026_<UF>.csv`
@@ -53,7 +55,7 @@ Regra de ouro: **nunca inventar números**. Tudo vem do TSE e é conferido contr
    Sem prefixo, envia tudo o que mudou. Rodar de novo depois do envio deve mostrar 0 arquivos a enviar.
    A UF ainda não aparece no seletor, então subir os dados antes é seguro.
 5. No `index.html`:
-   - Em `UF_REGISTRY`, preencher `prep`/`em` (do/no, da/na, de/em), `capital`, `fed`, `est` (de `agr.vag`) e `ale`, e mudar `status` para `'ready'`.
+   - Em `UF_REGISTRY`, preencher `prep`/`em` (do/no, da/na, de/em), `capital`, `fed`, `est` (de `agr.vag`) e `ale`, e mudar `status` para `'ready'`. Se a capital pede artigo ("no Rio de Janeiro"), use `capEm: 'no'`.
    - Em `UF_DESTAQUES`, colocar os 2 primeiros ao governo e ao Senado.
 6. Testar localmente: `python3 -m http.server 8765` na raiz e `node e2e_uf.js http://127.0.0.1:8765/ <uf> se …`.
    O site local lê os dados do R2 (por isso a origem `http://127.0.0.1:8765` está liberada no CORS). Para testar
@@ -82,10 +84,21 @@ Para recuperar a última versão que estava no git: `git restore --source=626508
 Os navegadores podem levar até 1 dia (`max-age`) para ver o dado novo. Para algo urgente, purgar o cache de `dados.cademeuvoto.com.br` no painel da Cloudflare.
 Se os CSVs do TSE mudarem (retotalização), refazer o passo 3 inteiro.
 
+## Desempenho (UFs grandes)
+
+- Fotos dos candidatos só são pedidas quando o avatar chega perto da tela (IntersectionObserver em `makeAvatar`).
+  Sem isso, a 1ª visita da BA fazia 1.167 pedidos; agora faz 29 em qualquer UF.
+- 1ª visita medida ao vivo com `firstview_uf.js` (07/10/2026): ~29 pedidos e 0,7–1,2 MB por view, inclusive SP/MG.
+  O mapa de SP baixa `geo-sp.json` (~357 KB comprimido) + `sp-mun.geojson` (~70 KB).
+- Seções só carregam ao abrir um colégio: `secao/secoes.json` + `secao/<cargo>/<n>.json` (em SP ~0,9 MB comprimido,
+  2 pedidos, depois ficam em cache). Um arquivo por candidato mantém poucas leituras no R2.
+- Mapa: só os 5 municípios com mais votos ganham rótulo; os que não cabem vão para uma coluna com linha guia.
+  Com mais de 300/600 municípios o contorno fica mais fino.
+
 ## Tamanho
 
-Cada UF ocupa cerca de 1,5–1,8 KB por seção, contando mapa, fotos e snapshot.
-Em 07/10/2026, com 9 UFs, o R2 tinha 21.304 objetos / 255,9 MB, e o site no Pages caiu de 258,6 MB para cerca de 3 MB.
-As 18 UFs restantes somam 357.069 seções (≈ 535–640 MB). O Brasil inteiro deve ficar perto de 0,8–0,9 GB,
-bem abaixo dos 10 GB-mês grátis do R2 (https://developers.cloudflare.com/r2/pricing/). O ponto de atenção
-é o número de leituras (Class B, 10 milhões/mês grátis), que o cache na borda reduz.
+Cada UF ocupa cerca de 1,4–2,8 KB por seção no R2, contando mapa, fotos e snapshot (RJ é a mais pesada por seção).
+Em 07/10/2026, com 13 UFs (SE + Nordeste + Sudeste), o R2 tinha 49.360 objetos / 753,6 MB; só SP ocupa 259 MB.
+As 14 UFs que faltam (Norte, Centro-Oeste e Sul) somam 155.183 seções, cerca de 0,35 GB a mais. O Brasil inteiro
+deve ficar perto de 1,1 GB, bem abaixo dos 10 GB-mês grátis do R2 (https://developers.cloudflare.com/r2/pricing/).
+O ponto de atenção é o número de leituras (Class B, 10 milhões/mês grátis), que o cache na borda reduz.

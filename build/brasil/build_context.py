@@ -17,7 +17,7 @@ def vagas(d): return sum(I(a.get('vag')) for a in d['carg'][0].get('agr') or [])
 def build(uf):
     T = os.path.join(SITE, 'tse/ele2026')
     L = lambda ele, c: json.load(open(f'{T}/{ele}/dados/{uf}/{uf}-c{c:04d}-e00{ele}-u.json'))
-    g, s, f, e, p = L(6259, 3), L(6259, 5), L(6259, 6), L(6259, 7), L(6257, 1)
+    g, s, f, e, p = L(6259, 3), L(6259, 5), L(6259, 6), L(6259, 8 if uf == 'df' else 7), L(6257, 1)
     pst = lambda d: float(str(d['s'].get('pst') or '0').replace(',', '.'))
     meta = {'secoes': I(g['s']['ts']), 'aptos': I(g['e']['te']), 'comparecimento': I(g['e']['c']),
             'abstencoes': I(g['e']['a']), 'pst': g['s']['pst']}
@@ -32,6 +32,13 @@ def build(uf):
                       'senado': {'apuracao_pct': pst(s), 'candidatos': cands(s)},
                       f'presidente_{uf}': {'apuracao_pct': pst(p), 'candidatos': cands(p)},
                       'deputado_federal': dep(f, 15), 'deputado_estadual': dep(e, 20)}}
+    if uf == 'df':
+        # DF não tem Assembleia nem municípios: Câmara Legislativa (CLDF), deputados distritais (cargo 8 no TSE)
+        ctx['nota'] += (' DISTRITO FEDERAL: não há Assembleia Legislativa nem deputados estaduais. A casa é a Câmara Legislativa do'
+                        ' Distrito Federal (CLDF), com deputados distritais (cargo 8 no TSE). Neste contexto, "deputado_estadual" e'
+                        ' "assembleia" significam deputado distrital e CLDF; sempre use "deputado distrital" e "Câmara Legislativa".'
+                        ' O DF tem um único município (Brasília); o detalhe geográfico é por zona eleitoral (TSE).')
+        ctx['legislativo_local'] = 'Câmara Legislativa do Distrito Federal (CLDF) — deputados distritais'
     os.makedirs(f'{SITE}/mapa/{uf}', exist_ok=True)
     json.dump(ctx, open(f'{SITE}/mapa/{uf}/context.json', 'w'), ensure_ascii=False, separators=(',', ':'))
     gv = ctx['cargos']['governador']['candidatos']

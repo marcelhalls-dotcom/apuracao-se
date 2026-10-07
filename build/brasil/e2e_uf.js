@@ -57,10 +57,11 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   if (UF !== 'se') forb.push('Sergipe', 'Alese', 'Aracaju');
   // homônimos: nome de destaque de outra UF que também é candidato nesta UF (ex.: "Allyson" no RN e "Allyson Elias" no RJ) não conta
   const own = [];
-  for (const c of [3, 5, 6, 7]) { try { const d = JSON.parse(fs.readFileSync(`${SITE}/tse/ele2026/6259/dados/${UF}/${UF}-c${String(c).padStart(4, '0')}-e006259-u.json`, 'utf8'));
+  for (const c of (UF === 'df' ? [3, 5, 6, 8] : [3, 5, 6, 7])) { try { const d = JSON.parse(fs.readFileSync(`${SITE}/tse/ele2026/6259/dados/${UF}/${UF}-c${String(c).padStart(4, '0')}-e006259-u.json`, 'utf8'));
     for (const a of d.carg[0].agr || []) for (const p of a.par || []) for (const x of p.cand || []) own.push(fold(x.nmu || x.nm || '')); } catch (_) {} }
   for (let i = forb.length - 1; i >= 0; i--) if (own.some(o => o.includes(fold(forb[i])))) forb.splice(i, 1);
   const badPrep = new RegExp(`(^|[^\\wÀ-ú])(de|em|De|Em) ${meta.nome}(?![\\wÀ-ú])`);
+  const DF_BAD = /Assembleia|Estadua|estadua|[Mm]unic[íi]pio/;
   const views = ['inicio', 'governo', 'senado', 'presidente', 'federais', 'estaduais', 'suplentes'];
   for (const v of views) {
     await clickTab(v);
@@ -69,6 +70,8 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     ok(`[${v}] uf no hash`, (await hashUf()) === UF);
     ok(`[${v}] sem dados de outra UF`, hit.length === 0, hit.join(', '));
     if (meta.prep && meta.prep !== 'de') ok(`[${v}] preposição`, !badPrep.test(t), (t.match(badPrep) || [])[0]);
+    if (UF === 'df') { const bad = t.match(DF_BAD); ok(`[${v}] DF: sem Assembleia/Estadual/município`, !bad, bad && bad[0]); }
+    if (UF === 'df' && v === 'estaduais') ok('[estaduais] DF: Câmara Legislativa / Distritais', /Câmara Legislativa/.test(t) && /Distrita/.test(t));
     if (v === 'governo' && !C) { await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(800); await shot(`${OUT}/${UF}-governo.png`); ok('[governo] SE carregado', /Governador/.test(t) && /votos/.test(t)); }
     if (v === 'governo' && C) {
       const g = C.cargos.governador.candidatos;
@@ -90,10 +93,10 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   // mapa via CTA da home
   await clickTab('inicio'); await page.click('#cta-mapa'); await settle(6000);
   ok('[mapa] uf no hash', (await hashUf()) === UF);
-  const mp = await page.evaluate(() => { const s = [...document.querySelectorAll('#view-mapa svg')].find(x => x.querySelectorAll('path').length > 20); if (!s) return null;
+  const mp = await page.evaluate(() => { const s = [...document.querySelectorAll('#view-mapa svg')].find(x => x.querySelectorAll('path').length > 20 || x.querySelectorAll('circle[data-i]').length > 10); if (!s) return null;
     const gb = [...s.querySelectorAll('.choro-lab')].map(g => { const b = [...g.querySelectorAll('text')].map(t => t.getBBox()); return { x1: Math.min(...b.map(q => q.x)), y1: Math.min(...b.map(q => q.y)), x2: Math.max(...b.map(q => q.x + q.width)), y2: Math.max(...b.map(q => q.y + q.height)) }; });
     let ov = 0; for (let i = 0; i < gb.length; i++) for (let j = i + 1; j < gb.length; j++) { const A = gb[i], B = gb[j]; if (A.x1 < B.x2 && B.x1 < A.x2 && A.y1 < B.y2 && B.y1 < A.y2) ov++; }
-    return { paths: s.querySelectorAll('path').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; });
+    return { paths: s.querySelectorAll('path[data-i], circle[data-i]').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; });
   ok('[mapa] coroplético carregado', mp && mp.paths > 20, mp && (mp.paths + ' municípios, ' + mp.labels + ' rótulos'));
   ok('[mapa] rótulos sem sobreposição', mp && mp.ov === 0, mp && ('sobreposições ' + mp.ov));
   // mapa: município → zona → bairro → colégio → seção
@@ -104,7 +107,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     if (!clicked) break; await page.waitForTimeout(1800);
   }
   const drill = await page.evaluate(() => { const open = [...document.querySelectorAll('#view-mapa .mapa-tree details[open]')]; const last = open[open.length - 1]; return { depth: open.length, path: open.map(d => (d.querySelector('summary') || {}).textContent.trim().slice(0, 40)).join(' › '), leaf: last ? (last.querySelector('.mv-nested') || last).innerText.slice(0, 300) : '' }; });
-  ok('[mapa] drill até seção', drill.depth >= 4 && /se[cç][aã]o/i.test(drill.leaf + drill.path) && secReq > 0, drill.path + ' :: ' + drill.leaf.replace(/\n/g, ' ').slice(0, 90) + ' · pedidos secao=' + secReq);
+  ok('[mapa] drill até seção', drill.depth >= (UF === 'df' ? 3 : 4) && /se[cç][aã]o/i.test(drill.leaf + drill.path) && secReq > 0, drill.path + ' :: ' + drill.leaf.replace(/\n/g, ' ').slice(0, 90) + ' · pedidos secao=' + secReq);
   page.off('request', onSec);
   // PDF do candidato (foto + mapa) a partir do mapa
   try {
@@ -115,6 +118,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     const cp = require('child_process');
     const txt = cp.execSync(`pdftotext -l 2 ${f} - 2>/dev/null`).toString();
     const imgs = cp.execSync(`pdfimages -list ${f} 2>/dev/null | awk 'NR>2 && $3=="image"' | wc -l`).toString().trim();
+    if (UF === 'df') { const bad = txt.match(DF_BAD); ok('[mapa] PDF do candidato DF: sem Assembleia/Estadual/município', !bad, bad && bad[0]); }
     ok('[mapa] PDF do candidato (foto + mapa do R2)', fs.statSync(f).size > 20000 && txt.includes(meta.nome) && Number(imgs) >= 2, (fs.statSync(f).size / 1024).toFixed(0) + ' KB, imagens: ' + imgs);
   } catch (e) { ok('[mapa] PDF do candidato', false, String(e).slice(0, 120)); }
   for (const v of ['comparar', 'relatorios']) {
@@ -133,7 +137,8 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 180000 }), page.click('#rel-pdf-btn')]);
     const f = `/tmp/e2e-${UF}-resumo.pdf`; await dl.saveAs(f);
     const txt = require('child_process').execSync(`pdftotext -l 3 ${f} - 2>/dev/null`).toString().replace(/\s+/g, ' ');
-    const capa = 'Estado ' + (meta.prep || 'de') + ' ' + meta.nome;
+    const capa = UF === 'df' ? 'Distrito Federal' : 'Estado ' + (meta.prep || 'de') + ' ' + meta.nome;
+    if (UF === 'df') { const bad = txt.match(/Estado do Distrito|Assembleia|Estadua|[Mm]unic[íi]pio/); ok('[relatorios] PDF resumo DF: termos do DF', !bad && /Câmara Legislativa|Distrita/.test(txt), bad && bad[0]); }
     ok('[relatorios] PDF resumo', txt.includes(capa), capa + ' · ' + (fs.statSync(f).size / 1024).toFixed(0) + ' KB');
   } catch (e) { ok('[relatorios] PDF resumo', false, String(e).slice(0, 120)); }
   // isolamento: troca para as outras UFs e volta

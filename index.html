@@ -1474,7 +1474,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261007s1"></script>
+<script src="relatorios.js?v=20261007b1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1558,7 +1558,7 @@ const UF_REGISTRY = {
   pb: { code: 'pb', nome: 'Paraíba', prep: 'da', em: 'na', status: 'ready', capital: 'João Pessoa', fed: 12, est: 36, ale: 'ALPB' },
   pe: { code: 'pe', nome: 'Pernambuco', status: 'ready', capital: 'Recife', fed: 25, est: 49, ale: 'ALEPE' },
   pi: { code: 'pi', nome: 'Piauí', prep: 'do', em: 'no', status: 'ready', capital: 'Teresina', fed: 10, est: 30, ale: 'ALEPI' },
-  pr: { code: 'pr', nome: 'Paraná', status: 'soon' },
+  pr: { code: 'pr', nome: 'Paraná', prep: 'do', em: 'no', status: 'ready', capital: 'Curitiba', fed: 30, est: 54, ale: 'Alep' },
   rj: { code: 'rj', nome: 'Rio de Janeiro', prep: 'do', em: 'no', status: 'ready', capital: 'Rio de Janeiro', capEm: 'no', fed: 46, est: 70, ale: 'Alerj' },
   rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
   ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
@@ -1623,6 +1623,7 @@ const UF_DESTAQUES = {
   rj: { gov: [{ nome: 'Douglas Ruas', numero: 22 }, { nome: 'Eduardo Paes', numero: 55 }], sen: [{ nome: 'Carlos Portinho', numero: 222 }, { nome: 'Carlos Jordy', numero: 221 }] },
   mg: { gov: [{ nome: 'Cleitinho Azevedo', numero: 10 }, { nome: 'Patrus Ananias', numero: 13 }], sen: [{ nome: 'Domingos Sávio', numero: 222 }, { nome: 'Marília Campos', numero: 131 }] },
   sp: { gov: [{ nome: 'Tarcísio', numero: 10 }, { nome: 'Fernando Haddad', numero: 13 }], sen: [{ nome: 'Guilherme Derrite', numero: 111 }, { nome: 'André do Prado', numero: 222 }] },
+  pr: { gov: [{ nome: 'Sergio Moro', numero: 22 }, { nome: 'Sandro Alex', numero: 55 }], sen: [{ nome: 'Filipe Barros', numero: 222 }, { nome: 'Deltan Dallagnol', numero: 300 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufCobertura() {
@@ -1672,15 +1673,65 @@ function applyUf(uf, { refresh } = {}) {
   }
   paintUfPicker();
   paintUfChrome();
+  dfLayer(currentUf === 'df');
   if (changed || refresh) {
     if (typeof atualizar === 'function') atualizar();
   }
   return currentUf;
 }
+/* ===== DF: não tem municípios nem Assembleia. Textos do site trocam para zona eleitoral, Câmara Legislativa (CLDF)
+   e deputado distrital enquanto o DF está selecionado (e voltam ao normal ao trocar de UF). ===== */
+const DF_TEXT = [
+  [/[Mm]unicípio → zona → /g, m => m[0] === 'M' ? 'Zona eleitoral → ' : 'zona eleitoral → '],
+  [/Todos os municípios/g, 'Todas as zonas eleitorais'], [/todos os municípios/g, 'todas as zonas eleitorais'],
+  [/\bnos municípios/g, 'nas zonas eleitorais'], [/\bdos municípios/g, 'das zonas eleitorais'], [/\bos municípios/g, 'as zonas eleitorais'],
+  [/\bno município/g, 'na zona eleitoral'], [/\bdo município/g, 'da zona eleitoral'], [/\bpelo município/g, 'pela zona eleitoral'],
+  [/\bo município/g, 'a zona eleitoral'], [/\bO município/g, 'A zona eleitoral'], [/\bcada município/g, 'cada zona eleitoral'],
+  [/\bum município/g, 'uma zona eleitoral'], [/Nenhum município encontrado/g, 'Nenhuma zona eleitoral encontrada'],
+  [/Município\(s\)|município\(s\)/g, 'zona(s) eleitoral(is)'],
+  [/MUNICÍPIOS/g, 'ZONAS ELEITORAIS'], [/MUNICÍPIO/g, 'ZONA ELEITORAL'], [/Municípios/g, 'Zonas eleitorais'], [/municípios/g, 'zonas eleitorais'],
+  [/Município/g, 'Zona eleitoral'], [/município/g, 'zona eleitoral'], [/Detalhe municipal/g, 'Detalhe por zona eleitoral'],
+  [/DEPUTADOS ESTADUAIS/g, 'DEPUTADOS DISTRITAIS'], [/DEPUTADO ESTADUAL/g, 'DEPUTADO DISTRITAL'],
+  [/Estaduais/g, 'Distritais'], [/Estadual/g, 'Distrital'], [/estaduais/g, 'distritais'], [/estadual/g, 'distrital'],
+  [/Assembleia Legislativa/g, 'Câmara Legislativa'], [/Assembleia/g, 'Câmara Legislativa'],
+  [/[Ee]stado do Distrito Federal/g, 'Distrito Federal'],
+];
+const DF_HIT = /unic[íi]pio|UNICÍPIO|stadua|STADUA|Assembleia|stado do Distrito/;
+function dfText(t) { let x = String(t == null ? '' : t); if (!DF_HIT.test(x)) return x; for (const [re, r] of DF_TEXT) x = x.replace(re, r); return x; }
+window.dfText = dfText;
+const DF_ORIG = new Map(), DF_ATTR = ['placeholder', 'aria-label', 'title'];
+function dfSkip(n) { const e = n.nodeType === 1 ? n : n.parentElement; return !e || !!e.closest('script,style,textarea,#chat-msgs'); }
+function dfApply(root) {
+  if (!root || dfSkip(root)) return;
+  const fix = (n) => { const v = n.nodeValue; if (v && DF_HIT.test(v)) { const nv = dfText(v); if (nv !== v) { if (!DF_ORIG.has(n)) DF_ORIG.set(n, v); n.nodeValue = nv; } } };
+  const fixEl = (e) => { for (const a of DF_ATTR) { const v = e.getAttribute && e.getAttribute(a); if (v && DF_HIT.test(v)) { if (!DF_ORIG.has(e.getAttributeNode(a))) DF_ORIG.set(e.getAttributeNode(a), v); e.setAttribute(a, dfText(v)); } } };
+  if (root.nodeType === 3) { fix(root); return; }
+  if (root.nodeType !== 1) return;
+  fixEl(root);
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, { acceptNode: n => dfSkip(n) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  let n; while ((n = w.nextNode())) { if (n.nodeType === 3) fix(n); else fixEl(n); }
+}
+const DF_OBS = new MutationObserver(ms => { if (currentUf !== 'df') return; for (const m of ms) { if (m.type === 'characterData') dfApply(m.target); else for (const n of m.addedNodes) dfApply(n); } });
+function dfLayer(on) {
+  if (on) { dfApply(document.body); DF_OBS.observe(document.body, { childList: true, subtree: true, characterData: true }); return; }
+  DF_OBS.disconnect();
+  for (const [n, v] of DF_ORIG) { try { if (n.nodeType === 2) { if (n.ownerElement) n.ownerElement.setAttribute(n.name, v); } else if (n.isConnected) n.nodeValue = v; } catch (_) {} }
+  DF_ORIG.clear();
+}
 /** Troca referências de SE em textos-modelo pela UF corrente (nome, capital, cadeiras, assembleia). */
 function ufText(t) {
   const m = ufMeta(currentUf);
   if (currentUf === 'se') return t;
+  if (currentUf === 'df') {
+    return dfText(String(t)
+      .replace(/As 8 cadeiras de Sergipe/g, 'As ' + m.fed + ' cadeiras do ' + m.nome)
+      .replace(/As 24 cadeiras da Assembleia Legislativa \(Alese\)/g, 'As ' + m.est + ' cadeiras da Câmara Legislativa do Distrito Federal (CLDF)')
+      .replace(/Aracaju/g, m.capital).replace(/Alese/g, 'CLDF')
+      .replace(/\bde Sergipe/g, 'do ' + m.nome).replace(/\bem Sergipe/g, 'no ' + m.nome).replace(/Sergipe/g, m.nome));
+  }
+  return _ufTextBase(t, m);
+}
+function _ufTextBase(t, m) {
   return String(t)
     .replace(/As 8 cadeiras de Sergipe/g, 'As ' + m.fed + ' cadeiras ' + (m.prep || 'de') + ' ' + m.nome)
     .replace(/As 24 cadeiras da Assembleia Legislativa \(Alese\)/g, 'As ' + m.est + ' cadeiras da Assembleia Legislativa ' + (m.prep || 'de') + ' ' + m.nome + ' (' + m.ale + ')')
@@ -1843,7 +1894,9 @@ async function descobrirEleicao() {
 // se ele não existir, tenta o "dados-simplificados/...-r.json".
 async function buscarCargo(cargo) {
   const ele = cargo.eleicao || codigoEleicao;
-  const c = pad(cargo.codigo, 4), e = pad(ele, 6), uf = cargo.uf || CONFIG.uf;
+  const uf = cargo.uf || CONFIG.uf;
+  // DF: deputado distrital é o cargo 8 no TSE (a UI usa a vaga 7, a mesma de deputado estadual)
+  const c = pad((uf === 'df' && Number(cargo.codigo) === 7) ? 8 : cargo.codigo, 4), e = pad(ele, 6);
   // 1) cópia local (mesmo domínio, sem limite de requisições do TSE)
   try { const d = normalizar(await getJSON(`${SNAP}/${CONFIG.ciclo}/${ele}/dados/${uf}/${uf}-c${c}-e${e}-u.json`)); d.__fonte = 'snapshot'; return d; }
   catch (_) { /* sem snapshot para esta UF/cargo: tenta o TSE */ }
@@ -3001,6 +3054,8 @@ function renderMapaBairros(bairros, filtro, parentKey, syncOpts) {
 }
 
 function renderMapaZonas(zonas, filtro, parentKey, syncOpts) {
+  // DF: o 1º nível já é a zona eleitoral (não há municípios) — vai direto aos bairros
+  if (currentUf === 'df' && zonas.length === 1) return renderMapaBairros(zonas[0].bairros || [], filtro, (parentKey || '') + '|z:' + zonas[0].nr, syncOpts);
   const wrap = el('div');
   for (const z of zonas) {
     const key = (parentKey || '') + '|z:' + z.nr;
@@ -3271,7 +3326,7 @@ async function mountSeChoropleth(host, opts) {
   };
   const hideTip = () => { tip.hidden = true; };
   let active = null;
-  for (const path of wrap.querySelectorAll('path[data-i]')) {
+  for (const path of wrap.querySelectorAll('[data-i]')) {
     const i = Number(path.getAttribute('data-i'));
     const nm = names.get(i) || String(i);
     path.setAttribute('tabindex', '0');

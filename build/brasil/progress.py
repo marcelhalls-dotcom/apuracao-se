@@ -5,8 +5,11 @@ Estado em <OUT>/progress-<regiao>.json (fora do git). Números vêm de mapa/<uf>
 import json, os, sys, datetime
 SITE = os.environ.get('CMV_SITE') or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 OUT = os.environ.get('CMV_OUT') or os.path.join(SITE, '..', 'rebrand', 'brasil')
-REG = {'nordeste': ['ce', 'ma', 'pb', 'pi', 'rn'], 'sudeste': ['es', 'rj', 'mg', 'sp']}
-ALE = {'ce': 'ALECE', 'ma': 'ALEMA', 'pb': 'ALPB', 'pi': 'ALEPI', 'rn': 'ALRN', 'es': 'Ales', 'rj': 'Alerj', 'mg': 'ALMG', 'sp': 'Alesp'}
+REG = {'nordeste': ['ce', 'ma', 'pb', 'pi', 'rn'], 'sudeste': ['es', 'rj', 'mg', 'sp'],
+       'brasil': ['pr', 'sc', 'rs', 'go', 'mt', 'ms', 'df', 'pa', 'am', 'to', 'ro', 'ac', 'ap', 'rr']}
+ALE = {'ce': 'ALECE', 'ma': 'ALEMA', 'pb': 'ALPB', 'pi': 'ALEPI', 'rn': 'ALRN', 'es': 'Ales', 'rj': 'Alerj', 'mg': 'ALMG', 'sp': 'Alesp',
+       'pr': 'Alep', 'sc': 'Alesc', 'rs': 'ALRS', 'go': 'Alego', 'mt': 'ALMT', 'ms': 'ALEMS', 'df': 'CLDF', 'pa': 'Alepa',
+       'am': 'Aleam', 'to': 'Aleto', 'ro': 'ALE-RO', 'ac': 'Aleac', 'ap': 'Alap', 'rr': 'ALE-RR'}
 regiao = sys.argv[1]; ST = os.path.join(OUT, f'progress-{regiao}.json')
 st = json.load(open(ST)) if os.path.exists(ST) else {}
 def du_mb(paths):
@@ -30,7 +33,8 @@ rows = []
 for uf in REG[regiao]:
     r = st.get(uf)
     rows.append(f"| {uf.upper()} | {r['status']} | {r['gov']} | {r['sen']} | {r['seats']} | {r['secoes']} | {r['size']} | {r['commits']} | {r['e2e']} | {r.get('fv', '')} |" if r else f"| {uf.upper()} | ⏳ pendente | | | | | | | | |")
-md = f"""# {regiao.title()} — progresso ({', '.join(u.upper() for u in REG[regiao])})
+TIT = {'brasil': 'Brasil (Sul, Norte e Centro-Oeste)'}.get(regiao, regiao.title())
+md = f"""# {TIT} — progresso ({', '.join(u.upper() for u in REG[regiao])})
 
 Atualizado: {datetime.datetime.now():%d/%m/%Y %H:%M} (horário de Maceió)
 

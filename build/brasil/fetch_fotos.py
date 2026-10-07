@@ -6,7 +6,8 @@ SITE = os.environ.get('CMV_SITE') or os.path.abspath(os.path.join(os.path.dirnam
 for uf in sys.argv[1:]:
     ok = miss = 0
     for c in (3, 5, 6, 7):
-        d = json.load(open(f'{SITE}/tse/ele2026/6259/dados/{uf}/{uf}-c{c:04d}-e006259-u.json'))
+        tc = 8 if (uf == 'df' and c == 7) else c  # DF: distrital = cargo 8 no TSE (fica na pasta 7)
+        d = json.load(open(f'{SITE}/tse/ele2026/6259/dados/{uf}/{uf}-c{tc:04d}-e006259-u.json'))
         os.makedirs(f'{SITE}/fotos/{uf}/{c}', exist_ok=True)
         for a in d['carg'][0]['agr']:
             for p in a['par']:

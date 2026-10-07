@@ -539,7 +539,7 @@
   function shortMunName(nm, max) {
     max = max || 16;
     const low = new Set(['DA', 'DE', 'DO', 'DAS', 'DOS', 'E']);
-    let w = String(nm || '').replace(/NOSSA SENHORA/gi, 'N. Sra.').split(/\s+/).filter(Boolean)
+    let w = String(nm || '').replace(/NOSSA SENHORA/gi, 'N. Sra.').replace(/^ZONA (\d+) · /i, 'Z$1 ').split(/\s+/).filter(Boolean)
       .map((x, i) => (i && low.has(x.toUpperCase())) ? x.toLowerCase() : (x.length <= 2 && x.endsWith('.')) ? x : x.charAt(0).toUpperCase() + x.slice(1).toLowerCase());
     let out = '';
     for (const x of w) { const t = out ? out + ' ' + x : x; if (t.length > max && out) break; out = t; }
@@ -595,7 +595,11 @@
     const Hmap = H - legendH;
 
     const vals = [];
-    for (const f of geojson.features) vals.push(valueByI.get(f.properties.i) || 0);
+    // feições sem "i" (ex.: contorno do DF) são só fundo; feições Point (zonas do DF) viram círculos proporcionais
+    const isUnit = (f) => f.properties && f.properties.i != null;
+    for (const f of geojson.features) if (isUnit(f)) vals.push(valueByI.get(f.properties.i) || 0);
+    let vmaxPt = 0;
+    for (const f of geojson.features) if (isUnit(f) && f.geometry.type === 'Point') vmaxPt = Math.max(vmaxPt, valueByI.get(f.properties.i) || 0);
     const { breaks, colors } = quantileBreaks(vals, 7);
 
     // 1ª passada: mapa em largura total; se algum rótulo colidir, reserva coluna lateral e reprojeta
@@ -604,6 +608,7 @@
       const out = [];
       if (mode !== 'seq') return out;
       for (const f of geojson.features) {
+        if (!isUnit(f)) continue;
         const v = valueByI.get(f.properties.i) || 0;
         if (v <= 0) continue;
         const c = featureCentroid(f, proj);
@@ -639,7 +644,9 @@
     let paths = '';
     // contorno mais fino em UFs com muitos municípios (MG 853, SP 645) para o mapa não ficar "riscado"
     const nF = geojson.features.length, sw = nF > 600 ? 0.16 : nF > 300 ? 0.25 : 0.45;
+    let circles = '';
     for (const f of geojson.features) {
+      if (!isUnit(f)) { paths += `<path d="${geomPath(f.geometry, proj)}" fill="#eef2f7" stroke="#94a3b8" stroke-width="0.8"/>`; continue; }
       const i = f.properties.i;
       let fill = '#e2e8f0';
       const v = valueByI.get(i) || 0;
@@ -660,8 +667,14 @@
         const ci = classForValue(v, breaks);
         fill = ci < 0 ? '#f1f5f9' : colors[ci];
       }
-      const d = geomPath(f.geometry, proj);
       const tip = (f.properties.nm || '') + ': ' + fmtN(v);
+      if (f.geometry.type === 'Point') {
+        const [cx, cy] = proj(f.geometry.coordinates[0], f.geometry.coordinates[1]);
+        const r = (3 + 15 * Math.sqrt(vmaxPt > 0 ? v / vmaxPt : 0)) * Math.max(0.6, W / 560);
+        circles += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" fill-opacity="0.9" stroke="#334155" stroke-width="0.7" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></circle>`;
+        continue;
+      }
+      const d = geomPath(f.geometry, proj);
       paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="${sw}" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></path>`;
     }
 
@@ -708,12 +721,13 @@
         + `<text x="10" y="${H - 10}" font-size="8.5" fill="#64748b">Intensidade = margem de vitória no município (clara → forte)</text>`;
     }
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    const svgOut = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
       <rect width="100%" height="100%" fill="#f8fafc"/>
       ${title ? `<text x="10" y="16" font-size="12" font-weight="700" fill="#0f172a">${title.replace(/[<>]/g, '')}</text>` : ''}
-      <g transform="translate(0,${ty})">${paths}${labels}</g>
+      <g transform="translate(0,${ty})">${paths}${circles}${labels}</g>
       ${legend}
     </svg>`;
+    return (ufRel() === 'df' && typeof global.dfText === 'function') ? global.dfText(svgOut) : svgOut;
   }
 
   async function svgToPngDataUrl(svg, w, h) {
@@ -736,7 +750,14 @@
   /* ---------- PDF helpers ---------- */
   function newDoc(opts) {
     const C = JsPDFCtor();
-    return new C({ orientation: (opts && opts.landscape) ? 'landscape' : 'portrait', unit: 'pt', format: 'a4', compress: true });
+    const doc = new C({ orientation: (opts && opts.landscape) ? 'landscape' : 'portrait', unit: 'pt', format: 'a4', compress: true });
+    // DF: sem municípios/Assembleia — "zona eleitoral", "Câmara Legislativa", "deputado distrital" em todo texto do PDF
+    if (ufRel() === 'df' && typeof global.dfText === 'function') {
+      const T = global.dfText, t0 = doc.text.bind(doc), s0 = doc.splitTextToSize.bind(doc);
+      doc.text = function (txt, ...a) { return t0(Array.isArray(txt) ? txt.map(x => T(x)) : T(txt), ...a); };
+      doc.splitTextToSize = function (txt, ...a) { return s0(T(txt), ...a); };
+    }
+    return doc;
   }
   function pageSize(doc) { const s = doc.internal.pageSize; return { w: s.getWidth(), h: s.getHeight() }; }
   function margins() { return { l: 40, r: 40, t: 48, b: 48 }; }

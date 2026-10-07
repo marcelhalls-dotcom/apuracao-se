@@ -7,7 +7,8 @@ for uf in sys.argv[1:]:
     idx = json.load(open(f'{SITE}/mapa/{uf}/index.json'))
     bad = 0; n = 0
     for c, ele in (('1', 6257), ('3', 6259), ('5', 6259), ('6', 6259), ('7', 6259)):
-        d = json.load(open(f'{SITE}/tse/ele2026/{ele}/dados/{uf}/{uf}-c{int(c):04d}-e00{ele}-u.json'))
+        tc = 8 if (uf == 'df' and c == '7') else int(c)  # DF: distrital = cargo 8 no TSE
+        d = json.load(open(f'{SITE}/tse/ele2026/{ele}/dados/{uf}/{uf}-c{tc:04d}-e00{ele}-u.json'))
         api = {str(x['n']): I(x.get('vap')) for a in d['carg'][0]['agr'] for p in a['par'] for x in p['cand']}
         mine = {x['n']: (x['tse'] if c == '1' else x['t']) for x in idx['cargos'][c]}
         for k, v in api.items():

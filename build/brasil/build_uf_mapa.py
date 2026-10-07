@@ -15,7 +15,10 @@ OUT = os.path.join(SITE, 'mapa', uf)
 RAW = f'/tmp/tse-{uf}'
 API = os.path.join(RAW, 'api')
 IBGE_UF = {'AL': 27, 'SE': 28, 'BA': 29, 'PE': 26, 'CE': 23, 'MA': 21, 'PB': 25, 'PI': 22, 'RN': 24,
-           'ES': 32, 'RJ': 33, 'MG': 31, 'SP': 35}.get(UF)
+           'ES': 32, 'RJ': 33, 'MG': 31, 'SP': 35, 'PR': 41, 'SC': 42, 'RS': 43, 'GO': 52, 'MT': 51, 'MS': 50,
+           'DF': 53, 'PA': 15, 'AM': 13, 'TO': 17, 'RO': 11, 'AC': 12, 'AP': 16, 'RR': 14}.get(UF)
+# DF: deputado distrital é o cargo 8 no TSE; aqui ocupa a vaga interna '7' (mesma UI de deputado estadual, rótulos trocados no site)
+CARGO_MAP = {'8': '7'} if UF == 'DF' else {}
 assert IBGE_UF, f'IBGE code missing for {UF}'
 
 os.makedirs(OUT, exist_ok=True)
@@ -96,14 +99,30 @@ sec_order = []  # (cd,z,s) ordered
 sec_i = {}
 sec_loc = {}  # secKey -> loc idx
 
+# DF: um só município (Brasília) — a unidade geográfica de 1º nível passa a ser a ZONA ELEITORAL do TSE
+DFZ = (UF == 'DF')
+def unit_cd(cd_raw, z):
+    return f'Z{int(z):02d}' if DFZ else ncd(cd_raw)
+def _f(x):
+    try: return float(str(x).replace(',', '.'))
+    except Exception: return None
+z_bairro = collections.defaultdict(collections.Counter)  # DF: zona -> bairro -> eleitores
+z_xy = collections.defaultdict(lambda: [0.0, 0.0, 0])  # DF: zona -> [soma lat*el, soma lon*el, el]
+
 with open(ele_path, encoding='latin1') as f:
     # Prefer unique locais; also collect sections
     seen_loc = {}
     for r in csv.DictReader(f, delimiter=';'):
         if r['SG_UF'] != UF: continue
-        cd, nm = ncd(r['CD_MUNICIPIO']), r['NM_MUNICIPIO']
+        cd, nm = unit_cd(r['CD_MUNICIPIO'], r['NR_ZONA']), r['NM_MUNICIPIO']
         mun_map[cd] = nm
         z, nl = int(r['NR_ZONA']), str(int(r['NR_LOCAL_VOTACAO']))
+        if DFZ:
+            el = int(r.get('QT_ELEITOR_SECAO') or 0) or 1
+            z_bairro[cd][(r.get('NM_BAIRRO') or '').strip().upper()] += el
+            la, lo = _f(r.get('NR_LATITUDE')), _f(r.get('NR_LONGITUDE'))
+            if la is not None and lo is not None and -16.1 < la < -15.4 and -48.4 < lo < -47.2:
+                a = z_xy[cd]; a[0] += la * el; a[1] += lo * el; a[2] += el
         key = (cd, z, nl)
         if key not in seen_loc:
             seen_loc[key] = {
@@ -113,6 +132,14 @@ with open(ele_path, encoding='latin1') as f:
                 'e': (r.get('DS_ENDERECO') or '').strip(),
             }
 
+if DFZ:
+    # nome da zona = bairros predominantes (até 2, o 2º só se tiver >= 25% do eleitorado da zona)
+    for cd in list(mun_map):
+        tot = sum(z_bairro[cd].values()) or 1
+        top = [b for b, n in z_bairro[cd].most_common(2) if b]
+        names = top[:1] + [b for b in top[1:] if z_bairro[cd][b] / tot >= 0.25 and b not in top[0] and top[0] not in b]
+        mun_map[cd] = f'ZONA {int(cd[1:]):02d} · ' + ' / '.join(names)
+    print('DF zonas:', {cd: mun_map[cd] for cd in sorted(mun_map)})
 # Stable mun order by name
 muns_sorted = sorted(mun_map.items(), key=lambda x: fold(x[1]))
 mun_i = {cd: i for i, (cd, _) in enumerate(muns_sorted)}
@@ -138,75 +165,104 @@ print('geo', len(geo_mun), 'mun', len(geo_loc), 'loc')
 
 # ---------- IBGE geojson with TSE cd + i ----------
 import gzip
-req = urllib.request.Request(
-    f'https://servicodados.ibge.gov.br/api/v1/localidades/estados/{IBGE_UF}/municipios',
-    headers={'Accept': 'application/json', 'Accept-Encoding': 'gzip'})
-raw = urllib.request.urlopen(req, timeout=60).read()
-try: ibge_list = json.loads(gzip.decompress(raw))
-except Exception: ibge_list = json.loads(raw)
-ibge_by_fold = {fold(x['nome']): str(x['id']) for x in ibge_list}
-# name aliases
-aliases = {}
-for cd, nm in mun_map.items():
-    k = fold(nm)
-    aliases[k] = cd
-    # common short forms
-    aliases[fold(nm.replace("D'", 'D ').replace("D'", 'D'))] = cd
+def ibge_get(url):
+    req = urllib.request.Request(url, headers={'Accept': 'application/json', 'Accept-Encoding': 'gzip'})
+    raw = urllib.request.urlopen(req, timeout=60).read()
+    try: return json.loads(gzip.decompress(raw))
+    except Exception: return json.loads(raw)
+if DFZ:
+    # Contorno do DF (IBGE) como fundo + um ponto por zona eleitoral no centro (ponderado por eleitores)
+    # dos locais de votação do TSE. Sem polígonos inventados.
+    malha = ibge_get(f'https://servicodados.ibge.gov.br/api/v3/malhas/estados/{IBGE_UF}?formato=application/vnd.geo+json&qualidade=intermediaria')
+    features = [{'type': 'Feature', 'properties': {'outline': 1, 'nm': 'Distrito Federal'}, 'geometry': f['geometry']} for f in malha['features']]
+    for cd in sorted(mun_map):
+        a = z_xy[cd]; assert a[2], f'zona sem coordenadas: {cd}'
+        features.append({'type': 'Feature', 'properties': {'cd': cd, 'nm': mun_map[cd], 'i': mun_i[cd]},
+                         'geometry': {'type': 'Point', 'coordinates': [round(a[1] / a[2], 5), round(a[0] / a[2], 5)]}})
+    print('geojson DF: contorno', len(malha['features']), '+ pontos', len(features) - len(malha['features']))
+    open(os.path.join(OUT, f'{uf}-mun.geojson'), 'w').write(dumps({'type': 'FeatureCollection', 'features': features}))
+else:
+    req = urllib.request.Request(
+        f'https://servicodados.ibge.gov.br/api/v1/localidades/estados/{IBGE_UF}/municipios',
+        headers={'Accept': 'application/json', 'Accept-Encoding': 'gzip'})
+    raw = urllib.request.urlopen(req, timeout=60).read()
+    try: ibge_list = json.loads(gzip.decompress(raw))
+    except Exception: ibge_list = json.loads(raw)
+    ibge_by_fold = {fold(x['nome']): str(x['id']) for x in ibge_list}
+    # name aliases
+    aliases = {}
+    for cd, nm in mun_map.items():
+        k = fold(nm)
+        aliases[k] = cd
+        # common short forms
+        aliases[fold(nm.replace("D'", 'D ').replace("D'", 'D'))] = cd
 
-# malha
-req = urllib.request.Request(
-    f'https://servicodados.ibge.gov.br/api/v3/malhas/estados/{IBGE_UF}?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio',
-    headers={'Accept': 'application/json', 'Accept-Encoding': 'gzip'})
-raw = urllib.request.urlopen(req, timeout=60).read()
-try: malha = json.loads(gzip.decompress(raw))
-except Exception: malha = json.loads(raw)
+    # malha
+    req = urllib.request.Request(
+        f'https://servicodados.ibge.gov.br/api/v3/malhas/estados/{IBGE_UF}?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio',
+        headers={'Accept': 'application/json', 'Accept-Encoding': 'gzip'})
+    raw = urllib.request.urlopen(req, timeout=60).read()
+    try: malha = json.loads(gzip.decompress(raw))
+    except Exception: malha = json.loads(raw)
 
-# map IBGE id -> TSE cd: nome exato (normalizado); fallback tabela TSE->IBGE (sem prefixo "fuzzy")
-tse_by_ibge = {}
-miss = []
-csv_map = {}
-try:
-    for r in csv.DictReader(open('/tmp/tse_ibge.csv', encoding='utf-8')):
-        if r['uf'] == UF: csv_map[r['codigo_ibge']] = r['codigo_tse'].zfill(5)
-except FileNotFoundError: pass
-cd_norm = {cd.zfill(5): cd for cd in mun_map}
-for nome_fold, ibge_id in ibge_by_fold.items():
-    cd = aliases.get(nome_fold)
-    via = 'nome'
-    if not cd and ibge_id in csv_map and csv_map[ibge_id] in cd_norm:
-        cd = cd_norm[csv_map[ibge_id]]; via = 'tabela'
-        print('  via tabela:', nome_fold, ibge_id, '->', cd, mun_map[cd])
-    if cd: tse_by_ibge[ibge_id] = cd
-    else: miss.append((nome_fold, ibge_id))
-dup = [cd for cd, n in collections.Counter(tse_by_ibge.values()).items() if n > 1]
-assert not dup, f'cd TSE duplicado no mapa: {dup}'
-print('ibge map', len(tse_by_ibge), 'miss', miss[:5], len(miss))
+    # map IBGE id -> TSE cd: nome exato (normalizado); fallback tabela TSE->IBGE (sem prefixo "fuzzy")
+    tse_by_ibge = {}
+    miss = []
+    csv_map = {}
+    try:
+        for r in csv.DictReader(open('/tmp/tse_ibge.csv', encoding='utf-8')):
+            if r['uf'] == UF: csv_map[r['codigo_ibge']] = r['codigo_tse'].zfill(5)
+    except FileNotFoundError: pass
+    cd_norm = {cd.zfill(5): cd for cd in mun_map}
+    for nome_fold, ibge_id in ibge_by_fold.items():
+        cd = aliases.get(nome_fold)
+        via = 'nome'
+        if not cd and ibge_id in csv_map and csv_map[ibge_id] in cd_norm:
+            cd = cd_norm[csv_map[ibge_id]]; via = 'tabela'
+            print('  via tabela:', nome_fold, ibge_id, '->', cd, mun_map[cd])
+        if cd: tse_by_ibge[ibge_id] = cd
+        else: miss.append((nome_fold, ibge_id))
+    dup = [cd for cd, n in collections.Counter(tse_by_ibge.values()).items() if n > 1]
+    assert not dup, f'cd TSE duplicado no mapa: {dup}'
+    print('ibge map', len(tse_by_ibge), 'miss', miss[:5], len(miss))
 
-features = []
-for f in malha['features']:
-    ibge = str(f['properties'].get('codarea') or f['properties'].get('id') or '')
-    cd = tse_by_ibge.get(ibge)
-    if not cd:
-        # leave without cd — skip choropleth link
-        continue
-    i = mun_i[cd]
-    nm = mun_map[cd]
-    features.append({
-        'type': 'Feature',
-        'properties': {'ibge': ibge, 'nm': nm, 'cd': cd, 'i': i},
-        'geometry': f['geometry'],
-    })
-# ensure all mun present: if some missing from malha, warn
-have = {f['properties']['cd'] for f in features}
-missing_geo = [cd for cd in mun_map if cd not in have]
-print('geojson features', len(features), 'missing_geo', missing_geo[:5], len(missing_geo))
-open(os.path.join(OUT, f'{uf}-mun.geojson'), 'w').write(dumps({'type': 'FeatureCollection', 'features': features}))
+    features = []
+    for f in malha['features']:
+        ibge = str(f['properties'].get('codarea') or f['properties'].get('id') or '')
+        cd = tse_by_ibge.get(ibge)
+        if not cd:
+            # leave without cd — skip choropleth link
+            continue
+        i = mun_i[cd]
+        nm = mun_map[cd]
+        features.append({
+            'type': 'Feature',
+            'properties': {'ibge': ibge, 'nm': nm, 'cd': cd, 'i': i},
+            'geometry': f['geometry'],
+        })
+    # ensure all mun present: if some missing from malha, warn
+    have = {f['properties']['cd'] for f in features}
+    missing_geo = [cd for cd in mun_map if cd not in have]
+    print('geojson features', len(features), 'missing_geo', missing_geo[:5], len(missing_geo))
+    open(os.path.join(OUT, f'{uf}-mun.geojson'), 'w').write(dumps({'type': 'FeatureCollection', 'features': features}))
 
 # mun-index
 mun_idx = {
     'muns': [{'i': i, 'cd': cd, 'nm': nm, 'key': fold(nm)} for i, (cd, nm) in enumerate(muns_sorted)],
     'aliases': {fold(nm): i for i, (cd, nm) in enumerate(muns_sorted)},
 }
+if DFZ:
+    # chat: "zona 01".."zona 21" e nomes de bairro apontam para a zona com mais eleitores naquele bairro
+    best = {}
+    for cd, cnt in z_bairro.items():
+        for b, n in cnt.items():
+            if b and (b not in best or n > best[b][1]): best[b] = (cd, n)
+    for b, (cd, n) in best.items():
+        k = fold(b)
+        if len(k) >= 5: mun_idx['aliases'].setdefault(k, mun_i[cd])
+    for cd in mun_map:
+        mun_idx['aliases'][fold(f'ZONA {int(cd[1:]):02d}')] = mun_i[cd]
+        mun_idx['aliases'][fold(f'{int(cd[1:])}A ZONA')] = mun_i[cd]
 open(os.path.join(OUT, 'mun-index.json'), 'w').write(dumps(mun_idx))
 
 # ---------- detalhe: build sec order + aptos/comparecimento ----------
@@ -220,8 +276,8 @@ with open(DET, encoding='latin1', newline='') as f:
     num = lambda x: int(x or 0)
     for r in rd:
         if r[iU] != UF: continue
-        cd = ncd(r[iM]); k = (cd, int(r[iZ]), int(r[iS]))
-        det.setdefault(k, {})[r[iC]] = [num(r[iA]), num(r[iCo]), num(r[iB]), num(r[iN]), num(r[iLe])]
+        cd = unit_cd(r[iM], r[iZ]); k = (cd, int(r[iZ]), int(r[iS]))
+        det.setdefault(k, {})[CARGO_MAP.get(r[iC], r[iC])] = [num(r[iA]), num(r[iCo]), num(r[iB]), num(r[iN]), num(r[iLe])]
         lk = (cd, int(r[iZ]), str(int(r[iL])))
         if lk in loc_i:
             sec_loc[k] = loc_i[lk]
@@ -277,9 +333,9 @@ for fn in VOT_FILES:
         iU, iM, iZ, iS, iC, iN, iV = H['SG_UF'], H['CD_MUNICIPIO'], H['NR_ZONA'], H['NR_SECAO'], H['CD_CARGO'], H['NR_VOTAVEL'], H['QT_VOTOS']
         for r in rd:
             if r[iU] and r[iU] != UF: continue
-            ci = cand_id.get((r[iC], r[iN]))
+            ci = cand_id.get((CARGO_MAP.get(r[iC], r[iC]), r[iN]))
             if ci is None: continue
-            si = sec_i.get((ncd(r[iM]), int(r[iZ]), int(r[iS])))
+            si = sec_i.get((unit_cd(r[iM], r[iZ]), int(r[iZ]), int(r[iS])))
             if si is None:
                 missing_sec += 1
                 continue

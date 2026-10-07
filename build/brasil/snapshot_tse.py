@@ -34,9 +34,10 @@ def save(rel, data):
 def snap(uf):
     api = f'/tmp/tse-{uf}/api'; os.makedirs(api, exist_ok=True)
     sqs = []
-    for c in (3, 5, 6, 7):
+    # DF: deputado distrital é o cargo 8 no TSE; nos nossos arquivos ele ocupa a vaga interna "7" (api/c7.json)
+    for c in (3, 5, 6, 8 if uf == 'df' else 7):
         rel = f'ele2026/6259/dados/{uf}/{uf}-c{c:04d}-e006259-u.json'
-        b = get(f'{BASE}/{rel}'); json.loads(b); save(rel, b); open(f'{api}/c{c}.json', 'wb').write(b)
+        b = get(f'{BASE}/{rel}'); json.loads(b); save(rel, b); open(f'{api}/c{7 if c == 8 else c}.json', 'wb').write(b)
         d = json.loads(b)
         for agr in d['carg'][0].get('agr') or []:
             for par in agr.get('par') or []:

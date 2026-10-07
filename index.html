@@ -1097,7 +1097,7 @@
       <div class="hero-copy">
         <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Sergipe e Alagoas · mais estados em breve</div>
         <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
-        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência), <strong>Alagoas</strong> e <strong>Bahia</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência), <strong>Alagoas</strong>, <strong>Bahia</strong> e <strong>Pernambuco</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
         <div class="uf-picker" id="uf-picker" aria-label="Escolha o estado"></div>
         <div class="hero-actions">
           <a class="btn-primary" href="#mapa" id="cta-mapa">Abrir o Mapa de Votação</a>
@@ -1466,7 +1466,7 @@
   <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros.</div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL/BA)…" required></textarea>
+    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL/BA/PE)…" required></textarea>
     <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
@@ -1545,7 +1545,7 @@ const UF_REGISTRY = {
   ac: { code: 'ac', nome: 'Acre', status: 'soon' },
   am: { code: 'am', nome: 'Amazonas', status: 'soon' },
   ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
-  ba: { code: 'ba', nome: 'Bahia', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
+  ba: { code: 'ba', nome: 'Bahia', prep: 'da', em: 'na', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', status: 'soon' },
   df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
   es: { code: 'es', nome: 'Espírito Santo', status: 'soon' },
@@ -1556,7 +1556,7 @@ const UF_REGISTRY = {
   mt: { code: 'mt', nome: 'Mato Grosso', status: 'soon' },
   pa: { code: 'pa', nome: 'Pará', status: 'soon' },
   pb: { code: 'pb', nome: 'Paraíba', status: 'soon' },
-  pe: { code: 'pe', nome: 'Pernambuco', status: 'soon' },
+  pe: { code: 'pe', nome: 'Pernambuco', status: 'ready', capital: 'Recife', fed: 25, est: 49, ale: 'ALEPE' },
   pi: { code: 'pi', nome: 'Piauí', status: 'soon' },
   pr: { code: 'pr', nome: 'Paraná', status: 'soon' },
   rj: { code: 'rj', nome: 'Rio de Janeiro', status: 'soon' },
@@ -1621,7 +1621,7 @@ function applyUf(uf, { refresh } = {}) {
   window.CURRENT_UF = currentUf;
   if (currentUf === 'se') {
     CONFIG.cargos = CONFIG_SE_CARGOS;
-  } else if (currentUf === 'al' || currentUf === 'ba') {
+  } else if (currentUf === 'al' || currentUf === 'ba' || currentUf === 'pe') {
     // Live TSE: mesmos códigos de eleição; destaques por UF; sem cards exclusivos de SE.
     const m = ufMeta(currentUf);
     const destaque = currentUf === 'al'
@@ -1629,9 +1629,12 @@ function applyUf(uf, { refresh } = {}) {
           gov: [{ nome: 'JHC', numero: 45 }, { nome: 'Renan Filho', numero: 15 }],
           sen: [{ nome: 'Arthur Lira', numero: 111 }, { nome: 'Marina JHC', numero: 456 }],
         }
-      : {
+      : currentUf === 'ba' ? {
           gov: [{ nome: 'Jerônimo', numero: 13 }, { nome: 'ACM Neto', numero: 44 }],
           sen: [{ nome: 'Rui Costa', numero: 133 }, { nome: 'Jaques Wagner', numero: 130 }],
+        } : {
+          gov: [{ nome: 'Raquel Lyra', numero: 55 }, { nome: 'João Campos', numero: 40 }],
+          sen: [{ nome: 'Humberto Costa', numero: 130 }, { nome: 'Marília Arraes', numero: 123 }],
         };
     CONFIG.cargos = [
       { codigo: 3, titulo: 'Governador', matematico: 'maioria', todosCandidatos: true, verTodosLim: 99, candidatos: destaque.gov },
@@ -1660,10 +1663,12 @@ function ufText(t) {
   const m = ufMeta(currentUf);
   if (currentUf === 'se') return t;
   return String(t)
-    .replace(/As 8 cadeiras de Sergipe/g, 'As ' + m.fed + ' cadeiras de ' + m.nome)
-    .replace(/As 24 cadeiras da Assembleia Legislativa \(Alese\)/g, 'As ' + m.est + ' cadeiras da Assembleia Legislativa de ' + m.nome + ' (' + m.ale + ')')
+    .replace(/As 8 cadeiras de Sergipe/g, 'As ' + m.fed + ' cadeiras ' + (m.prep || 'de') + ' ' + m.nome)
+    .replace(/As 24 cadeiras da Assembleia Legislativa \(Alese\)/g, 'As ' + m.est + ' cadeiras da Assembleia Legislativa ' + (m.prep || 'de') + ' ' + m.nome + ' (' + m.ale + ')')
     .replace(/Aracaju/g, m.capital || m.nome)
     .replace(/Alese/g, m.ale || 'Assembleia')
+    .replace(/\bde Sergipe/g, (m.prep || 'de') + ' ' + m.nome)
+    .replace(/\bem Sergipe/g, (m.em || 'em') + ' ' + m.nome)
     .replace(/Sergipe/g, m.nome);
 }
 function paintUfPicker() {
@@ -1697,14 +1702,14 @@ function paintUfChrome() {
   const m = ufMeta(currentUf);
   const eye = document.getElementById('hero-eyebrow');
   if (eye) eye.textContent = currentUf === 'se'
-    ? 'Eleições 2026 · Sergipe (referência) · Alagoas e Bahia · mais estados em breve'
+    ? 'Eleições 2026 · Sergipe (referência) · Alagoas, Bahia e Pernambuco · mais estados em breve'
     : `Eleições 2026 · ${m.nome} · Dados oficiais do TSE`;
   const title = document.getElementById('hero-panel-title');
   if (title) title.innerHTML = `${m.nome} 2026 em números <span>fonte: TSE</span>`;
   const panel = document.getElementById('hero-panel');
   if (panel) panel.setAttribute('aria-label', m.nome + ' 2026 em números');
   const sec = document.getElementById('sec-resultados-title');
-  if (sec) sec.textContent = 'Resultados em ' + m.nome;
+  if (sec) sec.textContent = 'Resultados ' + (m.em || 'em') + ' ' + m.nome;
   const cta = document.getElementById('cta-mapa');
   if (cta) cta.href = buildLocationHash('mapa', { uf: currentUf });
   document.body.dataset.uf = currentUf;
@@ -2415,7 +2420,7 @@ function renderHemicicloCargo(cod) {
   const card = el('section', 'card alese' + (cod === 6 ? ' hemi-fed' : ''));
   card.appendChild(el('h2', null, cod === 7
     ? `${casa} - distribuição das ${esperado || ''} cadeiras`.replace('  ', ' ')
-    : `Bancada de ${m.nome} na Câmara - ${esperado || ''} cadeiras`));
+    : `Bancada ${m.prep || 'de'} ${m.nome} na Câmara - ${esperado || ''} cadeiras`));
   if (!d || d.pst === 0 || !d.listasVagas || !d.listasVagas.length) { card.appendChild(el('div', 'aviso-card espera', 'Aparece quando o TSE calcular as vagas de ' + (cod === 7 ? 'Deputado Estadual' : 'Deputado Federal'))); return card; }
   card.appendChild(el('div', 'meta', `${d.totalFinal ? 'Resultado final do TSE' : 'Projeção com ' + fmtPct(d.pst) + ' das urnas'} • Quociente eleitoral ${fmtInt.format(d.qe)} votos • Toque/passe o mouse numa cadeira para ver o eleito`));
   const listas = [...d.listasVagas].sort((a, b) => b.vag - a.vag || b.votos - a.votos).map((l, i) => ({ ...l, cor: corLista(l.nome, i) }));

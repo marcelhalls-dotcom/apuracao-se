@@ -1,6 +1,6 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, Alagoas e Bahia; outros estados em breve).
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, Alagoas, Bahia e Pernambuco; outros estados em breve).
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
@@ -724,7 +724,7 @@ export default {
 
     const ufReq = String(body.uf || 'se').toLowerCase();
     let ctxJson = CONTEXT;
-    if (ufReq === 'al' || ufReq === 'ba') {
+    if (['al', 'ba', 'pe'].includes(ufReq)) {
       try {
         const pages = (env.PAGES_BASE || 'https://cademeuvoto.com.br').replace(/\/$/, '');
         ctxJson = await cachedJson(`${pages}/mapa/${ufReq}/context.json`);

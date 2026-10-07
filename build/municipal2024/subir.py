@@ -45,7 +45,7 @@ def put(bucket, key, body):
     client().put_object(Bucket=bucket, Key=key, Body=body, ContentType='application/json; charset=utf-8', CacheControl=CC[bucket])
 
 def subir_dir(bucket, base, prefix, dry=False):
-    assert prefix.startswith(PREFIX + '/') and prefix.endswith('/')
+    assert prefix.split('/')[0] in (PREFIX, 'e2026') and prefix.endswith('/') and prefix.count('/') >= 2
     locais = {}
     root = os.path.join(base, prefix)
     for dp, _, fs in os.walk(root):
@@ -59,7 +59,7 @@ def subir_dir(bucket, base, prefix, dry=False):
         if remoto.get(k, (None,))[0] != md5b(b): todo.append((k, b))
     orfaos = sorted(set(remoto) - set(locais))
     if not dry and todo:
-        with ThreadPoolExecutor(32) as ex: list(ex.map(lambda kb: put(bucket, kb[0], kb[1]), todo))
+        with ThreadPoolExecutor(16) as ex: list(ex.map(lambda kb: put(bucket, kb[0], kb[1]), todo))
     # confere: tudo o que existe localmente está no bucket com o mesmo MD5
     if not dry:
         remoto = listar(bucket, prefix)

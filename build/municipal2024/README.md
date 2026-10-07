@@ -48,6 +48,8 @@ Progresso: `rebrand/municipal2024/progress.md`; relatório de verificação: `re
 | `subir.py` | upload idempotente para os dois buckets + `m2024/index.json` |
 | `rodar.py` | orquestra UF por UF e atualiza o `progress.md` |
 | `locais2026.py` | mesmo formato de locais/top 3 para 2026 (prefixo `e2026/`) |
+| `fotos.py` | fotos sob demanda (só Prefeito, eleitos e quem aparece em top 3 de bairro), lidas do zip remoto do TSE |
+| `resumo.py` | junta as verificações por UF em `rebrand/municipal2024/RESUMO.md` |
 
 ## Layout no R2
 
@@ -64,6 +66,9 @@ em ordem de votos no 1º turno).
   bairros. Sem votos. Serve para o celular achar o local/bairro mais próximo **no aparelho** (nada de coordenada do
   usuário sai do celular)
 - `m2024/<uf>/redes/<cd>.json` — `{sq: [urls]}`
+- `m2024/<uf>/fotos/<sq>.jpg` + `m2024/<uf>/fotos.json` (lista de quem tem foto) — JPEG original do TSE (~30 KB), só
+  candidatos a Prefeito, eleitos e vereadores que aparecem em algum top 3 de bairro (as 13,6 GB de fotos do TSE não são copiadas inteiras)
+- `e2026/<uf>/locais/<cd>.json` — o mesmo índice de locais para 2026 (27 UFs, inclui DF)
 
 **Assinantes — `cademeuvoto-dados-pro`** (mesmo prefixo; servido só via Worker):
 
@@ -74,6 +79,9 @@ em ordem de votos no 1º turno).
 - `m2024/<uf>/det/<cd>/11.json` — Prefeito: votos por local e por seção (t1/t2)
 - `m2024/<uf>/det/<cd>/13-loc.json` — Vereador: votos por local
 - `m2024/<uf>/det/<cd>/13-sec.json` (ou `13-sec-z<zona>.json` em municípios com mais de 1.500 seções) — Vereador por seção
+
+- `e2026/<uf>/top3/<cd>.json` — top 3 por bairro de 2026 (Senador, Dep. Federal, Dep. Estadual/Distrital) com os eleitos
+  e seus votos no bairro, no mesmo formato
 
 Uma versão "grátis" proposta do top 3 (só nomes, sem votos) é gerada **localmente** em `out/proposta/` e **não** é
 publicada até decisão do Marcel.
@@ -92,6 +100,12 @@ publicada até decisão do Marcel.
    um cargo num município (possível anulação/retotalização), a situação vem do relatório oficial de 2024 e o arquivo do
    município leva `aviso_situacao`. Candidato que a base atual deixou sem situação mas que o relatório de 2024 dava
    como eleito fica com `e: false` e o campo informativo `st_rel2024`.
+
+## Eleições suplementares
+
+O TSE publica no mesmo arquivo de votação por seção algumas eleições suplementares (2025/2026) de municípios em que a
+eleição de 2024 foi anulada (outro `CD_ELEICAO`). Elas ficam **fora** (o escopo é 06/10 e 27/10/2024): o arquivo do
+município ganha `eleicao_suplementar` e `aviso_suplementar`, e ninguém é marcado como eleito naquele cargo.
 
 ## Privacidade
 

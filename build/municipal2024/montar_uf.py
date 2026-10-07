@@ -35,25 +35,28 @@ def main(UF):
     # ---------- carga ----------
     X(f"""create table v as select lpad(CD_MUNICIPIO,5,'0') cd, NR_ZONA::int z, NR_SECAO::int s, CD_CARGO::int c, NR_TURNO::int t,
           NR_VOTAVEL::int nv, SQ_CANDIDATO::bigint sq, NR_LOCAL_VOTACAO::int nl, QT_VOTOS::int q, CD_ELEICAO el
-          from {csv(os.path.join(d, f'votacao_secao_2024_{UF}.csv'))} where CD_CARGO in ('11','13') order by cd, c, t""")
+          from {csv(os.path.join(d, f'votacao_secao_2024_{UF}.csv'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620') order by cd, c, t""")
+    # eleições suplementares que o TSE publica no mesmo arquivo (outro CD_ELEICAO): ficam fora (escopo = 06/10 e 27/10/2024)
+    supl = X(f"""select CD_ELEICAO, any_value(DS_ELEICAO), any_value(DT_ELEICAO), lpad(CD_MUNICIPIO,5,'0'), any_value(NM_MUNICIPIO), string_agg(distinct CD_CARGO, ','), sum(QT_VOTOS::int)
+                    from {csv(os.path.join(d, f'votacao_secao_2024_{UF}.csv'))} where CD_ELEICAO not in ('619','620') group by CD_ELEICAO, CD_MUNICIPIO""").fetchall()
     X(f"""create table det as select lpad(CD_MUNICIPIO,5,'0') cd, any_value(NM_MUNICIPIO) nm, NR_ZONA::int z, NR_SECAO::int s, CD_CARGO::int c, NR_TURNO::int t,
           sum(QT_APTOS::int) aptos, sum(QT_COMPARECIMENTO::int) comp, sum(QT_ABSTENCOES::int) abst, sum(QT_VOTOS_NOMINAIS::int) nom,
           sum(QT_VOTOS_BRANCOS::int) br, sum(QT_VOTOS_NULOS::int) nu, sum(QT_VOTOS_LEGENDA::int) leg, sum(QT_VOTOS_ANULADOS_APU_SEP::int) anul,
           any_value(NR_LOCAL_VOTACAO::int) nl, any_value(NM_LOCAL_VOTACAO) nm_local, any_value(DS_LOCAL_VOTACAO_ENDERECO) end_local, count(*) nlin
-          from {csv(f('detalhe_secao'))} where CD_CARGO in ('11','13') group by all""")
+          from {csv(f('detalhe_secao'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620') group by all""")
     X(f"""create table cand as select SG_UE cd, CD_CARGO::int c, NR_TURNO::int t, SQ_CANDIDATO::bigint sq, NR_CANDIDATO::int nu, NM_CANDIDATO nome,
           NM_URNA_CANDIDATO urna, SG_PARTIDO sg, NR_PARTIDO::int np, SG_FEDERACAO fed, NM_COLIGACAO col, DS_COMPOSICAO_COLIGACAO comp_col,
           DS_SITUACAO_CANDIDATURA sit, DS_SIT_TOT_TURNO st, DS_GENERO gen, CD_ELEICAO el
-          from {csv(f('cand'))} where CD_CARGO in ('11','13')""")
+          from {csv(f('cand'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620')""")
     X(f"""create table mz as select lpad(CD_MUNICIPIO,5,'0') cd, CD_CARGO::int c, NR_TURNO::int t, SQ_CANDIDATO::bigint sq, any_value(NR_CANDIDATO::int) nu,
           any_value(NM_URNA_CANDIDATO) urna, any_value(SG_PARTIDO) sg, sum(QT_VOTOS_NOMINAIS::bigint) nom, sum(QT_VOTOS_NOMINAIS_VALIDOS::bigint) nomv,
           string_agg(distinct NM_TIPO_DESTINACAO_VOTOS, '|') dest, string_agg(distinct DS_SIT_TOT_TURNO, '|') st, any_value(NM_MUNICIPIO) nm, any_value(DS_SITUACAO_CANDIDATURA) sitc
-          from {csv(f('cand_munzona'))} where CD_CARGO in ('11','13') group by cd, c, t, sq""")
+          from {csv(f('cand_munzona'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620') group by cd, c, t, sq""")
     X(f"""create table pm as select lpad(CD_MUNICIPIO,5,'0') cd, CD_CARGO::int c, NR_TURNO::int t, NR_PARTIDO::int np, any_value(SG_PARTIDO) sg,
           sum(QT_VOTOS_LEGENDA_VALIDOS::bigint) leg, sum(QT_TOTAL_VOTOS_LEG_VALIDOS::bigint) tot, sum(QT_VOTOS_NOMINAIS_VALIDOS::bigint) nomv,
           sum(QT_VOTOS_LEGENDA_ANUL_SUBJUD::bigint + QT_VOTOS_LEGENDA_ANULADOS::bigint) leg_anul
-          from {csv(f('partido_munzona'))} where CD_CARGO in ('11','13') group by cd, c, t, np""")
-    X(f"""create table vagas as select SG_UE cd, CD_CARGO::int c, sum(QT_VAGA::int) n from {csv(f('vagas'))} where CD_CARGO in ('11','13') group by all""")
+          from {csv(f('partido_munzona'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620') group by cd, c, t, np""")
+    X(f"""create table vagas as select SG_UE cd, CD_CARGO::int c, sum(QT_VAGA::int) n from {csv(f('vagas'))} where CD_CARGO in ('11','13') and CD_ELEICAO in ('619','620') group by all""")
     X(f"""create table redes as select SQ_CANDIDATO::bigint sq, list(DS_URL order by NR_ORDEM_REDE_SOCIAL::int) urls from {csv(f('redes'))} group by sq""")
     ele = os.path.join(RAW, NACIONAIS['eleitorado'][1])
     X(f"""create table loc as select lpad(CD_MUNICIPIO,5,'0') cd, NR_ZONA::int z, NR_LOCAL_VOTACAO::int nl, mode(NM_LOCAL_VOTACAO) nome, mode(DS_ENDERECO) ender,
@@ -63,6 +66,7 @@ def main(UF):
     info = {k: X(f'select count(*) from {k}').fetchone()[0] for k in ('v', 'det', 'cand', 'mz', 'pm', 'vagas', 'redes', 'loc')}
     info['eleicoes_votos'] = X("select el, t, count(*) from v group by all order by all").fetchall()
     info['eleicoes_cand'] = X("select el, t, count(*) from cand group by all order by all").fetchall()
+    info['suplementares_ignoradas'] = [list(map(str, r)) for r in supl]
     info['det_duplicadas'] = X("select count(*) from det where nlin>1").fetchone()[0]
     print(UF, 'carga', info, f'{time.time() - t0:.1f}s', flush=True)
 
@@ -227,6 +231,11 @@ def main(UF):
         tem2t = bool(((c_ == 11) & (t_ == 2)).any())
         av = [c for c in (11, 13) if (cd, c) in sem_sit]
         if av: out_pub['aviso_situacao'] = {'cargos': av, 'texto': 'A base atual do TSE (consulta_cand de 07/10/2026) não informa a situação final deste cargo neste município (possível anulação/retotalização). A situação mostrada vem do Relatório Resultado da Totalização oficial de 2024.'}
+        sp = [r for r in supl if r[3] == cd]
+        if sp:
+            out_pub['eleicao_suplementar'] = [{'cd_eleicao': r[0], 'nome': r[1], 'data': r[2], 'cargos': r[5]} for r in sp]
+            out_pub['aviso_suplementar'] = 'A eleição de 2024 para ' + ' e '.join({'11': 'Prefeito', '13': 'Vereador'}.get(x, x) for x in sorted({c for r in sp for c in r[5].split(',')})) + \
+                f" foi refeita em eleição suplementar ({', '.join(r[2] for r in sp)}), que não faz parte deste conjunto. Os votos aqui são os de 06/10/2024."
         t1 = {'nsec': len(sec), 'nloc': len(locais)}
         for kk in ('11', '13', '11t2'):
             tt = tot(kk)
@@ -260,7 +269,8 @@ def main(UF):
                 st1 = ok(r[12] if r else None) or ok(m[7] if m else None); st2 = ok(r[13] if r else None) or ok(m2[7] if m2 else None)
                 fs = 'consulta_cand' if (r and (ok(r[12]) or ok(r[13]))) else ('munzona' if (st1 or st2) else None)
                 nu_ = r[3] if r else (m[8] if m else None)
-                if (cd, c) in sem_sit:
+                anulada = any(r[3] == cd and str(c) in r[5].split(',') for r in supl)
+                if (cd, c) in sem_sit and not anulada:
                     tf = 2 if (c == 11 and cd in runoff) else 1
                     R = rel.get((cd, tf)) or {}; px = (R.get(c) or {}).get(nu_) if (cd, c, s) in nv_de else None
                     if px:
@@ -313,7 +323,7 @@ def main(UF):
                 return a if a not in NUL else (mzd.get((cd, c, 1, s)) or [None] * 8)[7]
             el_cc = sorted(str(s) for s in sqs if fcc(s) in ELEITO)
             el_mz = sorted(str(s) for s in sqs if fmz(s) in ELEITO)
-            if (cd, c) in sem_sit:   # base atual sem situação: compara com o relatório oficial
+            if (cd, c) in sem_sit or any(r[3] == cd and str(c) in r[5].split(',') for r in supl):   # base atual sem situação: compara com o relatório oficial / eleição refeita
                 el_cc = el_mz = sorted(it['sq'] for it in lista if it['e'])
             el_out = sorted(it['sq'] for it in lista if it['e'])
             if not any(fmz(s) not in NUL for s in sqs): el_mz = el_cc   # munzona sem linhas/sem situação p/ esse cargo

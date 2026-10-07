@@ -49,10 +49,10 @@
   .cmv-entrar{display:inline-flex;align-items:center;min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid rgba(96,165,250,.45);background:transparent;color:#BFDBFE;font:inherit;font-size:.86rem;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;margin-right:6px}
   .cmv-entrar:hover{background:rgba(96,165,250,.12)}
   .cmv-entrar .cmv-badge{margin-left:6px;font-size:.66rem;padding:1px 7px;border-radius:999px;background:rgba(34,197,94,.18);color:#86EFAC;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
-  .cmv-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+  .cmv-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
   .cmv-modal[hidden]{display:none}
   .cmv-modal .cmv-back{position:absolute;inset:0;background:rgba(2,6,23,.72)}
-  .cmv-modal .cmv-box{position:relative;width:100%;max-width:440px;max-height:92vh;overflow:auto;background:#1e293b;border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.5);color:#f8fafc}
+  .cmv-modal .cmv-box{position:relative;width:100%;max-width:440px;max-height:92vh;max-height:calc(100dvh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));overflow:auto;background:#1e293b;border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.5);color:#f8fafc}
   .cmv-box h2{margin:0 0 6px;font-size:1.2rem;color:#f8fafc}.cmv-box p{color:#cbd5e1;font-size:.92rem;line-height:1.45;margin:6px 0 12px}
   .cmv-x{position:absolute;top:10px;right:12px;background:none;border:0;color:#94a3b8;font-size:1.5rem;cursor:pointer;line-height:1}
   .cmv-tabs{display:flex;gap:6px;margin:4px 0 14px}.cmv-tabs button{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:transparent;color:#cbd5e1;font:inherit;cursor:pointer}

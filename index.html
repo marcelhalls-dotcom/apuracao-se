@@ -23,8 +23,8 @@
 <link rel="icon" href="favicon-32.png?v=20261007br1" sizes="32x32" type="image/png">
 <link rel="icon" href="favicon-16.png?v=20261007br1" sizes="16x16" type="image/png">
 <link rel="shortcut icon" href="favicon.ico?v=20261007br1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa2" sizes="180x180">
-<link rel="manifest" href="site.webmanifest?v=20261007pwa2">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa3" sizes="180x180">
+<link rel="manifest" href="site.webmanifest?v=20261007pwa3">
 <meta name="theme-color" content="#0A1428">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1006,6 +1006,28 @@
   }
   @media (max-width: 340px) { .brand-word { display: none; } }
 
+
+  /* ---------- áreas seguras (iPhone com Dynamic Island/notch e celulares com recorte) ----------
+     viewport-fit=cover + barra de status translúcida (app instalado): o conteúdo vai até a borda,
+     então o cabeçalho, a barra inferior, o menu, o chat e as janelas precisam respeitar os recortes. */
+  :root { --sa-t: env(safe-area-inset-top, 0px); --sa-r: env(safe-area-inset-right, 0px); --sa-b: env(safe-area-inset-bottom, 0px); --sa-l: env(safe-area-inset-left, 0px); }
+  .site-header { padding: var(--sa-t) var(--sa-r) 0 var(--sa-l) !important; }
+  #views-root { padding-left: max(16px, var(--sa-l)); padding-right: max(16px, var(--sa-r)); }
+  .site-footer { padding-left: max(16px, var(--sa-l)); padding-right: max(16px, var(--sa-r)); padding-bottom: calc(22px + var(--sa-b)); }
+  .drawer-panel { padding-top: calc(14px + var(--sa-t)); padding-right: calc(16px + var(--sa-r)); padding-bottom: calc(28px + var(--sa-b)); }
+  .chat-fab { right: calc(16px + var(--sa-r)); bottom: calc(16px + var(--sa-b)); }
+  .chat-panel { right: calc(16px + var(--sa-r)); bottom: calc(76px + var(--sa-b)); }
+  @media (max-width: 860px) {
+    .chat-fab { bottom: calc(76px + var(--sa-b)); }
+    .chat-panel { bottom: calc(136px + var(--sa-b)); }
+    .bottom-nav { padding-left: var(--sa-l); padding-right: var(--sa-r); }
+    .chat-fab { right: calc(12px + var(--sa-r)); }
+  }
+  @media (max-width: 640px) {
+    #views-root { padding-left: max(12px, var(--sa-l)); padding-right: max(12px, var(--sa-r)); }
+    /* chat em tela cheia no celular: cabeçalho do chat abaixo do relógio, campo acima da barra de gestos */
+    .chat-panel { right: 0; box-sizing: border-box; padding: var(--sa-t) var(--sa-r) var(--sa-b) var(--sa-l); }
+  }
 </style>
 </head>
 <body>
@@ -1511,9 +1533,9 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261007pwa2"></script>
-<script src="assinatura.js?v=20261007pwa2"></script>
-<script src="relatorios.js?v=20261007pwa2"></script>
+<script src="pwa.js?v=20261007pwa3"></script>
+<script src="assinatura.js?v=20261007pwa3"></script>
+<script src="relatorios.js?v=20261007pwa3"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.

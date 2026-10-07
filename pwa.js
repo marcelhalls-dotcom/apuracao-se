@@ -13,7 +13,7 @@
   /* ---------------- estilos ---------------- */
   const css = `
   .cmv-pwa,.cmv-pwa *,.cmv-upd,.cmv-upd *,.cmv-dl,.cmv-dl *{box-sizing:border-box}
-  .cmv-pwa{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:80;max-width:380px;display:flex;gap:12px;align-items:center;
+  .cmv-pwa{position:fixed;left:calc(16px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));z-index:80;max-width:380px;display:flex;gap:12px;align-items:center;
     background:#111E3A;border:1px solid rgba(148,163,184,.28);border-radius:14px;padding:10px 10px 10px 12px;box-shadow:0 12px 32px rgba(0,0,0,.45);color:#F8FAFC;font-size:.9rem;line-height:1.35}
   .cmv-pwa img{width:36px;height:36px;border-radius:9px;flex:none}
   .cmv-pwa .t{flex:1;min-width:0}.cmv-pwa .t b{display:block;font-size:.92rem}.cmv-pwa .t span{color:#94A3B8;font-size:.8rem}
@@ -25,14 +25,12 @@
   .cmv-upd{position:fixed;left:50%;transform:translateX(-50%);top:calc(70px + env(safe-area-inset-top));z-index:90;display:flex;gap:10px;align-items:center;
     background:#1E3A8A;border:1px solid rgba(147,197,253,.4);border-radius:999px;padding:6px 6px 6px 16px;color:#EFF6FF;font-size:.88rem;box-shadow:0 10px 28px rgba(0,0,0,.45)}
   .cmv-upd button{font:inherit;font-weight:700;border:0;border-radius:999px;background:#F8FAFC;color:#1E3A8A;padding:7px 14px;cursor:pointer;min-height:36px}
-  .cmv-dl{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,23,.6);padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .cmv-dl{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,23,.6);padding:16px;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
   .cmv-dl>div{width:100%;max-width:420px;background:#1E293B;border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:18px;color:#F8FAFC}
   .cmv-dl h2{margin:0 0 6px;font-size:1.1rem}.cmv-dl p{margin:0 0 14px;color:#CBD5E1;font-size:.9rem;line-height:1.45;word-break:break-word}
   .cmv-dl .acts{display:flex;gap:8px}.cmv-dl button{flex:1;min-height:46px;border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
   .cmv-dl .ok{background:#22C55E;color:#052E16;border:0}.cmv-dl .sec{background:transparent;color:#E2E8F0;border:1px solid rgba(148,163,184,.4)}
-  @media (max-width:860px){.cmv-pwa{left:12px;right:76px;max-width:none;bottom:calc(var(--bn-h,0px) + 12px + env(safe-area-inset-bottom))}}
-  @media (display-mode: standalone){.site-header{padding-top:env(safe-area-inset-top)!important}}
-  html.cmv-standalone .site-header{padding-top:env(safe-area-inset-top)!important}`;
+  @media (max-width:860px){.cmv-pwa{left:calc(12px + env(safe-area-inset-left));right:calc(76px + env(safe-area-inset-right));max-width:none;bottom:calc(var(--bn-h,0px) + 12px + env(safe-area-inset-bottom))}}`;
   function injectCss() { if (document.getElementById('cmv-pwa-css')) return; const s = document.createElement('style'); s.id = 'cmv-pwa-css'; s.textContent = css; document.head.appendChild(s); }
 
   /* ---------------- service worker + aviso de versão nova ---------------- */
@@ -67,7 +65,7 @@
   function dispensado() { try { const t = Number(localStorage.getItem(LS_DISPENSA) || 0); return t && (Date.now() - t) < DIAS_DISPENSA * 864e5; } catch (_) { return false; } }
   function dispensar() { try { localStorage.setItem(LS_DISPENSA, String(Date.now())); } catch (_) {} fecharAviso(); }
   function fecharAviso() { const e = document.getElementById('cmv-pwa'); if (e) e.remove(); }
-  const ICONE = '<img src="/brand/icon-192.png?v=20261007pwa2" alt="">';
+  const ICONE = '<img src="/brand/icon-192.png?v=20261007pwa3" alt="">';
   function avisoAndroid() {
     if (!promptEvt || standalone() || dispensado() || document.getElementById('cmv-pwa')) return;
     injectCss();

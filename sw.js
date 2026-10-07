@@ -9,15 +9,15 @@
  * JS/CSS com ?v= vêm do cache (rápido) e o ?v= novo do index.html força a versão nova. O site mostra "Nova versão —
  * Atualizar" quando um service worker novo estiver esperando.
  */
-const VERSAO = '20261007pwa2';
+const VERSAO = '20261007pwa3';
 const CACHE = 'cmv-casco-' + VERSAO;
 const OFFLINE = '/offline.html';
 const PRECACHE = [
   OFFLINE,
-  '/brand/icon-192.png?v=20261007pwa2',
-  '/brand/icon-512.png?v=20261007pwa2',
-  '/brand/icon-maskable-512.png?v=20261007pwa2',
-  '/apple-touch-icon.png?v=20261007pwa2',
+  '/brand/icon-192.png?v=20261007pwa3',
+  '/brand/icon-512.png?v=20261007pwa3',
+  '/brand/icon-maskable-512.png?v=20261007pwa3',
+  '/apple-touch-icon.png?v=20261007pwa3',
   '/favicon.svg?v=20261007br1',
 ];
 // Só estes tipos de arquivo do próprio domínio entram no cache em tempo de uso.

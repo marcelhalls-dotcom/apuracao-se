@@ -138,6 +138,16 @@ function detectMuns(text, munIndex) {
   const hits = [];
   const aliases = Object.entries(munIndex.aliases || {}).sort((a, b) => b[0].length - a[0].length);
   const seen = new Set();
+  // grupos: um nome que cobre várias unidades (DF: "Ceilândia" = 3 zonas eleitorais)
+  for (const [g, list] of Object.entries(munIndex.grupos || {}).sort((a, b) => b[0].length - a[0].length)) {
+    if (g.length < 5 || !key.includes(g)) continue;
+    for (const mi of list) {
+      if (seen.has(mi)) continue;
+      seen.add(mi);
+      const meta = (munIndex.muns || []).find(m => m.i === mi);
+      if (meta) hits.push(meta);
+    }
+  }
   for (const [alias, mi] of aliases) {
     if (alias.length < 5) continue;
     if (key.includes(alias) && !seen.has(mi)) {

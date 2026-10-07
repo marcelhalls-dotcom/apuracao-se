@@ -265,6 +265,21 @@ if DFZ:
     for b, (cd, n) in best.items():
         k = fold(b)
         if len(k) >= 5: mun_idx['aliases'].setdefault(k, mun_i[cd])
+    # grupos (chat): região com várias zonas, ex. "Ceilândia" = zonas 8, 16 e 20; "Taguatinga" = 3, 15 e 19
+    grupos = collections.defaultdict(set)
+    for cd, cnt in z_bairro.items():
+        tot = sum(cnt.values()) or 1
+        for b, n in cnt.items():
+            if not b or n / tot < 0.15: continue
+            base = re.sub(r'\s+(NORTE|SUL|CENTRO|LESTE|OESTE|I+|\d+)$', '', b.split(' - ')[0].split('(')[0].strip())
+            k = fold(base)
+            if len(k) >= 5: grupos[k].add(mun_i[cd])
+    for cd in mun_map:
+        nmz = DF_ZONA_NOME.get(int(cd[1:]), '')
+        base = re.sub(r'\s+(NORTE|SUL|CENTRO)$', '', nmz); k = fold(base)
+        if len(k) >= 5: grupos[k].add(mun_i[cd])
+    mun_idx['grupos'] = {k: sorted(v) for k, v in sorted(grupos.items()) if len(v) > 1}
+    print('DF grupos:', mun_idx['grupos'])
     for cd in sorted(mun_map):
         nmz = DF_ZONA_NOME.get(int(cd[1:]))
         if nmz: mun_idx['aliases'].setdefault(fold(nmz), mun_i[cd])

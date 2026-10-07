@@ -1560,7 +1560,7 @@ const UF_REGISTRY = {
   pi: { code: 'pi', nome: 'Piauí', prep: 'do', em: 'no', status: 'ready', capital: 'Teresina', fed: 10, est: 30, ale: 'ALEPI' },
   pr: { code: 'pr', nome: 'Paraná', status: 'soon' },
   rj: { code: 'rj', nome: 'Rio de Janeiro', status: 'soon' },
-  rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'soon', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
+  rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
   ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
   rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
   rs: { code: 'rs', nome: 'Rio Grande do Sul', status: 'soon' },
@@ -1741,7 +1741,7 @@ function paintUfChrome() {
       else e.textContent = 'Resultados · ' + m.nome;
     }
   });
-  const su = document.getElementById('sobre-ufs'); if (su) su.textContent = ufListaProntas();
+  const su = document.getElementById('sobre-ufs'); if (su) su.textContent = ['al','ba','pe','ce','ma','pb','pi','rn'].every(c => UF_REGISTRY[c].status === 'ready') ? 'todo o Nordeste' : ufListaProntas();
   fillHeroPanelStats();
 }
 async function fillHeroPanelStats() {

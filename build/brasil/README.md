@@ -99,7 +99,20 @@ Se os CSVs do TSE mudarem (retotalização), refazer o passo 3 inteiro.
 ## Tamanho
 
 Cada UF ocupa cerca de 1,4–2,8 KB por seção no R2, contando mapa, fotos e snapshot (RJ é a mais pesada por seção).
-Em 07/10/2026, com 13 UFs (SE + Nordeste + Sudeste), o R2 tinha 49.360 objetos / 753,6 MB; só SP ocupa 259 MB.
-As 14 UFs que faltam (Norte, Centro-Oeste e Sul) somam 155.183 seções, cerca de 0,35 GB a mais. O Brasil inteiro
-deve ficar perto de 1,1 GB, bem abaixo dos 10 GB-mês grátis do R2 (https://developers.cloudflare.com/r2/pricing/).
-O ponto de atenção é o número de leituras (Class B, 10 milhões/mês grátis), que o cache na borda reduz.
+Em 07/10/2026, com as 27 UFs no ar (26 estados + DF), o R2 tem 82.259 objetos / 1.088 MB (~1,09 GB); só SP ocupa
+259 MB. As 14 UFs do Sul, Norte e Centro-Oeste somaram ~335 MB. Tudo bem abaixo dos 10 GB-mês grátis do R2
+(https://developers.cloudflare.com/r2/pricing/).
+
+## Distrito Federal (caso especial)
+
+- Não há municípios (só Brasília) nem Assembleia: a casa é a Câmara Legislativa (CLDF), com deputados distritais.
+  No TSE o cargo é **8** (`df-c0008`); o site usa a vaga interna 7 e `buscarCargo` troca 7→8 só no DF.
+  `snapshot_tse.py`, `build_uf_mapa.py` (`CARGO_MAP`), `build_context.py`, `verify_uf.py` e `fetch_fotos.py` já fazem isso.
+- 1º nível geográfico = **zona eleitoral** do TSE (`cd` = `Z01`…`Z21`), com o nome oficial do TRE-DF
+  (`DF_ZONA_NOME`, de tre-df.jus.br, cartórios eleitorais). A árvore do mapa pula o nível "zona" repetido.
+- Mapa = contorno oficial do DF (IBGE) + um círculo por zona no centro (ponderado por eleitores) das coordenadas
+  dos locais de votação do TSE. Não há polígonos de zona inventados.
+- Textos: com o DF ativo, `dfText`/`dfLayer` (index.html) trocam município→zona eleitoral, Estadual→Distrital,
+  Assembleia→Câmara Legislativa, "Estado do Distrito Federal"→"Distrito Federal" na página e nos PDFs
+  (relatorios.js `newDoc` e SVG do mapa). O chat não passa por essa camada; o Worker recebe a nota do DF no context.json.
+- Chat: `mun-index.json` do DF tem aliases de bairro/zona e `grupos` (ex.: Ceilândia = zonas 8, 16 e 20).

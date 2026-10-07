@@ -2,3 +2,5 @@
 /mapa/
 /fotos/
 /tse/
+__pycache__/
+*.pyc

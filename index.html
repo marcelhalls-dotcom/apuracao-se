@@ -1543,7 +1543,7 @@ const UF_REGISTRY = {
   se: { code: 'se', nome: 'Sergipe', status: 'ready', flagship: true, capital: 'Aracaju', fed: 8, est: 24, ale: 'Alese' },
   al: { code: 'al', nome: 'Alagoas', status: 'ready', capital: 'Maceió', fed: 9, est: 27, ale: 'ALE-AL' },
   ac: { code: 'ac', nome: 'Acre', status: 'soon' },
-  am: { code: 'am', nome: 'Amazonas', status: 'soon' },
+  am: { code: 'am', nome: 'Amazonas', prep: 'do', em: 'no', status: 'ready', capital: 'Manaus', fed: 8, est: 24, ale: 'Aleam' },
   ap: { code: 'ap', nome: 'Amapá', status: 'soon' },
   ba: { code: 'ba', nome: 'Bahia', prep: 'da', em: 'na', status: 'ready', capital: 'Salvador', fed: 39, est: 63, ale: 'ALE-BA' },
   ce: { code: 'ce', nome: 'Ceará', prep: 'do', em: 'no', status: 'ready', capital: 'Fortaleza', fed: 22, est: 46, ale: 'ALECE' },
@@ -1554,7 +1554,7 @@ const UF_REGISTRY = {
   mg: { code: 'mg', nome: 'Minas Gerais', prep: 'de', em: 'em', status: 'ready', capital: 'Belo Horizonte', fed: 53, est: 77, ale: 'ALMG' },
   ms: { code: 'ms', nome: 'Mato Grosso do Sul', prep: 'de', em: 'em', status: 'ready', capital: 'Campo Grande', fed: 8, est: 24, ale: 'ALEMS' },
   mt: { code: 'mt', nome: 'Mato Grosso', prep: 'de', em: 'em', status: 'ready', capital: 'Cuiabá', fed: 8, est: 24, ale: 'ALMT' },
-  pa: { code: 'pa', nome: 'Pará', status: 'soon' },
+  pa: { code: 'pa', nome: 'Pará', prep: 'do', em: 'no', status: 'ready', capital: 'Belém', fed: 17, est: 41, ale: 'Alepa' },
   pb: { code: 'pb', nome: 'Paraíba', prep: 'da', em: 'na', status: 'ready', capital: 'João Pessoa', fed: 12, est: 36, ale: 'ALPB' },
   pe: { code: 'pe', nome: 'Pernambuco', status: 'ready', capital: 'Recife', fed: 25, est: 49, ale: 'ALEPE' },
   pi: { code: 'pi', nome: 'Piauí', prep: 'do', em: 'no', status: 'ready', capital: 'Teresina', fed: 10, est: 30, ale: 'ALEPI' },
@@ -1630,6 +1630,8 @@ const UF_DESTAQUES = {
   mt: { gov: [{ nome: 'Otaviano Pivetta', numero: 10 }, { nome: 'Wellington Fagundes', numero: 22 }], sen: [{ nome: 'Mauro Mendes', numero: 444 }, { nome: 'Zé Medeiros', numero: 222 }] },
   ms: { gov: [{ nome: 'Eduardo Riedel', numero: 11 }, { nome: 'Fábio Trad', numero: 13 }], sen: [{ nome: 'Reinaldo Azambuja', numero: 222 }, { nome: 'Capitão Contar', numero: 221 }] },
   df: { gov: [{ nome: 'Celina Leão', numero: 11 }, { nome: 'Leandro Grass', numero: 13 }], sen: [{ nome: 'Michelle Bolsonaro', numero: 222 }, { nome: 'Bia Kicis', numero: 223 }] },
+  pa: { gov: [{ nome: 'Dr. Daniel', numero: 20 }, { nome: 'Hana Ghassan', numero: 15 }], sen: [{ nome: 'Helder', numero: 151 }, { nome: 'Chicão', numero: 444 }] },
+  am: { gov: [{ nome: 'Omar Aziz', numero: 55 }, { nome: 'Professora Maria do Carmo', numero: 22 }], sen: [{ nome: 'Eduardo Braga', numero: 155 }, { nome: 'Plinio Valério', numero: 455 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufTodasProntas() { return UF_ORDER.every(c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready'); }

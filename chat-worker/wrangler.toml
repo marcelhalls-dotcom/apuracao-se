@@ -15,6 +15,7 @@ RATE_DAY = "60"
 CONTATO_RATE_HOUR = "5"
 CONTATO_RATE_DAY = "20"
 PAGES_BASE = "https://cademeuvoto.com.br"
+DATA_BASE = "https://dados.cademeuvoto.com.br"
 
 [[kv_namespaces]]
 binding = "CONTATO"

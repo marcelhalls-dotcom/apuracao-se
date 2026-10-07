@@ -109,8 +109,8 @@
   function fotoPath(cargo, numero) {
     // presidente: fotos/1 é nacional; demais cargos têm pasta por UF (SE na raiz, legado)
     const u = ufRel();
-    if (u !== 'se' && String(cargo) !== '1') return 'fotos/' + u + '/' + cargo + '/' + numero + '.jpg';
-    return 'fotos/' + cargo + '/' + numero + '.jpg';
+    const p = (u !== 'se' && String(cargo) !== '1') ? ('fotos/' + u + '/' + cargo + '/' + numero + '.jpg') : ('fotos/' + cargo + '/' + numero + '.jpg');
+    return (global.dataUrl ? global.dataUrl(p) : p);
   }
 
   async function loadImageDataUrl(path) {

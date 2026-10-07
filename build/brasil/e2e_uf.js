@@ -14,11 +14,16 @@ const res = { uf: UF, base: BASE, checks: [], fails: [] };
 const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (info ? ' — ' + info : '')); console.log((cond ? 'OK  ' : 'FAIL') + ' ' + name + (info ? ' — ' + info : '')); };
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/usr/bin/google-chrome', args: ['--no-sandbox'] });
-  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
   let tse = [], errs = [];
   page.on('request', r => { if (/tse\.jus\.br/.test(r.url())) tse.push(r.url()); });
   page.on('pageerror', e => errs.push(e.message));
+  // dados movidos para o R2: nada de mapa/, fotos/, tse/ no host do site; contar pedidos/falhas no host de dados
+  const pageHost = new URL(BASE).host; let movedOnPages = [], dataReq = 0, dataFail = [];
+  page.on('request', r => { const u = new URL(r.url()); if (u.host === pageHost && /^\/(mapa|fotos|tse)\//.test(u.pathname)) movedOnPages.push(u.pathname); if (u.host === 'dados.cademeuvoto.com.br') dataReq++; });
+  page.on('response', r => { if (/dados\.cademeuvoto\.com\.br/.test(r.url()) && r.status() >= 400) dataFail.push(r.status() + ' ' + r.url()); });
+  page.on('requestfailed', r => { if (/dados\.cademeuvoto\.com\.br/.test(r.url())) dataFail.push((r.failure() || {}).errorText + ' ' + r.url()); });
   const shot = async (file) => {
     const c = await ctx.newCDPSession(page);
     const { data } = await c.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -36,6 +41,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   const meta = await page.evaluate(u => ({ ...UF_REGISTRY[u] }), UF);
   const D = await page.evaluate(() => UF_DESTAQUES);
   ok('chip ' + UF + ' disponível no seletor', await page.$(`#uf-picker a.is-ready[data-uf="${UF}"]`) != null);
+  ok('site usa DATA_BASE do R2', (await page.evaluate(() => window.DATA_BASE)) === 'https://dados.cademeuvoto.com.br');
   await pickUf(UF);
   ok('hash leva uf=' + UF, (await hashUf()) === UF);
   const st = await statusOk();
@@ -48,7 +54,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
 
   // nomes proibidos = destaques de governo das outras UFs
   const forb = Object.entries(D).filter(([u]) => u !== UF).flatMap(([, d]) => d.gov.map(x => x.nome));
-  forb.push('Sergipe', 'Alese', 'Aracaju');
+  if (UF !== 'se') forb.push('Sergipe', 'Alese', 'Aracaju');
   const badPrep = new RegExp(`(^|[^\\wÀ-ú])(de|em|De|Em) ${meta.nome}(?![\\wÀ-ú])`);
   const views = ['inicio', 'governo', 'senado', 'presidente', 'federais', 'estaduais', 'suplentes'];
   for (const v of views) {
@@ -58,7 +64,8 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     ok(`[${v}] uf no hash`, (await hashUf()) === UF);
     ok(`[${v}] sem dados de outra UF`, hit.length === 0, hit.join(', '));
     if (meta.prep && meta.prep !== 'de') ok(`[${v}] preposição`, !badPrep.test(t), (t.match(badPrep) || [])[0]);
-    if (v === 'governo') {
+    if (v === 'governo' && !C) { await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(800); await shot(`${OUT}/${UF}-governo.png`); ok('[governo] SE carregado', /Governador/.test(t) && /votos/.test(t)); }
+    if (v === 'governo' && C) {
       const g = C.cargos.governador.candidatos;
       ok('[governo] votos 1º colocado = TSE', t.includes(fmt(g[0].votos)), g[0].nome + ' ' + fmt(g[0].votos));
       ok('[governo] votos 2º colocado = TSE', t.includes(fmt(g[1].votos)), g[1].nome + ' ' + fmt(g[1].votos));
@@ -67,10 +74,10 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
       await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(800);
       await shot(`${OUT}/${UF}-governo.png`);
     }
-    if (v === 'senado') { const s = C.cargos.senado.candidatos.filter(x => x.eleito); ok('[senado] eleitos = TSE', s.every(x => t.includes(fmt(x.votos))), s.map(x => x.nome + ' ' + fmt(x.votos)).join(', ')); }
+    if (v === 'senado' && C) { const s = C.cargos.senado.candidatos.filter(x => x.eleito); ok('[senado] eleitos = TSE', s.every(x => t.includes(fmt(x.votos))), s.map(x => x.nome + ' ' + fmt(x.votos)).join(', ')); }
     if (v === 'federais' || v === 'estaduais') {
       const n = await page.evaluate(v => { const c = [...document.querySelectorAll('#view-' + v + ' section.card.alese')].find(x => v === 'federais' ? x.classList.contains('hemi-fed') : !x.classList.contains('hemi-fed')); return c ? c.querySelectorAll('svg circle.cad').length : -1; }, v);
-      const exp = v === 'federais' ? C.cadeiras.camara : C.cadeiras.assembleia;
+      const exp = C ? (v === 'federais' ? C.cadeiras.camara : C.cadeiras.assembleia) : (v === 'federais' ? meta.fed : meta.est);
       ok(`[${v}] hemiciclo ${exp} cadeiras (agr.vag TSE)`, n === exp, 'desenhadas ' + n);
       ok(`[${v}] sem aviso de soma`, !t.includes('soma das vagas'));
     }
@@ -84,6 +91,27 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     return { paths: s.querySelectorAll('path').length, labels: gb.length, ov, text: document.getElementById('view-mapa').innerText.slice(0, 4000) }; });
   ok('[mapa] coroplético carregado', mp && mp.paths > 20, mp && (mp.paths + ' municípios, ' + mp.labels + ' rótulos'));
   ok('[mapa] rótulos sem sobreposição', mp && mp.ov === 0, mp && ('sobreposições ' + mp.ov));
+  // mapa: município → zona → bairro → colégio → seção
+  let secReq = 0; const onSec = r => { if (/\/secao\//.test(r.url())) secReq++; }; page.on('request', onSec);
+  await page.click('#view-mapa .mapa-tree > details:first-of-type > summary'); await page.waitForTimeout(1500);
+  for (let d = 0; d < 5; d++) {
+    const clicked = await page.evaluate(() => { const open = [...document.querySelectorAll('#view-mapa .mapa-tree details[open]')]; const last = open[open.length - 1]; if (!last) return false; const nxt = last.querySelector('.mv-nested details:not([open]) > summary'); if (!nxt) return false; nxt.click(); return true; });
+    if (!clicked) break; await page.waitForTimeout(1800);
+  }
+  const drill = await page.evaluate(() => { const open = [...document.querySelectorAll('#view-mapa .mapa-tree details[open]')]; const last = open[open.length - 1]; return { depth: open.length, path: open.map(d => (d.querySelector('summary') || {}).textContent.trim().slice(0, 40)).join(' › '), leaf: last ? (last.querySelector('.mv-nested') || last).innerText.slice(0, 300) : '' }; });
+  ok('[mapa] drill até seção', drill.depth >= 4 && /se[cç][aã]o/i.test(drill.leaf + drill.path) && secReq > 0, drill.path + ' :: ' + drill.leaf.replace(/\n/g, ' ').slice(0, 90) + ' · pedidos secao=' + secReq);
+  page.off('request', onSec);
+  // PDF do candidato (foto + mapa) a partir do mapa
+  try {
+    await page.click('#view-mapa button[data-pdf-from="mapa"]'); await settle(3000);
+    ok('[mapa→relatórios] mantém uf', (await hashUf()) === UF);
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 240000 }), page.click('#rel-pdf-btn')]);
+    const f = `/tmp/e2e-${UF}-cand.pdf`; await dl.saveAs(f);
+    const cp = require('child_process');
+    const txt = cp.execSync(`pdftotext -l 2 ${f} - 2>/dev/null`).toString();
+    const imgs = cp.execSync(`pdfimages -list ${f} 2>/dev/null | awk 'NR>2 && $3=="image"' | wc -l`).toString().trim();
+    ok('[mapa] PDF do candidato (foto + mapa do R2)', fs.statSync(f).size > 20000 && txt.includes(meta.nome) && Number(imgs) >= 2, (fs.statSync(f).size / 1024).toFixed(0) + ' KB, imagens: ' + imgs);
+  } catch (e) { ok('[mapa] PDF do candidato', false, String(e).slice(0, 120)); }
   for (const v of ['comparar', 'relatorios']) {
     const a = await page.$(`a[href^="#${v}"]:visible`);
     if (a) { await a.click(); } else { await page.evaluate(v => { location.hash = '#' + v; }, v); }
@@ -93,16 +121,28 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
     ok(`[${v}] nome da UF`, t.includes(meta.nome));
     if (meta.prep && meta.prep !== 'de') ok(`[${v}] preposição`, !badPrep.test(t), (t.match(badPrep) || [])[0]);
   }
+  // Relatórios: PDF resumo da eleição (capa com nome/preposição da UF)
+  try {
+    await page.check('#view-relatorios input[value="resumo"]').catch(() => {});
+    await page.waitForTimeout(800);
+    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 180000 }), page.click('#rel-pdf-btn')]);
+    const f = `/tmp/e2e-${UF}-resumo.pdf`; await dl.saveAs(f);
+    const txt = require('child_process').execSync(`pdftotext -l 3 ${f} - 2>/dev/null`).toString().replace(/\s+/g, ' ');
+    const capa = 'Estado ' + (meta.prep || 'de') + ' ' + meta.nome;
+    ok('[relatorios] PDF resumo', txt.includes(capa), capa + ' · ' + (fs.statSync(f).size / 1024).toFixed(0) + ' KB');
+  } catch (e) { ok('[relatorios] PDF resumo', false, String(e).slice(0, 120)); }
   // isolamento: troca para as outras UFs e volta
   for (const o of OTHERS) {
     await pickUf(o); await clickTab('governo');
-    const t = fold(await viewText('governo')); const myWin = fold(D[UF].gov[0].nome);
+    const t = fold(await viewText('governo')); const myWin = D[UF] ? fold(D[UF].gov[0].nome) : '\u0000';
     const theirs = o === 'se' ? null : fold(D[o].gov[0].nome);
     ok(`[isolamento ${o}] governo mostra ${o.toUpperCase()} e não ${UF.toUpperCase()}`, (theirs ? t.includes(theirs) : true) && !t.includes(myWin) && (await hashUf()) === o);
     const s2 = await statusOk(); ok(`[isolamento ${o}] sem alerta`, !/erro|pendente/.test(s2.cls), s2.txt);
   }
   await pickUf(UF); await clickTab('governo');
-  ok('[volta] governo ' + UF, fold(await viewText('governo')).includes(fold(D[UF].gov[0].nome)));
+  ok('[volta] governo ' + UF, D[UF] ? fold(await viewText('governo')).includes(fold(D[UF].gov[0].nome)) : (await hashUf()) === UF);
+  ok('dados vêm do R2 (dados.cademeuvoto.com.br)', dataReq > 0 && dataFail.length === 0, dataReq + ' pedidos, falhas ' + dataFail.length + ' ' + dataFail.slice(0, 2).join(' '));
+  ok('nenhum pedido de mapa/fotos/tse ao Pages', movedOnPages.length === 0, movedOnPages.length + ' ' + movedOnPages.slice(0, 3).join(' '));
   ok('zero pedidos ao TSE no navegador', tse.length === 0, tse.length + ' pedidos ' + tse.slice(0, 3).join(' '));
   ok('sem erros JS', errs.length === 0, errs.slice(0, 3).join(' | '));
   fs.writeFileSync(`${OUT}/${UF}-e2e.json`, JSON.stringify(res, null, 1));

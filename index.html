@@ -1474,7 +1474,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261007a1"></script>
+<script src="relatorios.js?v=20261007r2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1782,6 +1782,14 @@ const BASE = 'https://resultados.tse.jus.br/oficial';
 // Resultado final (100% apurado): cópia estática e idêntica dos JSON/fotos do TSE servida pelo próprio site.
 // É a fonte primária; o TSE ao vivo só é consultado se o arquivo local faltar (ex.: UF nova sem snapshot).
 const SNAP = 'tse';
+/** Dados pesados (mapa/, fotos/, tse/) vêm do Cloudflare R2 (dados.cademeuvoto.com.br); o site continua no Pages.
+ *  Para testes: ?dados=<url-base> na URL troca a origem (ex.: ?dados=http://127.0.0.1:8765). */
+const DATA_BASE = (() => {
+  try { const q = new URLSearchParams(location.search).get('dados'); if (q) return q.replace(/\/$/, ''); } catch (_) {}
+  return 'https://dados.cademeuvoto.com.br';
+})();
+function dataUrl(p) { p = String(p || ''); return (DATA_BASE && /^(mapa|fotos|tse)\//.test(p)) ? DATA_BASE + '/' + p : p; }
+window.DATA_BASE = DATA_BASE; window.dataUrl = dataUrl;
 let FONTE_DADOS = 'snapshot';
 const fmtInt = new Intl.NumberFormat('pt-BR');
 const pad = (n, w) => String(n).padStart(w, '0');
@@ -1795,7 +1803,7 @@ let segundos = CONFIG.intervaloSegundos;
 let buscando = false;
 
 async function getJSON(url) {
-  const r = await fetch(url, { cache: 'no-cache' });
+  const r = await fetch(dataUrl(url), { cache: 'no-cache' });
   if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
   return r.json();
 }
@@ -1942,7 +1950,7 @@ function fotoUrl(sqcand, uf, eleicao) {
   if (!sqcand) return '';
   const ele = eleicao || codigoEleicao || CONFIG.codigoEleicaoPadrao;
   // fotos espelhadas localmente (evita centenas de pedidos ao TSE, que respondem 429 em rajada)
-  return `${SNAP}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`;
+  return dataUrl(`${SNAP}/${CONFIG.ciclo}/${ele}/fotos/${fotoUfDe(uf, ele)}/${sqcand}.jpeg`);
 }
 function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
@@ -3806,11 +3814,11 @@ function mountMapaView(view) {
 function pdfFromMapa(view) {
   const m = MAPA_MOUNT[view];
   const s = m && m.card._getSel ? m.card._getSel() : null;
-  if (!s || !s.a) { location.hash = '#relatorios'; return; }
+  if (!s || !s.a) { location.hash = buildLocationHash('relatorios', { uf: currentUf }); return; }
   if (s.compareOn && s.b && String(s.bc || s.c) === String(s.c)) {
-    location.hash = '#relatorios?' + new URLSearchParams({ t: 'comparar', c: s.c, a: s.a, b: s.b }).toString();
+    location.hash = '#relatorios?' + new URLSearchParams({ uf: currentUf, t: 'comparar', c: s.c, a: s.a, b: s.b }).toString();
   } else {
-    location.hash = '#relatorios?' + new URLSearchParams({ t: 'candidato', c: s.c, n: s.a }).toString();
+    location.hash = '#relatorios?' + new URLSearchParams({ uf: currentUf, t: 'candidato', c: s.c, n: s.a }).toString();
   }
 }
 

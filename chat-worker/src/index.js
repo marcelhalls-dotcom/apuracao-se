@@ -289,7 +289,9 @@ function aggregateCandidateInMun(geo, cand, munIdx, mode) {
 async function buildRetrieval(env, messages, uf) {
   const pages = (env.PAGES_BASE || 'https://marcelhalls-dotcom.github.io/apuracao-se').replace(/\/$/, '');
   const ufNorm = String(uf || 'se').toLowerCase();
-  const mapaBase = ufNorm === 'se' ? `${pages}/mapa` : `${pages}/mapa/${ufNorm}`;
+  // dados pesados (mapa/) ficam no R2 (dados.cademeuvoto.com.br); DATA_BASE vazio = mesmo host do site
+  const data = (env.DATA_BASE || pages).replace(/\/$/, '');
+  const mapaBase = ufNorm === 'se' ? `${data}/mapa` : `${data}/mapa/${ufNorm}`;
   const lastUser = [...messages].reverse().find(m => m.role === 'user')?.content || '';
   const blob = messages.map(m => m.content).join('\n');
   // Pergunta atual manda; histórico só como fallback (evita "contaminar" com nomes de turnos anteriores)
@@ -360,7 +362,7 @@ async function buildRetrieval(env, messages, uf) {
   // Bairro/zona/local detail for candidate (+ mun opcional)
   if (wantsGeoDetail(text) && cands.length) {
     try {
-      geo = await cachedJson(mapaIndex && mapaIndex.geo ? (mapaIndex.geo.startsWith('http') ? mapaIndex.geo : `${pages}/${mapaIndex.geo}`) : `${mapaBase}/geo-${ufNorm}.json`);
+      geo = await cachedJson(mapaIndex && mapaIndex.geo ? (mapaIndex.geo.startsWith('http') ? mapaIndex.geo : `${data}/${mapaIndex.geo}`) : `${mapaBase}/geo-${ufNorm}.json`);
     } catch { geo = null; }
     if (geo) {
       const mode = /zona/.test(text.toLowerCase()) ? 'zona' : (/col[eé]gio|local|escola/.test(text.toLowerCase()) ? 'local' : 'bairro');
@@ -727,7 +729,8 @@ export default {
     if (ufReq !== 'se' && /^[a-z]{2}$/.test(ufReq)) {
       try {
         const pages = (env.PAGES_BASE || 'https://cademeuvoto.com.br').replace(/\/$/, '');
-        ctxJson = await cachedJson(`${pages}/mapa/${ufReq}/context.json`);
+        const data = (env.DATA_BASE || pages).replace(/\/$/, '');
+        ctxJson = await cachedJson(`${data}/mapa/${ufReq}/context.json`);
       } catch (_) {
         // nunca responder com dados de outra UF
         ctxJson = { uf: ufReq.toUpperCase(), erro: 'Dados desta UF ainda não estão disponíveis no painel. Diga isso ao usuário; não use números de outro estado.' };

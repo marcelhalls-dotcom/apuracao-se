@@ -1989,6 +1989,17 @@
   }
 
   function htmlPreviewShell(title, bodyHtml, pdfUrl) {
+    // versão gratuita/anônima: prévia só na tela (sem PDF, sem link, sem blob). Arquivo só pelo “Gerar PDF” (passa pela cota).
+    if (!pdfUrl) {
+      return '<div class="rel-preview-rich rel-so-tela" data-previa="tela">'
+        + '<div class="rel-previa-selo" aria-hidden="true">PRÉVIA</div>'
+        + '<h3 style="margin:0 0 8px;color:#7dd3fc">' + title + ' <span class="rel-previa-tag">só na tela</span></h3>'
+        + bodyHtml
+        + '<p class="meta rel-previa-nota">Esta é uma prévia para conferir o conteúdo. Para baixar o arquivo, toque em <strong>“Gerar PDF”</strong>'
+        + ((global.CMV && global.CMV.logado && global.CMV.logado()) ? ' (conta grátis: 2 relatórios por mês).' : ' — é preciso entrar com uma conta grátis (2 relatórios por mês).')
+        + ' Relatórios completos e Excel: <a href="#planos">Assinatura</a>.</p>'
+        + '</div>';
+    }
     return '<div class="rel-preview-rich">'
       + '<h3 style="margin:0 0 8px;color:#7dd3fc">' + title + '</h3>'
       + bodyHtml
@@ -2078,13 +2089,13 @@
       if (s.template === 'municipio' && !(s.cd || s.mun)) {
         box.innerHTML = '<p class="meta">Selecione um município.</p>'; return;
       }
+      const soTela = relMun(); // grátis ou anônimo: não gera PDF na prévia
       const [htmlBody, doc] = await Promise.all([
         buildHtmlSummary(s),
-        generate(s),
+        soTela ? null : generate(s),
       ]);
-      const blob = doc.output('blob');
-      const url = URL.createObjectURL(blob);
-      box._relBlobUrls.push(url);
+      let url = null;
+      if (doc) { url = URL.createObjectURL(doc.output('blob')); box._relBlobUrls.push(url); }
       const titles = {
         comparar: 'Prévia — Comparativo',
         candidato: 'Prévia — Candidato',
@@ -2098,6 +2109,16 @@
       box.innerHTML = '<p class="meta">Erro na prévia: ' + (e.message || e) + '</p>';
     }
   }
+
+  global.addEventListener('cmv:plano', () => {
+    const box = document.querySelector('#grid-relatorios #rel-preview');
+    if (!box) return;
+    revokePreviewUrls(box);
+    if (box.querySelector('.rel-pdf-preview, .rel-so-tela')) {
+      box.innerHTML = '<p class="meta">Seu acesso mudou. Atualizando a prévia…</p>';
+      const btn = document.getElementById('rel-preview-btn'); if (btn) btn.click();
+    }
+  });
 
   function renderWebPreview(root, spec, built) {
     // legado — sempre preferir showVisualPreview

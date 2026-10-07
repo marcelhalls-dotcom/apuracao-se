@@ -23,8 +23,8 @@
 <link rel="icon" href="favicon-32.png?v=20261007br1" sizes="32x32" type="image/png">
 <link rel="icon" href="favicon-16.png?v=20261007br1" sizes="16x16" type="image/png">
 <link rel="shortcut icon" href="favicon.ico?v=20261007br1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa1" sizes="180x180">
-<link rel="manifest" href="site.webmanifest?v=20261007pwa1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa2" sizes="180x180">
+<link rel="manifest" href="site.webmanifest?v=20261007pwa2">
 <meta name="theme-color" content="#0A1428">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -553,6 +553,11 @@
   .rel-preview { margin-top: 10px; max-height: 70vh; overflow: auto; }
   .rel-preview-pre { white-space: pre-wrap; font-size: 0.78rem; color: #cbd5e1; }
   .rel-preview-rich { font-size: 0.86rem; }
+  .rel-so-tela { position: relative; overflow: hidden; -webkit-user-select: none; user-select: none; }
+  .rel-previa-selo { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2;
+    font-size: clamp(3rem, 14vw, 7rem); font-weight: 900; letter-spacing: .12em; color: rgba(148,163,184,.13); transform: rotate(-24deg); }
+  .rel-previa-tag { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #FCD34D; border: 1px solid rgba(252,211,77,.45); border-radius: 999px; padding: 2px 8px; vertical-align: 2px; margin-left: 6px; }
+  .rel-previa-nota { margin-top: 12px; }
   .rel-exec { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 12px; }
   .rel-photos { display: flex; gap: 8px; }
   .rel-photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(148,163,184,.35); background: #0f172a; }
@@ -1506,9 +1511,9 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261007pwa1"></script>
-<script src="assinatura.js?v=20261007pwa1"></script>
-<script src="relatorios.js?v=20261007pwa1"></script>
+<script src="pwa.js?v=20261007pwa2"></script>
+<script src="assinatura.js?v=20261007pwa2"></script>
+<script src="relatorios.js?v=20261007pwa2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.

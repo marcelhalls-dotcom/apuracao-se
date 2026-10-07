@@ -67,7 +67,7 @@
   function dispensado() { try { const t = Number(localStorage.getItem(LS_DISPENSA) || 0); return t && (Date.now() - t) < DIAS_DISPENSA * 864e5; } catch (_) { return false; } }
   function dispensar() { try { localStorage.setItem(LS_DISPENSA, String(Date.now())); } catch (_) {} fecharAviso(); }
   function fecharAviso() { const e = document.getElementById('cmv-pwa'); if (e) e.remove(); }
-  const ICONE = '<img src="/brand/icon-192.png?v=20261007pwa1" alt="">';
+  const ICONE = '<img src="/brand/icon-192.png?v=20261007pwa2" alt="">';
   function avisoAndroid() {
     if (!promptEvt || standalone() || dispensado() || document.getElementById('cmv-pwa')) return;
     injectCss();

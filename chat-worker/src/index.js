@@ -1,6 +1,6 @@
 import CONTEXT from '../context.json';
 
-const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, Alagoas, Bahia e Pernambuco; outros estados em breve).
+const SYSTEM_BASE = `Você é o assistente do "Cadê Meu Voto" (cademeuvoto.com.br), painel independente de dados eleitorais oficiais do TSE (Sergipe, Alagoas, Bahia, Pernambuco, Ceará, Maranhão, Paraíba, Piauí e Rio Grande do Norte — conforme liberados no seletor; outros estados em breve).
 Responda SEMPRE em português do Brasil, de forma clara e objetiva.
 
 ESCOPO PERMITIDO:
@@ -724,11 +724,14 @@ export default {
 
     const ufReq = String(body.uf || 'se').toLowerCase();
     let ctxJson = CONTEXT;
-    if (['al', 'ba', 'pe'].includes(ufReq)) {
+    if (ufReq !== 'se' && /^[a-z]{2}$/.test(ufReq)) {
       try {
         const pages = (env.PAGES_BASE || 'https://cademeuvoto.com.br').replace(/\/$/, '');
         ctxJson = await cachedJson(`${pages}/mapa/${ufReq}/context.json`);
-      } catch (_) { /* keep SE context as fallback note */ }
+      } catch (_) {
+        // nunca responder com dados de outra UF
+        ctxJson = { uf: ufReq.toUpperCase(), erro: 'Dados desta UF ainda não estão disponíveis no painel. Diga isso ao usuário; não use números de outro estado.' };
+      }
     }
 
     const system = `${SYSTEM_BASE}

@@ -28,6 +28,11 @@
     return (R[ufRel()] && R[ufRel()].nome) || ({ se: 'Sergipe', al: 'Alagoas' })[ufRel()] || ufRel().toUpperCase();
   }
 
+  /** "do Ceará", "da Bahia", "de Sergipe" / "no Ceará", "na Bahia", "em Sergipe" */
+  function ufMetaRel() { const R = (typeof window !== 'undefined' && window.UF_REGISTRY) || {}; return R[ufRel()] || {}; }
+  function ufDeRel() { return (ufMetaRel().prep || 'de') + ' ' + ufNomeRel(); }
+  function ufEmRel() { return (ufMetaRel().em || 'em') + ' ' + ufNomeRel(); }
+
   let munIdxCache = null;
 
   function JsPDFCtor() {
@@ -1263,7 +1268,7 @@
     // keep lightweight resumo from before (simplified)
     const opts = Object.assign({ landscape: false, hist: true }, spec.options || {});
     const doc = newDoc(opts); await ensureFonts(doc);
-    await writeCover(doc, 'Resumo da eleição — ' + ufNomeRel(), 'Estado de ' + ufNomeRel() + ' (' + ufRel().toUpperCase() + ')', null, []);
+    await writeCover(doc, 'Resumo da eleição — ' + ufNomeRel(), 'Estado ' + ufDeRel() + ' (' + ufRel().toUpperCase() + ')', null, []);
     doc.addPage(); const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
     const bookmarks = []; doc.addPage(); let y = margins().t;
     const blocks = spec.blocks || ['gov', 'sen', 'pres', 'fed', 'est', 'eleitos'];
@@ -1273,7 +1278,7 @@
       if (topN) list = list.slice(0, topN);
       return list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—')]);
     }
-    for (const [id, cod, label, top] of [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente em ' + ufNomeRel(), 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]]) {
+    for (const [id, cod, label, top] of [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente ' + ufEmRel(), 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]]) {
       if (!blocks.includes(id)) continue;
       y = sectionTitle(doc, label, y, bookmarks);
       y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.']], body: rowsFor(cod, top), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 10;
@@ -1889,7 +1894,7 @@
     const { dados } = cargoDados(7);
     const top = sortedTodos(dados).slice(0, 8);
     let rows = top.map((k, i) => '<tr><td>' + (i + 1) + '</td><td>' + k.n + '</td><td>' + (k.nome || '') + '</td><td>' + (k.partido || '') + '</td><td>' + fmtN(k.vap) + '</td></tr>').join('');
-    return '<p class="meta">Resumo da eleição em ' + ufNomeRel() + ' — amostra Dep. Estadual (top 8). O PDF traz os blocos marcados.</p>'
+    return '<p class="meta">Resumo da eleição ' + ufEmRel() + ' — amostra Dep. Estadual (top 8). O PDF traz os blocos marcados.</p>'
       + '<table class="rel-esc"><thead><tr><th>#</th><th>Nº</th><th>Nome</th><th>Partido</th><th>Votos</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
@@ -1962,7 +1967,7 @@
       root.innerHTML = [
         '<section class="card span-all rel-card">',
         '<h2>Relatórios (PDF)</h2>',
-        '<p class="meta">PDFs no navegador com mapas coropléticos de <span class="rel-uf-nome">' + ufNomeRel() + '</span>, fotos e detalhe completo (município → zona → bairro → escola → seção eleitoral). Sumário clicável + favoritos.</p>',
+        '<p class="meta">PDFs no navegador com mapas coropléticos <span class="rel-uf-de">' + ufDeRel() + '</span>, fotos e detalhe completo (município → zona → bairro → escola → seção eleitoral). Sumário clicável + favoritos.</p>',
         '<div class="rel-modes" role="radiogroup">',
         '<label><input type="radio" name="rel-mode" value="resumo" checked> Resumo</label>',
         '<label><input type="radio" name="rel-mode" value="candidato"> Candidato</label>',
@@ -2036,6 +2041,7 @@
     }
 
     root.querySelectorAll('.rel-uf-nome').forEach(e => { e.textContent = ufNomeRel(); });
+    root.querySelectorAll('.rel-uf-de').forEach(e => { e.textContent = ufDeRel(); });
     if (root.dataset.uf && root.dataset.uf !== ufRel()) {
       // trocou de UF: limpa seleção e prévia da UF anterior
       root.querySelectorAll('.rel-picker input').forEach(i => { i.value = ''; });

@@ -530,21 +530,108 @@
     return '';
   }
 
+  /** Nome curto legível para rótulo (evita "SÃO", "NOSSA", "JABOATÃO" soltos). */
+  function shortMunName(nm, max) {
+    max = max || 16;
+    const low = new Set(['DA', 'DE', 'DO', 'DAS', 'DOS', 'E']);
+    let w = String(nm || '').replace(/NOSSA SENHORA/gi, 'N. Sra.').split(/\s+/).filter(Boolean)
+      .map((x, i) => (i && low.has(x.toUpperCase())) ? x.toLowerCase() : (x.length <= 2 && x.endsWith('.')) ? x : x.charAt(0).toUpperCase() + x.slice(1).toLowerCase());
+    let out = '';
+    for (const x of w) { const t = out ? out + ' ' + x : x; if (t.length > max && out) break; out = t; }
+    // não terminar em preposição
+    out = out.replace(/\s(da|de|do|das|dos|e)$/i, '');
+    return out.length > max + 2 ? out.slice(0, max) + '.' : out;
+  }
+
+  /** Posiciona rótulos top-N sem sobreposição: no centróide quando cabe; senão em coluna lateral com linha guia. */
+  function layoutChoroLabels(cands, W, Hmap, colX, colSide, top) {
+    let placed = [], side = [];
+    const inter = (A, B) => !(A.x2 < B.x1 || A.x1 > B.x2 || A.y2 < B.y1 || A.y1 > B.y2);
+    for (const L of cands.slice(0, top)) {
+      const short = shortMunName(L.nm, 20);
+      const num = fmtN(L.v);
+      const w = Math.max(short.length * 4.9, num.length * 4.0) + 6;
+      const b = { x1: L.x - w / 2, x2: L.x + w / 2, y1: L.y - 9, y2: L.y + 12 };
+      if (b.x1 >= 2 && b.x2 <= W - 2 && b.y1 >= 2 && b.y2 <= Hmap && !placed.some(P => inter(P.b, b))) placed.push({ ...L, short, num, b });
+      else side.push({ ...L, num });
+    }
+    // rótulo no centróide não pode cobrir o ponto nem a linha guia de um rótulo deslocado (cluster vai inteiro p/ coluna)
+    let changed = true;
+    while (changed && side.length) {
+      changed = false;
+      for (const P of placed.slice()) {
+        const blocks = side.some(S => {
+          const seg = { x1: Math.min(S.x, colX), x2: Math.max(S.x, colX), y1: S.y - 2, y2: S.y + 2 };
+          return inter(P.b, { x1: S.x - 3, x2: S.x + 3, y1: S.y - 3, y2: S.y + 3 }) || inter(P.b, seg);
+        });
+        if (blocks) { placed = placed.filter(x => x !== P); side.push({ ...P }); changed = true; }
+      }
+    }
+    side.forEach(S => { S.full = shortMunName(S.nm, 22); });
+    // coluna lateral: ordena pela altura do ponto e empilha (22px por item)
+    side.sort((a, b) => a.y - b.y);
+    const ROW = 22; let lastY = -Infinity;
+    for (const S of side) { const y = Math.max(S.y, lastY + ROW, 14); S.ly = y; lastY = y; }
+    const over = lastY - (Hmap - 6);
+    if (over > 0) side.forEach(S => { S.ly -= over; });
+    side.forEach(S => { S.lx = colX; S.anchor = colSide === 'right' ? 'start' : 'end'; });
+    return { placed, side };
+  }
+
   function buildChoroplethSVG(geojson, valueByI, opts) {
     const W = (opts && opts.w) || 560, H = (opts && opts.h) || 420;
     const title = (opts && opts.title) || '';
     const mode = (opts && opts.mode) || 'seq'; // seq | win
     const munNames = (opts && opts.munNames) || null;
+    const TOP = (opts && opts.topLabels) || 5;
     const legendH = mode === 'seq' ? 56 : 42;
     const bb = bboxOf(geojson);
-    const proj = projectFactory(bb, W, H - legendH, 10);
+    const ty = title ? 8 : 0;
+    const Hmap = H - legendH;
 
     const vals = [];
     for (const f of geojson.features) vals.push(valueByI.get(f.properties.i) || 0);
     const { breaks, colors } = quantileBreaks(vals, 7);
 
+    // 1ª passada: mapa em largura total; se algum rótulo colidir, reserva coluna lateral e reprojeta
+    const COL = Math.min(110, Math.round(W * 0.2));
+    const centroidsFor = (proj) => {
+      const out = [];
+      if (mode !== 'seq') return out;
+      for (const f of geojson.features) {
+        const v = valueByI.get(f.properties.i) || 0;
+        if (v <= 0) continue;
+        const c = featureCentroid(f, proj);
+        if (c) out.push({ i: f.properties.i, v, nm: f.properties.nm || (munNames && munNames.get(f.properties.i)) || '', x: c[0], y: c[1] + ty });
+      }
+      return out.sort((a, b) => b.v - a.v);
+    };
+    let proj = projectFactory(bb, W, Hmap, 10);
+    let lay = null;
+    if (mode === 'seq') {
+      let cands = centroidsFor(proj);
+      lay = layoutChoroLabels(cands, W, Hmap + ty, W - 4, 'right', TOP);
+      if (lay.side.length) {
+        // lado da coluna = lado mais próximo dos rótulos deslocados (litoral costuma ser à direita)
+        const avgX = lay.side.reduce((s, x) => s + x.x, 0) / lay.side.length;
+        const right = avgX >= W / 2;
+        const base = projectFactory(bb, W - COL, Hmap, 10);
+        proj = right ? base : ((lon, lat) => { const r = base(lon, lat); return [r[0] + COL, r[1]]; });
+        // extensão horizontal real do mapa (mapas "altos" ficam centralizados; a coluna encosta no mapa)
+        const xa = proj(bb.minX, bb.minY)[0], xb = proj(bb.maxX, bb.maxY)[0];
+        const mapMin = Math.min(xa, xb), mapMax = Math.max(xa, xb);
+        const colX = right ? Math.min(W - COL + 8, mapMax + 14) : Math.max(COL - 8, mapMin - 14);
+        cands = centroidsFor(proj);
+        lay = layoutChoroLabels(cands, right ? colX - 4 : W, Hmap + ty, colX, right ? 'right' : 'left', TOP);
+        if (!right) {
+          const keep = [];
+          for (const L of lay.placed) { if (L.b.x1 > colX + 4) keep.push(L); else lay.side.push({ ...L, full: shortMunName(L.nm, 22), lx: colX, anchor: 'end', ly: L.y }); }
+          lay.placed = keep;
+        }
+      }
+    }
+
     let paths = '';
-    const labelCandidates = [];
     for (const f of geojson.features) {
       const i = f.properties.i;
       let fill = '#e2e8f0';
@@ -569,20 +656,25 @@
       const d = geomPath(f.geometry, proj);
       const tip = (f.properties.nm || '') + ': ' + fmtN(v);
       paths += `<path d="${d}" fill="${fill}" stroke="#64748b" stroke-width="0.45" data-i="${i}"><title>${tip.replace(/[<>&"]/g, '')}</title></path>`;
-      if (mode === 'seq' && v > 0) {
-        const c = featureCentroid(f, proj);
-        if (c) labelCandidates.push({ i, v, nm: f.properties.nm || (munNames && munNames.get(i)) || '', x: c[0], y: c[1] + (title ? 8 : 0) });
-      }
     }
 
     let labels = '';
-    if (mode === 'seq') {
-      labelCandidates.sort((a, b) => b.v - a.v);
-      for (const L of labelCandidates.slice(0, 5)) {
-        const short = String(L.nm || '').split(' ')[0].slice(0, 12);
-        labels += `<g>
-          <text x="${L.x.toFixed(1)}" y="${L.y.toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#0f172a" stroke="#f8fafc" stroke-width="2.5" paint-order="stroke">${short}</text>
-          <text x="${L.x.toFixed(1)}" y="${(L.y + 9).toFixed(1)}" text-anchor="middle" font-size="7" fill="#334155" stroke="#f8fafc" stroke-width="2" paint-order="stroke">${fmtN(L.v)}</text>
+    if (lay) {
+      const esc = (t) => String(t).replace(/[<>&"]/g, '');
+      for (const L of lay.placed) {
+        labels += `<g class="choro-lab">
+          <text x="${L.x.toFixed(1)}" y="${(L.y - ty).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#0f172a" stroke="#f8fafc" stroke-width="2.5" paint-order="stroke">${esc(L.short)}</text>
+          <text x="${L.x.toFixed(1)}" y="${(L.y - ty + 9).toFixed(1)}" text-anchor="middle" font-size="7" fill="#334155" stroke="#f8fafc" stroke-width="2" paint-order="stroke">${L.num}</text>
+        </g>`;
+      }
+      for (const S of lay.side) {
+        const ax = S.x, ay = S.y - ty, ly = S.ly - ty;
+        const tx = S.lx, elbow = S.anchor === 'start' ? tx - 4 : tx + 4;
+        labels += `<g class="choro-lab choro-callout">
+          <polyline points="${ax.toFixed(1)},${ay.toFixed(1)} ${elbow.toFixed(1)},${ly.toFixed(1)} ${tx.toFixed(1)},${ly.toFixed(1)}" fill="none" stroke="#334155" stroke-width="0.7"/>
+          <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="1.8" fill="#0f172a" stroke="#f8fafc" stroke-width="0.8"/>
+          <text x="${(tx + (S.anchor === 'start' ? 2 : -2)).toFixed(1)}" y="${(ly - 1).toFixed(1)}" text-anchor="${S.anchor}" font-size="8" font-weight="700" fill="#0f172a" stroke="#f8fafc" stroke-width="2.5" paint-order="stroke">${esc(S.full)}</text>
+          <text x="${(tx + (S.anchor === 'start' ? 2 : -2)).toFixed(1)}" y="${(ly + 8).toFixed(1)}" text-anchor="${S.anchor}" font-size="7" fill="#334155" stroke="#f8fafc" stroke-width="2" paint-order="stroke">${S.num}</text>
         </g>`;
       }
     }
@@ -612,7 +704,7 @@
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
       <rect width="100%" height="100%" fill="#f8fafc"/>
       ${title ? `<text x="10" y="16" font-size="12" font-weight="700" fill="#0f172a">${title.replace(/[<>]/g, '')}</text>` : ''}
-      <g transform="translate(0,${title ? 8 : 0})">${paths}${labels}</g>
+      <g transform="translate(0,${ty})">${paths}${labels}</g>
       ${legend}
     </svg>`;
   }

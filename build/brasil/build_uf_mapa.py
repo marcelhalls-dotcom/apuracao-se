@@ -132,13 +132,18 @@ with open(ele_path, encoding='latin1') as f:
                 'e': (r.get('DS_ENDERECO') or '').strip(),
             }
 
+# Nomes oficiais das zonas eleitorais do DF (TRE-DF, "Contatos dos cartórios eleitorais", tre-df.jus.br; 7ª e 12ª extintas)
+DF_ZONA_NOME = {1: 'ASA SUL', 2: 'PARANOÁ', 3: 'TAGUATINGA NORTE', 4: 'SANTA MARIA', 5: 'SOBRADINHO', 6: 'PLANALTINA',
+                8: 'CEILÂNDIA CENTRO', 9: 'GUARÁ', 10: 'NÚCLEO BANDEIRANTE', 11: 'CRUZEIRO', 13: 'SAMAMBAIA', 14: 'ASA NORTE',
+                15: 'ÁGUAS CLARAS', 16: 'CEILÂNDIA NORTE', 17: 'GAMA', 18: 'LAGO SUL', 19: 'TAGUATINGA NORTE',
+                20: 'CEILÂNDIA SUL', 21: 'RECANTO DAS EMAS'}
 if DFZ:
-    # nome da zona = bairros predominantes (até 2, o 2º só se tiver >= 25% do eleitorado da zona)
+    # nome da zona = nome oficial do TRE-DF; se faltar, bairros predominantes (até 2, o 2º só se tiver >= 25% do eleitorado da zona)
     for cd in list(mun_map):
         tot = sum(z_bairro[cd].values()) or 1
         top = [b for b, n in z_bairro[cd].most_common(2) if b]
         names = top[:1] + [b for b in top[1:] if z_bairro[cd][b] / tot >= 0.25 and b not in top[0] and top[0] not in b]
-        mun_map[cd] = f'ZONA {int(cd[1:]):02d} · ' + ' / '.join(names)
+        mun_map[cd] = f'ZONA {int(cd[1:]):02d} · ' + (DF_ZONA_NOME.get(int(cd[1:])) or ' / '.join(names))
     print('DF zonas:', {cd: mun_map[cd] for cd in sorted(mun_map)})
 # Stable mun order by name
 muns_sorted = sorted(mun_map.items(), key=lambda x: fold(x[1]))
@@ -260,6 +265,9 @@ if DFZ:
     for b, (cd, n) in best.items():
         k = fold(b)
         if len(k) >= 5: mun_idx['aliases'].setdefault(k, mun_i[cd])
+    for cd in sorted(mun_map):
+        nmz = DF_ZONA_NOME.get(int(cd[1:]))
+        if nmz: mun_idx['aliases'].setdefault(fold(nmz), mun_i[cd])
     for cd in mun_map:
         mun_idx['aliases'][fold(f'ZONA {int(cd[1:]):02d}')] = mun_i[cd]
         mun_idx['aliases'][fold(f'{int(cd[1:])}A ZONA')] = mun_i[cd]

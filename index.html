@@ -1474,7 +1474,7 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="relatorios.js?v=20261007b1"></script>
+<script src="relatorios.js?v=20261007b2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1563,8 +1563,8 @@ const UF_REGISTRY = {
   rn: { code: 'rn', nome: 'Rio Grande do Norte', prep: 'do', em: 'no', status: 'ready', capital: 'Natal', fed: 8, est: 24, ale: 'ALRN' },
   ro: { code: 'ro', nome: 'Rondônia', status: 'soon' },
   rr: { code: 'rr', nome: 'Roraima', status: 'soon' },
-  rs: { code: 'rs', nome: 'Rio Grande do Sul', status: 'soon' },
-  sc: { code: 'sc', nome: 'Santa Catarina', status: 'soon' },
+  rs: { code: 'rs', nome: 'Rio Grande do Sul', prep: 'do', em: 'no', status: 'ready', capital: 'Porto Alegre', fed: 31, est: 55, ale: 'ALRS' },
+  sc: { code: 'sc', nome: 'Santa Catarina', prep: 'de', em: 'em', status: 'ready', capital: 'Florianópolis', fed: 16, est: 40, ale: 'Alesc' },
   sp: { code: 'sp', nome: 'São Paulo', prep: 'de', em: 'em', status: 'ready', capital: 'São Paulo', fed: 70, est: 94, ale: 'Alesp' },
   to: { code: 'to', nome: 'Tocantins', status: 'soon' },
 };
@@ -1624,6 +1624,8 @@ const UF_DESTAQUES = {
   mg: { gov: [{ nome: 'Cleitinho Azevedo', numero: 10 }, { nome: 'Patrus Ananias', numero: 13 }], sen: [{ nome: 'Domingos Sávio', numero: 222 }, { nome: 'Marília Campos', numero: 131 }] },
   sp: { gov: [{ nome: 'Tarcísio', numero: 10 }, { nome: 'Fernando Haddad', numero: 13 }], sen: [{ nome: 'Guilherme Derrite', numero: 111 }, { nome: 'André do Prado', numero: 222 }] },
   pr: { gov: [{ nome: 'Sergio Moro', numero: 22 }, { nome: 'Sandro Alex', numero: 55 }], sen: [{ nome: 'Filipe Barros', numero: 222 }, { nome: 'Deltan Dallagnol', numero: 300 }] },
+  sc: { gov: [{ nome: 'Jorginho Mello', numero: 22 }, { nome: 'Gelson Merísio', numero: 40 }], sen: [{ nome: 'Carol de Toni', numero: 221 }, { nome: 'Carlos Bolsonaro', numero: 222 }] },
+  rs: { gov: [{ nome: 'Zucco', numero: 22 }, { nome: 'Juliana Brizola', numero: 12 }], sen: [{ nome: 'Sanderson', numero: 222 }, { nome: 'Marcel Van Hattem', numero: 300 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
 function ufCobertura() {

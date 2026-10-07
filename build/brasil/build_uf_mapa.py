@@ -287,33 +287,25 @@ for fn in VOT_FILES:
     print('lido', os.path.basename(fn), len(A_v), flush=True)
 print('missing_sec rows', missing_sec)
 
-cid = np.frombuffer(A_cid, dtype=np.int32).astype(np.int64); si_a = np.frombuffer(A_si, dtype=np.int32).astype(np.int64)
-v_a = np.frombuffer(A_v, dtype=np.int32).astype(np.int64)
+cid_all = np.frombuffer(A_cid, dtype=np.int32); si_all = np.frombuffer(A_si, dtype=np.int32); v_all = np.frombuffer(A_v, dtype=np.int32)
 loc_of_sec = np.full(n_secoes_det, -1, dtype=np.int64)
 for k, i in sec_i.items():
     li = sec_loc.get(k)
     if li is not None: loc_of_sec[i] = li
 mun_of_loc = np.array([L['m'] for L in geo_loc], dtype=np.int64)
 NS, NL, NM = n_secoes_det, max(1, len(geo_loc)), max(1, len(geo_mun))
+cargo_of_cid = np.array([int(c) for c, _ in cand_keys], dtype=np.int32)
 
 def group_sum(keys, vals):
     u, inv = np.unique(keys, return_inverse=True)
     return u, np.bincount(inv, weights=vals).astype(np.int64)
 
-# (cand, seção) / (cand, local) / (cand, município) somados; ordenados por cand e depois por índice
-sk, sv = group_sum(cid * NS + si_a, v_a)
-li_a = loc_of_sec[si_a]; okl = li_a >= 0
-lk_, lv_ = group_sum(cid[okl] * NL + li_a[okl], v_a[okl])
-mk_, mv_ = group_sum(cid[okl] * NM + mun_of_loc[li_a[okl]], v_a[okl])
-del cid, si_a, v_a, li_a, okl, A_cid, A_si, A_v
-
 def by_cand(keys, vals, base):
     c_of = keys // base; idx = keys % base
     bounds = np.searchsorted(c_of, np.arange(len(cand_keys) + 1))
     return lambda ci: [[int(i), int(v)] for i, v in zip(idx[bounds[ci]:bounds[ci + 1]], vals[bounds[ci]:bounds[ci + 1]]) if v]
-sec_of, loc_of, mun_pairs_of = by_cand(sk, sv, NS), by_cand(lk_, lv_, NL), by_cand(mk_, mv_, NM)
 
-# write candidate files + index
+# write candidate files + index (um cargo por vez: pico de memória menor em SP/MG)
 PRES_E = {}
 for fn in os.listdir(os.path.join(SITE, 'mapa', 'pe', '1')):
     PRES_E[fn[:-5]] = json.load(open(os.path.join(SITE, 'mapa', 'pe', '1', fn))).get('e', [])
@@ -321,6 +313,16 @@ idx_cargos = {}
 problems = []
 votes_mun = {}  # (c,n) -> {mun_i: v}
 for c in ('1', '3', '5', '6', '7'):
+    sel = cargo_of_cid[cid_all] == int(c)
+    cid = cid_all[sel].astype(np.int64); si_a = si_all[sel].astype(np.int64); v_a = v_all[sel].astype(np.int64)
+    del sel
+    # (cand, seção) / (cand, local) / (cand, município) somados; ordenados por cand e depois por índice
+    sk, sv = group_sum(cid * NS + si_a, v_a)
+    li_a = loc_of_sec[si_a]; okl = li_a >= 0
+    lk_, lv_ = group_sum(cid[okl] * NL + li_a[okl], v_a[okl])
+    mk_, mv_ = group_sum(cid[okl] * NM + mun_of_loc[li_a[okl]], v_a[okl])
+    del cid, si_a, v_a, li_a, okl
+    sec_of, loc_of, mun_pairs_of = by_cand(sk, sv, NS), by_cand(lk_, lv_, NL), by_cand(mk_, mv_, NM)
     lst = []
     for meta in CANDS[c]:
         n = meta['n']; ci = cand_id[(c, n)]
@@ -352,6 +354,9 @@ for c in ('1', '3', '5', '6', '7'):
         if c == '1': lst[-1]['tse'] = tot
     if c == '1': lst.sort(key=lambda x: -x['tse'])
     idx_cargos[c] = lst
+    del sk, sv, lk_, lv_, mk_, mv_, sec_of, loc_of, mun_pairs_of
+    print('cargo', c, 'ok', flush=True)
+del cid_all, si_all, v_all, A_cid, A_si, A_v
 
 meta_idx = dict(CANDS.get('_meta') or {})
 # contagens p/ o painel da home (evita baixar geo-<uf>.json só para contar municípios/locais)

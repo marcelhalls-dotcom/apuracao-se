@@ -55,6 +55,11 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   // nomes proibidos = destaques de governo das outras UFs
   const forb = Object.entries(D).filter(([u]) => u !== UF).flatMap(([, d]) => d.gov.map(x => x.nome));
   if (UF !== 'se') forb.push('Sergipe', 'Alese', 'Aracaju');
+  // homônimos: nome de destaque de outra UF que também é candidato nesta UF (ex.: "Allyson" no RN e "Allyson Elias" no RJ) não conta
+  const own = [];
+  for (const c of [3, 5, 6, 7]) { try { const d = JSON.parse(fs.readFileSync(`${SITE}/tse/ele2026/6259/dados/${UF}/${UF}-c${String(c).padStart(4, '0')}-e006259-u.json`, 'utf8'));
+    for (const a of d.carg[0].agr || []) for (const p of a.par || []) for (const x of p.cand || []) own.push(fold(x.nmu || x.nm || '')); } catch (_) {} }
+  for (let i = forb.length - 1; i >= 0; i--) if (own.some(o => o.includes(fold(forb[i])))) forb.splice(i, 1);
   const badPrep = new RegExp(`(^|[^\\wÀ-ú])(de|em|De|Em) ${meta.nome}(?![\\wÀ-ú])`);
   const views = ['inicio', 'governo', 'senado', 'presidente', 'federais', 'estaduais', 'suplentes'];
   for (const v of views) {

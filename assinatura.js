@@ -384,8 +384,9 @@
     const po = v.querySelector('[data-portal]');
     if (po) po.addEventListener('click', async () => { try { location.href = (await api('/stripe/portal', { method: 'POST', body: {} })).url; } catch (e) { msgPlano.textContent = e.message; msgPlano.className = 'cmv-msg erro'; } });
     v.querySelector('[data-exportar]').addEventListener('click', async () => {
-      try { const blob = await api('/conta/dados'); const url = URL.createObjectURL(blob instanceof Blob ? blob : new Blob([JSON.stringify(blob, null, 2)], { type: 'application/json' }));
-        const a2 = document.createElement('a'); a2.href = url; a2.download = 'meus-dados-cademeuvoto.json'; document.body.appendChild(a2); a2.click(); a2.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+      try { const dados = await api('/conta/dados'); const blob = dados instanceof Blob ? dados : new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+        if (global.CMV_PWA) await global.CMV_PWA.salvar(blob, 'meus-dados-cademeuvoto.json');
+        else { const url = URL.createObjectURL(blob); const a2 = document.createElement('a'); a2.href = url; a2.download = 'meus-dados-cademeuvoto.json'; document.body.appendChild(a2); a2.click(); a2.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); } }
       catch (e) { msgPriv.textContent = e.message; msgPriv.className = 'cmv-msg erro'; }
     });
     v.querySelector('[data-sair]').addEventListener('click', sair);

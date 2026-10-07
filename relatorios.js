@@ -1512,7 +1512,9 @@
     return comCota(spec, ['pdf'], async (s) => {
       const doc = await generate(s);
       const fname = relTag(s) + '.pdf';
-      doc.save(fname);
+      // iPhone com o app aberto pela Tela de Início: menu Compartilhar (Salvar em Arquivos); no resto, download normal
+      if (global.CMV_PWA && global.CMV_PWA.precisaCompartilhar()) await global.CMV_PWA.salvar(doc.output('blob'), fname);
+      else doc.save(fname);
       return { doc, filename: fname, spec: s };
     });
   }
@@ -1588,7 +1590,10 @@
     return comCota(spec, ['xlsx'], async (s) => {
       const { X, wb } = await buildExcelBook(s);
       const fname = relTag(s) + '.xlsx';
-      X.writeFile(wb, fname, { compression: true });
+      if (global.CMV_PWA && global.CMV_PWA.precisaCompartilhar()) {
+        const buf = X.write(wb, { bookType: 'xlsx', type: 'array', compression: true });
+        await global.CMV_PWA.salvar(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fname);
+      } else X.writeFile(wb, fname, { compression: true });
       return { filename: fname, spec: s };
     });
   }
@@ -1988,10 +1993,11 @@
       + '<h3 style="margin:0 0 8px;color:#7dd3fc">' + title + '</h3>'
       + bodyHtml
       + '<div class="rel-pdf-preview">'
-      + '<div class="rel-pdf-actions">'
+      // no iPhone com o app instalado, links para blob abrem uma tela sem volta: lá fica só a prévia embutida
+      + ((global.CMV_PWA && global.CMV_PWA.precisaCompartilhar()) ? '' : ('<div class="rel-pdf-actions">'
       + '<a class="btn-mapa" href="' + pdfUrl + '" download="previa-relatorio.pdf">Baixar PDF da prévia</a>'
       + '<a class="btn-mapa" href="' + pdfUrl + '" target="_blank" rel="noopener">Abrir PDF</a>'
-      + '</div>'
+      + '</div>'))
       + '<div class="rel-pdf-frame-wrap">'
       + '<object class="rel-pdf-frame" data="' + pdfUrl + '#toolbar=1&navpanes=0" type="application/pdf" title="Prévia do PDF">'
       + '<iframe class="rel-pdf-frame" src="' + pdfUrl + '#toolbar=1" title="Prévia do PDF"></iframe>'

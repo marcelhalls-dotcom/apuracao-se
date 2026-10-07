@@ -1,0 +1,4 @@
+# Dados pesados ficam no Cloudflare R2 (dados.cademeuvoto.com.br) — ver build/brasil/README.md
+/mapa/
+/fotos/
+/tse/

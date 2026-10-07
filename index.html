@@ -23,8 +23,8 @@
 <link rel="icon" href="favicon-32.png?v=20261007br1" sizes="32x32" type="image/png">
 <link rel="icon" href="favicon-16.png?v=20261007br1" sizes="16x16" type="image/png">
 <link rel="shortcut icon" href="favicon.ico?v=20261007br1">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa3" sizes="180x180">
-<link rel="manifest" href="site.webmanifest?v=20261007pwa3">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261007pwa4" sizes="180x180">
+<link rel="manifest" href="site.webmanifest?v=20261007pwa4">
 <meta name="theme-color" content="#0A1428">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -487,6 +487,20 @@
   .chat-bubble li { margin: 0.12em 0; }
   .chat-bubble strong { font-weight: 700; color: #f8fafc; }
   .chat-bubble em { font-style: italic; }
+  .chat-form[hidden] { display: none !important; }
+  .chat-lock { background: var(--card, #fff); border: 1px solid var(--line, #e2e8f0); border-radius: 14px; padding: 14px 14px 12px; margin: 4px 0; color: var(--text, #0f172a); }
+  .chat-lock p { margin: 0 0 8px; line-height: 1.45; font-size: .92rem; }
+  .chat-lock .chat-lock-t { font-weight: 800; font-size: 1rem; }
+  .chat-lock .chat-lock-s { font-weight: 600; }
+  .chat-lock-acts { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 12px; }
+  .chat-lock-acts .cmv-btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 16px; }
+  .chat-lock .cmv-btn.sec { color: var(--text, #0f172a); border-color: var(--line, #cbd5e1); }
+  .chat-lock-ex { border-top: 1px dashed var(--line, #e2e8f0); padding-top: 10px; }
+  .chat-lock-ex p { font-size: .85rem; color: var(--subtext, #64748b); margin-bottom: 4px; }
+  .chat-lock-ex ul { margin: 0; padding-left: 18px; font-size: .85rem; color: var(--subtext, #64748b); }
+  .chat-lock-ex li { margin: 2px 0; }
+  .chat-quota { display: block; font-weight: 600; margin-top: 2px; }
+  .chat-quota:empty { display: none; }
   .chat-suggest {
     display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px;
   }
@@ -1187,7 +1201,7 @@
       <button type="button" class="feat" data-open-chat>
         <span class="feat-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <h3>Assistente com IA</h3>
-        <p>Pergunte em linguagem natural: votos por município, eleitos, suplentes. Respostas baseadas nos dados do TSE.</p>
+        <p>Pergunte em linguagem natural sobre qualquer UF: eleitos, 2º turno, votos por município, bairro e seção. Respostas baseadas nos dados do TSE. Exclusivo da Assinatura.</p>
         <span class="feat-go">Perguntar →</span>
       </button>
     </div>
@@ -1195,7 +1209,7 @@
     <div class="cta-band">
       <div>
         <h2>Dados compilados para campanhas, partidos e imprensa</h2>
-        <p>Assinatura com mapa até a seção eleitoral, 50 relatórios por mês, comparativos completos e planilhas em Excel.</p>
+        <p>Assinatura com mapa até a seção eleitoral, 50 relatórios por mês, comparativos completos, planilhas em Excel e assistente com IA.</p>
       </div>
       <a class="btn-primary" href="#planos">Conhecer os planos</a>
     </div>
@@ -1303,9 +1317,9 @@
           <li>Mapa de Votação por município (no DF, por zona eleitoral)</li>
           <li>2 relatórios em PDF por mês, por município, com marca-d’água</li>
           <li>Comparação A × B por município (conta como 1 relatório)</li>
-          <li>Assistente com IA: 5 perguntas por hora e 15 por dia (dados por município)</li>
           <li class="no">Sem zona, bairro, local de votação e seção</li>
           <li class="no">Sem Excel</li>
+          <li class="no">Sem assistente com IA (exclusivo da Assinatura)</li>
         </ul>
         <a class="btn-ghost block" href="#mapa">Usar agora</a>
       </div>
@@ -1319,7 +1333,7 @@
           <li>Seções e zonas eleitorais nos relatórios</li>
           <li>Comparativos A × B completos</li>
           <li>Planilhas em Excel</li>
-          <li>Assistente com IA: 20 perguntas por hora e 100 por dia, com detalhe completo</li>
+          <li>Assistente com IA (exclusivo da Assinatura): 20 perguntas por hora e 100 por dia, sobre as 27 UFs, com detalhe até a seção</li>
           <li>Cancele quando quiser: o acesso continua até o fim do período pago</li>
         </ul>
         <a class="btn-primary block" data-assinar-plano href="#conta">Assinar</a>
@@ -1349,6 +1363,8 @@
       <p>Sim. Todos os números vêm do Tribunal Superior Eleitoral (divulgação de resultados e dados abertos). Não estimamos nem alteramos votos. Veja a <a href="#sobre">metodologia</a>.</p>
       <h3>O que conta como 1 relatório?</h3>
       <p>Cada vez que você gera um relatório (de qualquer tipo). Um comparativo A × B conta 1. Gerar de novo o mesmo relatório em até 24 horas não conta outra vez, e se a geração falhar o crédito volta.</p>
+      <h3>O assistente com IA é grátis?</h3>
+      <p>Não. O assistente com IA faz parte da Assinatura (R$ 49,90/mês): até 20 perguntas por hora e 100 por dia sobre as eleições 2026 nos 26 estados e no Distrito Federal, com detalhe por bairro, local de votação e seção. No plano gratuito você continua com os resultados, o mapa por município e 2 relatórios por mês.</p>
       <h3>Quando a cota renova?</h3>
       <p>No plano gratuito, no dia 1º de cada mês (horário de Brasília). Na Assinatura, a cada renovação mensal.</p>
       <h3>E se o pagamento falhar?</h3>
@@ -1428,7 +1444,7 @@
     <div class="prose">
       <div class="todo-note">Documento provisório, sujeito a revisão jurídica antes do lançamento dos planos.</div>
       <h2>Resumo</h2>
-      <p>Você pode ver os resultados sem cadastro. Para gerar relatórios, usar o assistente e assinar, é preciso uma conta com e-mail. Não vendemos dados pessoais.</p>
+      <p>Você pode ver os resultados sem cadastro. Para gerar relatórios e assinar, é preciso uma conta com e-mail; o assistente com IA é exclusivo da Assinatura. Não vendemos dados pessoais.</p>
       <h2>O que é tratado</h2>
       <ul>
         <li><strong>Contador de acessos</strong>: ao abrir o site, um serviço externo de contagem registra uma visita por sessão do navegador. Não enviamos nome, e-mail ou identificadores pessoais.</li>
@@ -1461,7 +1477,7 @@
         <li>É proibido usar o conteúdo para desinformação ou para atribuir ao site informações que ele não publica.</li>
         <li>A marca Cadê Meu Voto, o layout e as compilações de dados pertencem aos seus titulares. Os dados públicos do TSE continuam públicos.</li>
         <li>Conta: é pessoal. Os relatórios da Assinatura saem com “Licenciado para” o nome do titular. É proibido compartilhar o acesso ou revender os dados de detalhe.</li>
-        <li>Plano gratuito: 2 relatórios por mês, por município, com marca-d’água. Assinatura: R$ 49,90 por mês, renovação automática, cancelável a qualquer momento (o acesso continua até o fim do período pago). Se o pagamento falhar, o acesso continua por 7 dias.</li>
+        <li>Plano gratuito: 2 relatórios por mês, por município, com marca-d’água. Assinatura: R$ 49,90 por mês, inclui o assistente com IA (até 20 perguntas por hora e 100 por dia), renovação automática, cancelável a qualquer momento (o acesso continua até o fim do período pago). Se o pagamento falhar, o acesso continua por 7 dias.</li>
         <li>Podemos ajustar limites para evitar abuso (por exemplo, robôs ou acesso automatizado).</li>
       </ul>
     </div>
@@ -1522,10 +1538,10 @@
   </div>
   <div class="chat-msgs" id="chat-msgs" aria-live="polite"></div>
   <div class="chat-suggest" id="chat-suggest"></div>
-  <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros.</div>
+  <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros. <span class="chat-quota" id="chat-quota" aria-live="polite"></span></div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026 (SE/AL/BA/PE)…" required></textarea>
+    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026…" required></textarea>
     <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
@@ -1533,9 +1549,9 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261007pwa3"></script>
-<script src="assinatura.js?v=20261007pwa3"></script>
-<script src="relatorios.js?v=20261007pwa3"></script>
+<script src="pwa.js?v=20261007pwa4"></script>
+<script src="assinatura.js?v=20261007pwa4"></script>
+<script src="relatorios.js?v=20261007pwa4"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1751,6 +1767,7 @@ function applyUf(uf, { refresh } = {}) {
   paintUfPicker();
   paintUfChrome();
   dfLayer(currentUf === 'df');
+  if (typeof window.chatSync === 'function') window.chatSync();
   if (changed || refresh) {
     if (typeof atualizar === 'function') atualizar();
   }
@@ -4370,14 +4387,51 @@ async function atualizarContadorAcessos() {
 }
 
 
-/* ===== Chat IA (Worker) ===== */
+/* ===== Chat IA (Worker) — exclusivo da Assinatura ===== */
 const CHAT_API = (window.CMV ? window.CMV.API_BASE : 'https://api.cademeuvoto.com.br') + '/chat';
-const CHAT_SUGGEST = [
-  'Quem foram os deputados estaduais eleitos?',
-  'Quantos votos o Governador teve em Aracaju?',
-  'Quem são os suplentes do Senado?',
-  'Como ficou a votação para Presidente em Sergipe?',
-];
+const CHAT_PRECO = 'R$ 49,90/mês';
+/** "JOÃO DA SILVA" → "João da Silva"; siglas curtas (JHC, ACM) ficam em maiúsculas; "DR." → "Dr.". */
+function chatNome(s) {
+  const part = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+  return String(s || '').trim().split(/\s+/).map((w, i) => {
+    const l = w.toLowerCase();
+    if (i > 0 && part.has(l)) return l;
+    if (/^[A-ZÀ-Ú]{2,3}$/.test(w) && !/[AEIOUÁÉÍÓÚÂÊÔÃÕ]/.test(w.slice(1))) return w; // JHC, ACM
+    return l.charAt(0).toUpperCase() + l.slice(1);
+  }).join(' ');
+}
+/** Plano do usuário para o chat: 'anon' | 'free' | 'pro'. */
+function chatPlano() {
+  const C = window.CMV;
+  if (!C || !C.logado()) return 'anon';
+  return C.pro() ? 'pro' : 'free';
+}
+/** Governador da UF ativa (dados do TSE já carregados): eleito ou os dois do 2º turno. */
+function chatGov() {
+  const st = estado[currentUf + ':3'];
+  const todos = (st && st.dados && st.dados.todos) || [];
+  const t2 = todos.filter(c => /2º turno/i.test(c.st || ''));
+  return { t2, eleito: todos.find(c => c.eleito && !/2º turno/i.test(c.st || '')) || null, pronto: todos.length > 0 };
+}
+/** Sugestões da UF ativa (capital e cargos reais; DF: distritais e regiões administrativas). */
+function chatSugestoes() {
+  const m = ufMeta(currentUf), df = currentUf === 'df';
+  const em = (m.em || 'em') + ' ' + m.nome;
+  const capEm = df ? 'em Ceilândia' : (m.capEm || 'em') + ' ' + m.capital;
+  const deCap = df ? 'de Ceilândia' : ({ no: 'do', na: 'da', em: 'de' }[m.capEm || 'em'] || 'de') + ' ' + m.capital;
+  const g = chatGov(), out = [];
+  out.push(g.t2.length ? `Quem vai ao 2º turno para Governador ${em}?` : (g.eleito ? `Quem foi eleito Governador ${em}?` : `Como ficou a eleição para Governador ${em}?`));
+  if (g.t2.length >= 2) out.push(`Quantos votos ${chatNome(g.t2[0].nome)} e ${chatNome(g.t2[1].nome)} tiveram ${capEm}?`);
+  else if (g.eleito) out.push(`Quantos votos ${chatNome(g.eleito.nome)} teve ${capEm}?`);
+  else out.push(`Quem foi o mais votado para Governador ${capEm}?`);
+  out.push(df ? 'Quem foram os deputados distritais mais votados?' : `Quem foram os eleitos para o Senado ${em}?`);
+  out.push(`Como ficou a votação para Presidente ${em} e no Brasil?`);
+  const alvo = g.eleito || g.t2[0];
+  out.push(alvo
+    ? (df ? `Em quais locais de votação de Ceilândia ${chatNome(alvo.nome)} teve mais votos?` : `Em quais bairros ${deCap} ${chatNome(alvo.nome)} teve mais votos?`)
+    : `Quem foi o deputado federal mais votado ${capEm}?`);
+  return out;
+}
 
 function escapeChatHtml(s) {
   return String(s)
@@ -4434,6 +4488,9 @@ function bootChat() {
   const input = document.getElementById('chat-input');
   const send = document.getElementById('chat-send');
   const charEl = document.getElementById('chat-char');
+  const quota = document.getElementById('chat-quota');
+  const suggest = document.getElementById('chat-suggest');
+  if (!fab || !panel || !form) return;
   const CHAT_MAX = 1000;
   const syncChar = () => {
     const n = (input.value || '').length;
@@ -4444,12 +4501,11 @@ function bootChat() {
   };
   input.addEventListener('input', syncChar);
   syncChar();
-  const suggest = document.getElementById('chat-suggest');
-  if (!fab || !panel || !form) return;
 
   const history = [];
   let busy = false;
   let lastFocus = null;
+  let shown = null; // { plano, uf } que está na tela
 
   const addBubble = (role, text, cls) => {
     const b = document.createElement('div');
@@ -4460,6 +4516,91 @@ function bootChat() {
     msgs.scrollTop = msgs.scrollHeight;
     return b;
   };
+  const btn = (txt, cls, onClick, href) => {
+    const b = document.createElement(href ? 'a' : 'button');
+    if (href) b.href = href; else b.type = 'button';
+    b.className = cls; b.textContent = txt;
+    if (onClick) b.addEventListener('click', onClick);
+    return b;
+  };
+  const irPlanos = (e) => { if (e) e.preventDefault(); setOpen(false); location.hash = '#planos'; };
+
+  /** Tela bloqueada (sem conta ou sem Assinatura): sem campo de texto e sem sugestões que enviam. */
+  const renderBloqueado = (plano) => {
+    msgs.innerHTML = '';
+    const m = ufMeta(currentUf);
+    const card = document.createElement('div');
+    card.className = 'chat-lock';
+    card.id = 'chat-lock';
+    const h = document.createElement('p'); h.className = 'chat-lock-t';
+    h.textContent = 'O assistente com IA faz parte da Assinatura (' + CHAT_PRECO + ')';
+    const p = document.createElement('p');
+    p.textContent = 'Pergunte em linguagem natural sobre as eleições 2026 nos 26 estados e no Distrito Federal: eleitos, 2º turno, votos por município e, na Assinatura, por bairro, local de votação e seção. São até 20 perguntas por hora e 100 por dia, com dados oficiais do TSE.';
+    card.append(h, p);
+    if (plano === 'anon') {
+      const q = document.createElement('p'); q.className = 'chat-lock-s';
+      q.textContent = 'Já é assinante? Entre na sua conta para usar.';
+      card.appendChild(q);
+    }
+    const acts = document.createElement('div'); acts.className = 'chat-lock-acts';
+    acts.appendChild(btn('Ver planos', 'cmv-btn', irPlanos, '#planos'));
+    if (plano === 'anon') acts.appendChild(btn('Entrar', 'cmv-btn sec', () => window.CMV && window.CMV.requireLogin({ titulo: 'Entre na sua conta', texto: 'O assistente com IA é da Assinatura. Sem senha: enviamos um código de 6 dígitos para o seu e-mail.' })));
+    card.appendChild(acts);
+    const ex = document.createElement('div'); ex.className = 'chat-lock-ex';
+    const et = document.createElement('p'); et.textContent = 'Exemplos do que você pode perguntar sobre ' + m.nome + ':';
+    const ul = document.createElement('ul');
+    chatSugestoes().slice(0, 3).forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+    ex.append(et, ul);
+    card.appendChild(ex);
+    msgs.appendChild(card);
+  };
+  const saudacao = () => {
+    const m = ufMeta(currentUf), g = chatGov();
+    const C = window.CMV, lim = (C && C.me && C.me().chat) || { hora: 20, dia: 100 };
+    const t2 = g.t2.length ? ' Lá haverá 2º turno para Governador em 25/10/2026.' : '';
+    return 'Olá! Respondo sobre as eleições 2026 nos **26 estados e no Distrito Federal** e sobre Presidente, com dados oficiais do TSE.\n\n'
+      + 'Usando os dados ' + (m.prep || 'de') + ' **' + m.nome + '**.' + t2 + ' Para outro estado, troque a UF no topo ou pergunte "e em São Paulo?".\n\n'
+      + 'Sua Assinatura: até ' + (lim.hora || 20) + ' perguntas por hora e ' + (lim.dia || 100) + ' por dia, com detalhe por ' + (currentUf === 'df' ? 'zona eleitoral, local de votação e seção.' : 'bairro, local de votação e seção.');
+  };
+  const renderChips = (ativo) => {
+    suggest.innerHTML = '';
+    if (!ativo) { suggest.hidden = true; return; }
+    chatSugestoes().forEach(q => {
+      suggest.appendChild(btn(q, '', () => { input.value = q; form.requestSubmit(); }));
+    });
+    syncSuggest();
+  };
+  const syncSuggest = () => {
+    const hasUser = history.some(x => x.role === 'user') || !!msgs.querySelector('.chat-bubble.user');
+    suggest.hidden = hasUser || chatPlano() !== 'pro';
+  };
+  /** Ajusta saudação, sugestões e bloqueio à UF e ao plano atuais (troca de UF, login/logout, assinatura). */
+  const sync = (forcar) => {
+    const plano = chatPlano(), uf = currentUf;
+    const g = chatGov();
+    const assin = [plano, uf, g.pronto, g.t2.map(c => c.n).join(','), g.eleito && g.eleito.n].join('|');
+    if (!forcar && shown && shown.assin === assin) return; // nada mudou (renderTudo roda a cada atualização)
+    const ativo = plano === 'pro';
+    form.hidden = !ativo;
+    panel.classList.toggle('locked', !ativo);
+    if (quota && !ativo) quota.textContent = '';
+    const conversa = history.some(x => x.role === 'user');
+    if (!ativo) {
+      history.length = 0;
+      renderBloqueado(plano);
+    } else if (!shown || shown.plano !== 'pro' || !conversa) {
+      msgs.innerHTML = '';
+      addBubble('bot', saudacao());
+      msgs.scrollTop = 0; // saudação visível desde o início
+    } else if (shown.uf !== uf) {
+      addBubble('bot', 'Agora as respostas usam os dados ' + (ufMeta(uf).prep || 'de') + ' **' + ufMeta(uf).nome + '**.');
+    }
+    renderChips(ativo);
+    shown = { plano, uf, assin };
+  };
+  window.chatSync = () => { try { sync(); } catch (e) { console.error(e); } };
+  window.addEventListener('cmv:plano', window.chatSync);
+  if (window.CMV && window.CMV.ready) Promise.resolve(window.CMV.ready).then(window.chatSync).catch(() => {});
 
   const setOpen = (open) => {
     panel.classList.toggle('open', open);
@@ -4467,35 +4608,13 @@ function bootChat() {
     fab.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) {
       lastFocus = document.activeElement;
-      if (!msgs.childElementCount) {
-        addBubble('bot', 'Olá! Sou o assistente do Cadê Meu Voto. Posso falar das eleições 2026 em ' + ufMeta(currentUf).nome + ' (e Presidente no Brasil). Fonte: TSE.');
-      }
-      syncSuggest();
-      setTimeout(() => input.focus(), 50);
+      sync(true);
+      setTimeout(() => (chatPlano() === 'pro' ? input : (panel.querySelector('.chat-lock .cmv-btn') || closeBtn)).focus(), 50);
     } else if (lastFocus && lastFocus.focus) {
       lastFocus.focus();
     }
   };
-
-  const syncSuggest = () => {
-    // chips só na abertura sem conversa (além da saudação do bot, conta mensagens user)
-    const hasUser = history.some(m => m.role === 'user')
-      || !!msgs.querySelector('.chat-bubble.user');
-    suggest.hidden = hasUser;
-  };
-
-  CHAT_SUGGEST.forEach(q => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.dataset.suggTpl = q;
-    b.textContent = ufText(q);
-    b.addEventListener('click', () => {
-      input.value = ufText(q);
-      form.requestSubmit();
-    });
-    suggest.appendChild(b);
-  });
-  syncSuggest();
+  sync();
 
   fab.addEventListener('click', () => setOpen(!panel.classList.contains('open')));
   closeBtn.addEventListener('click', () => setOpen(false));
@@ -4509,6 +4628,7 @@ function bootChat() {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (busy) return;
+    if (chatPlano() !== 'pro') { sync(true); return; } // assistente só na Assinatura (o servidor também recusa)
     const text = (input.value || '').trim();
     if (!text) return;
     if (text.length > 1000) {
@@ -4516,6 +4636,7 @@ function bootChat() {
       return;
     }
     input.value = '';
+    syncChar();
     addBubble('user', text);
     history.push({ role: 'user', content: text });
     while (history.length > 8) history.shift();
@@ -4531,11 +4652,6 @@ function bootChat() {
     msgs.scrollTop = msgs.scrollHeight;
 
     try {
-      // O assistente exige conta (grátis): 5 perguntas/hora e 15/dia; Assinatura: 20/hora e 100/dia
-      if (window.CMV && !window.CMV.logado()) {
-        const ok = await window.CMV.requireLogin({ titulo: 'Entre para usar o assistente', texto: 'É grátis. Sem senha: enviamos um código de 6 dígitos para o seu e-mail.' });
-        if (!ok) { typing.remove(); history.pop(); addBubble('bot', 'Para usar o assistente, entre ou crie sua conta grátis (botão Entrar no topo).', 'err'); return; }
-      }
       const r = await fetch(CHAT_API, {
         method: 'POST',
         credentials: 'include',
@@ -4545,26 +4661,26 @@ function bootChat() {
       const data = await r.json().catch(() => ({}));
       typing.remove();
       if (!r.ok) {
-        if (r.status === 401 && window.CMV) { window.CMV.refresh(); history.pop(); }
-        const b = addBubble('bot', data.error || 'Não foi possível obter resposta agora.', 'err');
-        if (r.status === 429 && data.plano === 'free' && window.CMV && b) b.appendChild(window.CMV.paywallBox('chat-limite', 'Quer mais perguntas e o detalhe por bairro e local de votação? Conheça a Assinatura.'));
+        history.pop();
+        if ((r.status === 401 || r.status === 402) && window.CMV) { await window.CMV.refresh(); sync(true); return; }
+        addBubble('bot', data.error || 'Não foi possível obter resposta agora. Tente de novo em instantes.', 'err');
       } else {
         const reply = data.reply || '';
         const bubble = addBubble('bot', reply);
         if (data.report && window.Relatorios) {
           const actions = document.createElement('div');
           actions.className = 'chat-report-actions';
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.textContent = 'Baixar relatório (PDF)';
-          btn.addEventListener('click', async () => {
-            btn.disabled = true; btn.textContent = 'Gerando…';
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = 'Baixar relatório (PDF)';
+          b.addEventListener('click', async () => {
+            b.disabled = true; b.textContent = 'Gerando…';
             try {
               await window.Relatorios.generateAndDownload(Object.assign({}, data.report, { origem: 'chat' }));
-              btn.textContent = 'PDF baixado';
-            } catch (e) {
-              btn.textContent = e && e.cancelado ? 'Baixar relatório (PDF)' : 'Erro ao gerar';
-              console.error(e);
+              b.textContent = 'PDF baixado';
+            } catch (err) {
+              b.textContent = err && err.cancelado ? 'Baixar relatório (PDF)' : 'Erro ao gerar';
+              console.error(err);
             }
           });
           const a = document.createElement('a');
@@ -4574,23 +4690,29 @@ function bootChat() {
             ev.preventDefault();
             window.Relatorios.openInPanel(data.report);
           });
-          actions.appendChild(btn);
+          actions.appendChild(b);
           actions.appendChild(a);
           bubble.appendChild(actions);
+        }
+        if (quota && data.remaining) {
+          const h = data.remaining.hour, d = data.remaining.day;
+          quota.textContent = 'Restam ' + h + (h === 1 ? ' pergunta' : ' perguntas') + ' nesta hora e ' + d + ' hoje.';
         }
         history.push({ role: 'assistant', content: reply });
         while (history.length > 8) history.shift();
       }
     } catch (err) {
       typing.remove();
-      addBubble('bot', 'Falha de rede ao falar com o assistente.', 'err');
+      history.pop();
+      addBubble('bot', 'Falha de rede ao falar com o assistente. Verifique a conexão e tente de novo.', 'err');
     } finally {
       busy = false;
       send.disabled = false;
-      input.focus();
+      if (chatPlano() === 'pro') input.focus();
     }
   });
 }
+
 
 
 function bootNav() {
@@ -4723,6 +4845,7 @@ function renderTudo() {
   resultadoFinal = finals.length > 0 && finals.every(d => d.totalFinal || d.pst >= 100);
   window.__pstRef = ref ? ref.pst : null;
   renderInicio();
+  if (typeof window.chatSync === 'function') window.chatSync(); // sugestões do chat usam o Governador já carregado
 }
 
 function renderStatus() {

@@ -1097,7 +1097,7 @@
       <div class="hero-copy">
         <div class="eyebrow" id="hero-eyebrow">Eleições 2026 · Sergipe e Alagoas · mais estados em breve</div>
         <h1>Saiba onde estão os votos, <em>até a seção eleitoral.</em></h1>
-        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e já cobrimos <strong id="sobre-ufs">Alagoas, Bahia e Pernambuco</strong>; outros estados entram em seguida. Do município ao bairro, ao local de votação e à seção.</p>
+        <p class="lead">O Cadê Meu Voto organiza os resultados oficiais do TSE em mapas, comparativos e relatórios. Começamos por <strong>Sergipe</strong> (referência) e já cobrimos <strong id="sobre-ufs">Alagoas, Bahia e Pernambuco</strong><span id="sobre-mais">; outros estados entram em seguida</span>. Do município ao bairro, ao local de votação e à seção.</p>
         <div class="uf-picker" id="uf-picker" aria-label="Escolha o estado"></div>
         <div class="hero-actions">
           <a class="btn-primary" href="#mapa" id="cta-mapa">Abrir o Mapa de Votação</a>
@@ -1549,11 +1549,11 @@ const UF_REGISTRY = {
   ce: { code: 'ce', nome: 'Ceará', prep: 'do', em: 'no', status: 'ready', capital: 'Fortaleza', fed: 22, est: 46, ale: 'ALECE' },
   df: { code: 'df', nome: 'Distrito Federal', status: 'soon' },
   es: { code: 'es', nome: 'Espírito Santo', prep: 'do', em: 'no', status: 'ready', capital: 'Vitória', fed: 10, est: 30, ale: 'Ales' },
-  go: { code: 'go', nome: 'Goiás', status: 'soon' },
+  go: { code: 'go', nome: 'Goiás', prep: 'de', em: 'em', status: 'ready', capital: 'Goiânia', fed: 17, est: 41, ale: 'Alego' },
   ma: { code: 'ma', nome: 'Maranhão', prep: 'do', em: 'no', status: 'ready', capital: 'São Luís', fed: 18, est: 42, ale: 'ALEMA' },
   mg: { code: 'mg', nome: 'Minas Gerais', prep: 'de', em: 'em', status: 'ready', capital: 'Belo Horizonte', fed: 53, est: 77, ale: 'ALMG' },
-  ms: { code: 'ms', nome: 'Mato Grosso do Sul', status: 'soon' },
-  mt: { code: 'mt', nome: 'Mato Grosso', status: 'soon' },
+  ms: { code: 'ms', nome: 'Mato Grosso do Sul', prep: 'de', em: 'em', status: 'ready', capital: 'Campo Grande', fed: 8, est: 24, ale: 'ALEMS' },
+  mt: { code: 'mt', nome: 'Mato Grosso', prep: 'de', em: 'em', status: 'ready', capital: 'Cuiabá', fed: 8, est: 24, ale: 'ALMT' },
   pa: { code: 'pa', nome: 'Pará', status: 'soon' },
   pb: { code: 'pb', nome: 'Paraíba', prep: 'da', em: 'na', status: 'ready', capital: 'João Pessoa', fed: 12, est: 36, ale: 'ALPB' },
   pe: { code: 'pe', nome: 'Pernambuco', status: 'ready', capital: 'Recife', fed: 25, est: 49, ale: 'ALEPE' },
@@ -1626,11 +1626,17 @@ const UF_DESTAQUES = {
   pr: { gov: [{ nome: 'Sergio Moro', numero: 22 }, { nome: 'Sandro Alex', numero: 55 }], sen: [{ nome: 'Filipe Barros', numero: 222 }, { nome: 'Deltan Dallagnol', numero: 300 }] },
   sc: { gov: [{ nome: 'Jorginho Mello', numero: 22 }, { nome: 'Gelson Merísio', numero: 40 }], sen: [{ nome: 'Carol de Toni', numero: 221 }, { nome: 'Carlos Bolsonaro', numero: 222 }] },
   rs: { gov: [{ nome: 'Zucco', numero: 22 }, { nome: 'Juliana Brizola', numero: 12 }], sen: [{ nome: 'Sanderson', numero: 222 }, { nome: 'Marcel Van Hattem', numero: 300 }] },
+  go: { gov: [{ nome: 'Daniel Vilela', numero: 15 }, { nome: 'Wilder Morais', numero: 22 }], sen: [{ nome: 'Gustavo Gayer', numero: 222 }, { nome: 'Gracinha Caiado', numero: 444 }] },
+  mt: { gov: [{ nome: 'Otaviano Pivetta', numero: 10 }, { nome: 'Wellington Fagundes', numero: 22 }], sen: [{ nome: 'Mauro Mendes', numero: 444 }, { nome: 'Zé Medeiros', numero: 222 }] },
+  ms: { gov: [{ nome: 'Eduardo Riedel', numero: 11 }, { nome: 'Fábio Trad', numero: 13 }], sen: [{ nome: 'Reinaldo Azambuja', numero: 222 }, { nome: 'Capitão Contar', numero: 221 }] },
 };
 /** Cobertura para textos da home: "todo o Nordeste", "todo o Nordeste e todo o Sudeste", ou a lista de UFs prontas. */
+function ufTodasProntas() { return UF_ORDER.every(c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready'); }
 function ufCobertura() {
   const ready = c => UF_REGISTRY[c] && UF_REGISTRY[c].status === 'ready';
-  const REG = [['todo o Nordeste', ['al','ba','pe','ce','ma','pb','pi','rn']], ['todo o Sudeste', ['es','rj','mg','sp']]];
+  if (ufTodasProntas()) return 'todo o Brasil: os 26 estados e o Distrito Federal';
+  const REG = [['todo o Nordeste', ['al','ba','pe','ce','ma','pb','pi','rn']], ['todo o Sudeste', ['es','rj','mg','sp']],
+    ['todo o Sul', ['pr','sc','rs']], ['todo o Centro-Oeste', ['go','mt','ms','df']], ['todo o Norte', ['pa','am','to','ro','ac','ap','rr']]];
   let rest = UF_ORDER.filter(c => c !== 'se' && ready(c));
   const parts = [];
   for (const [txt, ufs] of REG) if (ufs.every(ready)) { parts.push(txt); rest = rest.filter(c => !ufs.includes(c)); }
@@ -1775,7 +1781,7 @@ function paintUfChrome() {
   const m = ufMeta(currentUf);
   const eye = document.getElementById('hero-eyebrow');
   if (eye) eye.textContent = currentUf === 'se'
-    ? ('Eleições 2026 · Sergipe (referência) · ' + ufCobertura() + ' · mais estados em breve')
+    ? (ufTodasProntas() ? 'Eleições 2026 · Todo o Brasil · 26 estados e o Distrito Federal' : ('Eleições 2026 · Sergipe (referência) · ' + ufCobertura() + ' · mais estados em breve'))
     : `Eleições 2026 · ${m.nome} · Dados oficiais do TSE`;
   const title = document.getElementById('hero-panel-title');
   if (title) title.innerHTML = `${m.nome} 2026 em números <span>fonte: TSE</span>`;
@@ -1810,6 +1816,7 @@ function paintUfChrome() {
     }
   });
   const su = document.getElementById('sobre-ufs'); if (su) su.textContent = ufCobertura();
+  const sm = document.getElementById('sobre-mais'); if (sm) sm.hidden = ufTodasProntas();
   fillHeroPanelStats();
 }
 async function fillHeroPanelStats() {

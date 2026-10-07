@@ -65,7 +65,7 @@ const ok = (name, cond, info) => { (cond ? res.checks : res.fails).push(name + (
   const views = ['inicio', 'governo', 'senado', 'presidente', 'federais', 'estaduais', 'suplentes'];
   for (const v of views) {
     await clickTab(v);
-    let t = await viewText(v); if (v === 'inicio') t = t.replace(/Começamos por Sergipe[^\n]*/, '').replace(/ESCOLHA O ESTADO[\s\S]*?estados\s*EM BREVE/i, ''); const ft = fold(t);
+    let t = await viewText(v); if (v === 'inicio') t = t.replace(/Começamos por Sergipe[^\n]*/, '').replace(/ESCOLHA O ESTADO[\s\S]*?(estados\s*EM BREVE|Abrir o Mapa de Vota[çc][ãa]o)/i, ''); const ft = fold(t);
     const hit = forb.filter(n => ft.includes(fold(n)));
     ok(`[${v}] uf no hash`, (await hashUf()) === UF);
     ok(`[${v}] sem dados de outra UF`, hit.length === 0, hit.join(', '));

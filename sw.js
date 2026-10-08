@@ -1,7 +1,8 @@
 /* Cadê Meu Voto — service worker (app instalável).
  *
  * O que fica no cache: SÓ o "casco" do app neste domínio (HTML, JS, CSS, fontes, ícones) e a página offline.
- * O que NUNCA passa por aqui: qualquer outro domínio (api.cademeuvoto.com.br, dados.cademeuvoto.com.br, Turnstile, Stripe…),
+ * O que NUNCA passa por aqui: qualquer outro domínio (api.cademeuvoto.com.br, dados.cademeuvoto.com.br, Turnstile, Stripe,
+ * Cloudflare Web Analytics em static.cloudflareinsights.com / cloudflareinsights.com…),
  * pedidos que não sejam GET, e caminhos de dados (/dados/, /mapa/, /fotos/, /tse/). Esses vão direto à rede, com o
  * cache HTTP normal do navegador. Relatórios (PDF/Excel) são gerados no aparelho e nunca são guardados aqui.
  *
@@ -9,7 +10,7 @@
  * JS/CSS com ?v= vêm do cache (rápido) e o ?v= novo do index.html força a versão nova. O site mostra "Nova versão —
  * Atualizar" quando um service worker novo estiver esperando.
  */
-const VERSAO = '20261008bairro2';
+const VERSAO = '20261008estat1';
 const CACHE = 'cmv-casco-' + VERSAO;
 const OFFLINE = '/offline.html';
 const PRECACHE = [
@@ -22,7 +23,8 @@ const PRECACHE = [
 ];
 // Só estes tipos de arquivo do próprio domínio entram no cache em tempo de uso.
 const CASCO_RE = /\.(?:js|css|woff2|svg|png|ico|webmanifest|jpg)$/i;
-const NUNCA_RE = /^\/(?:dados|mapa|fotos|tse|api|chat|relatorios|conta|auth|admin|stripe|__dev)(?:\/|$)/;
+const NUNCA_RE = /^\/(?:dados|mapa|fotos|tse|api|chat|relatorios|conta|auth|admin|stripe|__dev|cdn-cgi)(?:\/|$)/;
+const ANALYTICS_RE = /(^|\.)cloudflareinsights\.com$/i; // beacon e envio do Web Analytics: nunca no cache
 
 self.addEventListener('install', ev => {
   ev.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE.map(u => new Request(u, { cache: 'reload' })))));
@@ -47,6 +49,7 @@ self.addEventListener('fetch', ev => {
   const req = ev.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  if (ANALYTICS_RE.test(url.hostname)) return;               // Web Analytics: rede direta, nunca em cache
   if (url.origin !== self.location.origin) return;           // API, dados (R2), Turnstile etc.: rede direta
   if (NUNCA_RE.test(url.pathname)) return;
   if (req.headers.has('authorization') || req.headers.has('range')) return;

@@ -1406,6 +1406,7 @@
   </section>
 
   <section class="view" id="view-conta"></section>
+  <section class="view" id="view-estatisticas" aria-label="Estatísticas do site"></section>
 
   <section class="view" id="view-ajuda">
     <div class="page-head">
@@ -1481,6 +1482,7 @@
       <h2>O que é tratado</h2>
       <ul>
         <li><strong>Contador de acessos</strong>: ao abrir o site, um serviço externo de contagem registra uma visita por sessão do navegador. Não enviamos nome, e-mail ou identificadores pessoais.</li>
+        <li id="priv-estatisticas"><strong>Estatísticas anônimas de visitantes</strong>: contamos quantos navegadores abrem o site por dia e de qual estado (ou país), pela localização aproximada da conexão informada pela Cloudflare. Nosso servidor guarda só os totais de cada dia por estado; não guarda endereço IP, cookie nem qualquer identificador. Para não contar a mesma pessoa duas vezes no mesmo dia, o seu navegador guarda apenas a data do último acesso (armazenamento local).</li>
         <li><strong>Preferências</strong>: a escolha de atualização automática fica guardada apenas no seu navegador (armazenamento local).</li>
         <li><strong>Conta</strong>: nome, e-mail, estado, cidade, perfil e WhatsApp (opcional), a data de aceite dos termos e a preferência de novidades. Usamos para entrar na sua conta (código enviado por e-mail), controlar o plano e os limites e falar com você sobre a conta. A sessão fica num cookie de segurança do nosso servidor (sem cookies de propaganda). Não pedimos CPF.</li>
         <li><strong>Uso</strong>: registramos os relatórios gerados (tipo, cargo, candidato ou município e data) para contar a cota do plano, e contamos as perguntas ao assistente para aplicar os limites.</li>
@@ -1583,10 +1585,10 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261008bairro2"></script>
-<script src="assinatura.js?v=20261008bairro2"></script>
-<script src="relatorios.js?v=20261008bairro2"></script>
-<script src="bairro.js?v=20261008bairro2"></script>
+<script src="pwa.js?v=20261008estat1"></script>
+<script src="assinatura.js?v=20261008estat1"></script>
+<script src="relatorios.js?v=20261008estat1"></script>
+<script src="bairro.js?v=20261008estat1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -2135,7 +2137,7 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 let HIST = null;
 let resultadoFinal = false;
 let viewAtual = 'inicio';
-const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','ajuda','sobre','privacidade','termos','conta','bairro'];
+const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','ajuda','sobre','privacidade','termos','conta','bairro','estatisticas'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -3990,6 +3992,7 @@ const PAGE_TITLES = {
   privacidade: 'Política de privacidade · Cadê Meu Voto',
   conta: 'Minha conta · Cadê Meu Voto',
   bairro: 'Mais votados no seu bairro · Cadê Meu Voto',
+  estatisticas: 'Estatísticas do site · Cadê Meu Voto',
   termos: 'Termos de uso · Cadê Meu Voto',
 };
 const LEGACY_CARGO = { painel: '3', governo: '3', presidente: '1', senadores: '5', senado: '5', federais: '6', estaduais: '7' };
@@ -4405,7 +4408,7 @@ async function atualizarContadorAcessos() {
   const ns = 'apuracao-se';
   const key = 'visits';
   try {
-    const already = sessionStorage.getItem(FLAG) === '1';
+    const already = sessionStorage.getItem(FLAG) === '1' || navigator.webdriver === true; // testes automáticos só leem
     const url = already ? `${base}/get/${ns}/${key}` : `${base}/hit/${ns}/${key}`;
     const r = await fetch(url, { cache: 'no-store' });
     if (!r.ok) return;
@@ -4993,6 +4996,17 @@ setInterval(() => {
   segundos--;
   if (segundos <= 0) atualizar(); else renderStatus();
 }, 1000);
+</script>
+<!-- Cloudflare Web Analytics (sem cookies). Inativo enquanto CF_BEACON_TOKEN estiver vazio; nunca carrega em testes automáticos (navigator.webdriver). -->
+<script>
+(function () {
+  var CF_BEACON_TOKEN = '';
+  if (!CF_BEACON_TOKEN || navigator.webdriver) return;
+  var s = document.createElement('script');
+  s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+  s.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_BEACON_TOKEN, spa: true }));
+  document.body.appendChild(s);
+})();
 </script>
 </body>
 </html>

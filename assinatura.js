@@ -37,11 +37,28 @@
     const depois = ME.logado ? ME.plano : 'anon';
     renderHeader();
     if (document.body.dataset.view === 'conta') renderConta();
+    if (document.body.dataset.view === 'estatisticas') renderEstatisticas();
     if (antes !== depois) global.dispatchEvent(new CustomEvent('cmv:plano', { detail: { antes, depois } }));
   }
-  async function refresh() {
-    try { setMe(await api('/me')); } catch (e) { if (!e.rede) setMe(null); }
+  async function refresh(abertura) {
+    try {
+      const v = abertura ? marcaVisita() : null;
+      setMe(await api('/me' + (v ? v.q : '')));
+      if (v && v.salvar) v.salvar();
+    } catch (e) { if (!e.rede) setMe(null); }
     return ME;
+  }
+  /* Estatística anônima: só a 1ª chamada a /me ao abrir a página leva ?visita=1 (1º acesso do dia neste navegador)
+   * ou ?acesso=1. Quem lembra o dia é o próprio navegador (localStorage, só a data BRT); o servidor não guarda IP,
+   * cookie nem identificador — soma +1 no total do dia por estado. Testes automáticos (navigator.webdriver) vão com wd=1
+   * e ficam fora da contagem. */
+  const VISITA_KEY = 'cmv-visita-dia';
+  function marcaVisita() {
+    const hoje = new Date(Date.now() - 3 * 3600 * 1000).toISOString().slice(0, 10);
+    let ultimo = null; try { ultimo = localStorage.getItem(VISITA_KEY); } catch (_) {}
+    const nova = ultimo !== hoje;
+    return { q: '?' + (nova ? 'visita=1' : 'acesso=1') + (navigator.webdriver ? '&wd=1' : ''),
+      salvar: () => { if (nova) { try { localStorage.setItem(VISITA_KEY, hoje); } catch (_) {} } } };
   }
 
   /* ---------------- estilos ---------------- */
@@ -71,6 +88,20 @@
   .cmv-uso{height:10px;border-radius:999px;background:rgba(148,163,184,.2);overflow:hidden;margin:6px 0}.cmv-uso>div{height:100%;background:#38bdf8}
   .cmv-kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.92rem}.cmv-kv dt{color:#94a3b8}.cmv-kv dd{margin:0}
   .cmv-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .cmv-estat .cmv-tabs{width:100%;max-width:420px;margin:0 auto}.cmv-estat .cmv-tabs button{white-space:nowrap}
+  .cmv-estat-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.cmv-estat-kpis .card{padding:14px;text-align:center}
+  .cmv-estat-kpis .k{font-size:.78rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}.cmv-estat-kpis .x{font-size:1.9rem;font-weight:800;color:#f8fafc;line-height:1.15}.cmv-estat-kpis .s{font-size:.78rem;color:#94a3b8}
+  .cmv-barras{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+  .cmv-barras li{display:grid;grid-template-columns:minmax(110px,1.3fr) 2fr 70px 60px;gap:10px;align-items:center;font-size:.9rem}
+  .cmv-barras li.cab{font-size:.72rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em}
+  .cmv-barras .b{height:12px;border-radius:999px;background:rgba(148,163,184,.15);overflow:hidden}.cmv-barras .b i{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#38bdf8);border-radius:999px}
+  .cmv-barras .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}.cmv-barras .a{text-align:right;color:#94a3b8;font-variant-numeric:tabular-nums}
+  .cmv-barras li.cab .b{background:none}.cmv-barras li.zero{opacity:.45}.cmv-barras .ab{display:none}.cmv-barras li.sem-uf .n{font-style:italic}
+  .cmv-serie{display:grid;grid-template-columns:repeat(30,1fr);gap:3px;height:90px;align-items:end}.cmv-serie div{height:100%;display:flex;align-items:flex-end;background:rgba(148,163,184,.08);border-radius:3px}
+  .cmv-serie i{display:block;width:100%;background:#38bdf8;border-radius:3px}.cmv-serie-leg{display:flex;justify-content:space-between;font-size:.75rem;color:#94a3b8;margin-top:4px}
+  .cmv-estat-nota{font-size:.8rem;color:#94a3b8;line-height:1.45;margin:0}
+  .cmv-admin-card{border-color:rgba(56,189,248,.45)!important}
+  @media (max-width:640px){.cmv-barras .lg{display:none}.cmv-barras .ab{display:inline}.cmv-estat-kpis{grid-template-columns:repeat(2,1fr)}.cmv-estat-kpis .x{font-size:1.5rem}.cmv-barras li{grid-template-columns:minmax(92px,1.2fr) 1.4fr 52px 44px;gap:6px;font-size:.84rem}}
   @media (max-width:480px){.cmv-entrar{padding:6px 10px;font-size:.8rem}}`;
   function injectCss() { const s = document.createElement('style'); s.id = 'cmv-css'; s.textContent = css; document.head.appendChild(s); }
 
@@ -89,6 +120,9 @@
         const a = document.createElement('a'); a.id = 'cmv-drawer-conta'; a.href = '#conta'; a.dataset.view = 'conta';
         a.addEventListener('click', ev => { if (!ME.logado) { ev.preventDefault(); abrirLogin(); } });
         dr.appendChild(h); dr.appendChild(a);
+        const e = document.createElement('a'); e.id = 'cmv-drawer-estat'; e.href = '#estatisticas'; e.dataset.view = 'estatisticas';
+        e.textContent = '📊 Estatísticas do site'; e.hidden = true;
+        dr.appendChild(e);
       }
     }
     if (ME.logado) {
@@ -98,6 +132,8 @@
     } else { b.textContent = 'Entrar'; b.title = 'Entrar ou criar conta grátis'; }
     const d = document.getElementById('cmv-drawer-conta');
     if (d) d.textContent = ME.logado ? 'Minha conta' : 'Entrar / criar conta';
+    const e = document.getElementById('cmv-drawer-estat');
+    if (e) e.hidden = !(ME.logado && ME.admin);
   }
 
   /* ---------------- modal genérico ---------------- */
@@ -343,6 +379,7 @@
     }
     v.innerHTML = `<div class="page-head center"><div class="eyebrow">Conta</div><h1>Minha conta</h1><p>Olá, ${esc(u.nome.split(' ')[0])}!</p></div>
     <div class="cmv-conta">
+      ${ME.admin ? '<div class="card cmv-admin-card"><h2>📊 Estatísticas do site</h2><p>Visitantes por estado: hoje, 7 e 30 dias. Só você vê esta área.</p><div class="cmv-acoes"><a class="cmv-btn" href="#estatisticas">Abrir estatísticas</a></div></div>' : ''}
       <div class="card"><h2>Seu plano: ${esc(planoTxt)}</h2>
         <div>Relatórios ${ME.plano === 'pro' && ME.origem === 'assinatura' ? 'neste ciclo' : 'neste mês'}: <strong>${r.usados} de ${r.limite}</strong> · renova em ${fmtData(r.renova_em)}</div>
         <div class="cmv-uso" aria-hidden="true"><div style="width:${pct}%"></div></div>
@@ -426,6 +463,76 @@
     });
   }
 
+
+  /* ---------------- "Estatísticas do site" (só a conta administradora) ---------------- */
+  const UF_NOME = Object.fromEntries(UFS.map(([c, n]) => [c.toUpperCase(), n]));
+  let ESTAT = null, ESTAT_PER = 'hoje', ESTAT_T = 0, ESTAT_P = null;
+  const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
+  function nomePais(cc) {
+    if (cc === '??') return 'Não identificado';
+    try { return new Intl.DisplayNames(['pt-BR'], { type: 'region' }).of(cc) || cc; } catch (_) { return cc; }
+  }
+  function ensureEstatView() {
+    let v = document.getElementById('view-estatisticas');
+    if (!v) { v = document.createElement('section'); v.className = 'view'; v.id = 'view-estatisticas'; (document.getElementById('views-root') || document.querySelector('main')).appendChild(v); }
+    return v;
+  }
+  const ESTAT_HEAD = '<div class="page-head center"><div class="eyebrow">Administração</div><h1>Estatísticas do site</h1><p>Visitantes por estado, sem dados pessoais.</p></div>';
+  async function renderEstatisticas(forcar) {
+    const v = ensureEstatView();
+    if (!ME.logado) {
+      v.innerHTML = ESTAT_HEAD + '<div class="cmv-conta"><div class="card"><p>Entre com a conta administradora para ver as estatísticas.</p><button type="button" class="cmv-btn" data-entrar>Entrar</button></div></div>';
+      v.querySelector('[data-entrar]').addEventListener('click', () => abrirLogin());
+      return;
+    }
+    if (!ME.admin) { v.innerHTML = ESTAT_HEAD + '<div class="cmv-conta"><div class="card"><h2>Acesso restrito</h2><p>Esta área é só da administração do site.</p></div></div>'; return; }
+    if (forcar || !ESTAT || Date.now() - ESTAT_T > 60000) {
+      if (!ESTAT) v.innerHTML = ESTAT_HEAD + '<div class="cmv-conta"><div class="card"><p>Carregando…</p></div></div>';
+      try { ESTAT_P = ESTAT_P || api('/admin/estatisticas').finally(() => { ESTAT_P = null; }); ESTAT = await ESTAT_P; ESTAT_T = Date.now(); }
+      catch (e) { v.innerHTML = ESTAT_HEAD + `<div class="cmv-conta"><div class="card"><p class="cmv-msg erro">${esc(e.status === 403 ? 'Acesso restrito.' : e.message)}</p></div></div>`; return; }
+    }
+    desenharEstat(v);
+  }
+  function desenharEstat(v) {
+    const E = ESTAT, P = E.periodos[ESTAT_PER];
+    const brMap = new Map(P.por_local.filter(x => x.local.startsWith('BR-')).map(x => [x.local.slice(3), x]));
+    const estados = Object.keys(UF_NOME).map(uf => ({ uf, nome: UF_NOME[uf], ...(brMap.get(uf) || { visitantes: 0, acessos: 0 }) }))
+      .sort((a, b) => b.visitantes - a.visitantes || b.acessos - a.acessos || a.nome.localeCompare(b.nome, 'pt-BR'));
+    const semUf = brMap.get('??');
+    const ext = P.por_local.filter(x => !x.local.startsWith('BR-'));
+    const extTot = ext.reduce((s, x) => s + x.visitantes, 0);
+    const max = Math.max(1, ...estados.map(x => x.visitantes));
+    const com = estados.filter(x => x.visitantes || x.acessos).length;
+    const barra = (rot, x, m, cls = '') => `<li class="${cls}${x.visitantes || x.acessos ? '' : ' zero'}"><span class="n">${esc(rot)}</span><span class="b"><i style="width:${Math.round(100 * x.visitantes / m)}%"></i></span><span class="v">${fmtN(x.visitantes)}</span><span class="a">${fmtN(x.acessos)}</span></li>`;
+    const serieMax = Math.max(1, ...E.serie.map(d => d.visitantes));
+    const dLbl = d => d.slice(8, 10) + '/' + d.slice(5, 7);
+    const perNome = { hoje: 'Hoje (' + dLbl(E.hoje) + ')', d7: 'Últimos 7 dias', d30: 'Últimos 30 dias' };
+    const atual = new Date(E.atualizado_em * 1000).toLocaleTimeString('pt-BR', { timeZone: 'America/Maceio', hour: '2-digit', minute: '2-digit' });
+    v.innerHTML = ESTAT_HEAD + `<div class="cmv-conta cmv-estat">
+      <div class="cmv-tabs" role="tablist">${['hoje', 'd7', 'd30'].map(k => `<button type="button" role="tab" data-per="${k}" aria-selected="${k === ESTAT_PER}">${k === 'hoje' ? 'Hoje' : k === 'd7' ? '7 dias' : '30 dias'}</button>`).join('')}</div>
+      <div class="cmv-estat-kpis">
+        <div class="card"><div class="k">Visitantes</div><div class="x">${fmtN(P.visitantes)}</div><div class="s">${esc(perNome[ESTAT_PER])}</div></div>
+        <div class="card"><div class="k">Páginas abertas</div><div class="x">${fmtN(P.acessos)}</div><div class="s">aberturas do site</div></div>
+        <div class="card"><div class="k">Do Brasil</div><div class="x">${fmtN(P.brasil.visitantes)}</div><div class="s">${com} de 27 estados</div></div>
+        <div class="card"><div class="k">Do exterior</div><div class="x">${fmtN(extTot)}</div><div class="s">${ext.length} ${ext.length === 1 ? 'país' : 'países'}</div></div>
+      </div>
+      <div class="card"><h2>Visitantes por estado</h2>
+        <ul class="cmv-barras"><li class="cab"><span class="n">Estado</span><span class="b"></span><span class="v"><span class="lg">Visitantes</span><span class="ab">Visit.</span></span><span class="a"><span class="lg">Páginas</span><span class="ab">Pág.</span></span></li>
+        ${estados.map(x => barra(x.nome, x, max)).join('')}
+        ${semUf ? barra('Brasil, estado não identificado', semUf, max, 'sem-uf') : ''}</ul>
+      </div>
+      ${ext.length ? `<div class="card"><h2>Exterior</h2><ul class="cmv-barras">${ext.map(x => barra(nomePais(x.local), x, Math.max(1, ...ext.map(y => y.visitantes)))).join('')}</ul></div>` : ''}
+      <div class="card"><h2>Últimos 30 dias</h2>
+        <div class="cmv-serie" role="img" aria-label="Visitantes por dia nos últimos 30 dias">${E.serie.map(d => `<div title="${dLbl(d.dia)}: ${fmtN(d.visitantes)} visitantes, ${fmtN(d.acessos)} páginas"><i style="height:${Math.max(d.visitantes ? 4 : 0, Math.round(100 * d.visitantes / serieMax))}%"></i></div>`).join('')}</div>
+        <div class="cmv-serie-leg"><span>${dLbl(E.serie[0].dia)}</span><span>${dLbl(E.hoje)}</span></div>
+      </div>
+      <p class="cmv-estat-nota">Visitante = navegador que abriu o site pela 1ª vez no dia (nos períodos, soma dos dias). Estado pela localização aproximada da conexão (operadoras de celular às vezes aparecem em outro estado). Sem IP, cookie ou dado pessoal. Testes automáticos e robôs ficam de fora (${fmtN(E.ignorados_testes[ESTAT_PER])} ignorados no período). Contando desde ${E.contando_desde ? dLbl(E.contando_desde) + '/' + E.contando_desde.slice(0, 4) : 'hoje'} · horário de Brasília · atualizado às ${atual}.</p>
+      <div class="cmv-acoes"><button type="button" class="cmv-btn sec" data-recarregar>Atualizar números</button></div>
+    </div>`;
+    v.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => { ESTAT_PER = b.dataset.per; desenharEstat(v); }));
+    v.querySelector('[data-recarregar]').addEventListener('click', () => renderEstatisticas(true));
+  }
+
   /* ---------------- planos ---------------- */
   function wirePlanos() {
     document.querySelectorAll('[data-assinar-plano]').forEach(b => b.addEventListener('click', ev => { ev.preventDefault(); assinar(); }));
@@ -435,14 +542,19 @@
   function pro() { return !!(ME.logado && ME.plano === 'pro'); }
   function boot() {
     injectCss(); renderHeader(); wirePlanos();
-    refresh().finally(() => readyResolve());
+    refresh(true).finally(() => readyResolve());
     if (/assinatura=ok/.test(location.hash)) setTimeout(refresh, 2500); // webhook pode chegar depois do retorno
-    global.addEventListener('hashchange', () => { if ((location.hash || '').startsWith('#conta')) renderConta(); });
+    global.addEventListener('hashchange', () => {
+      const h = location.hash || '';
+      if (h.startsWith('#conta')) renderConta();
+      if (h.startsWith('#estatisticas')) renderEstatisticas();
+    });
+    if ((location.hash || '').startsWith('#estatisticas')) ready.then(() => renderEstatisticas());
   }
   global.CMV = {
     API_BASE, ready, refresh, api, pro, me: () => ME, logado: () => !!ME.logado,
     marcaDagua: () => !pro(), licenciadoPara: () => (pro() ? ME.usuario.nome : null),
-    isPrivate, getPrivate, requireLogin, abrirLogin, paywall, paywallBox, iniciarRelatorio, concluir, falhou, loadXlsx, renderConta, assinar, sair,
+    isPrivate, getPrivate, requireLogin, abrirLogin, paywall, paywallBox, iniciarRelatorio, concluir, falhou, loadXlsx, renderConta, renderEstatisticas, assinar, sair,
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })(window);

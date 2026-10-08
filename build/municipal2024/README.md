@@ -83,8 +83,24 @@ em ordem de votos no 1º turno).
 - `e2026/<uf>/top3/<cd>.json` — top 3 por bairro de 2026 (Senador, Dep. Federal, Dep. Estadual/Distrital) com os eleitos
   e seus votos no bairro, no mesmo formato
 
-Uma versão "grátis" proposta do top 3 (só nomes, sem votos) é gerada **localmente** em `out/proposta/` e **não** é
-publicada até decisão do Marcel.
+  (com `aptos` por bairro, `sq` nos candidatos, `rk` = ranking até 15, `nom` = votos nominais do cargo e `mun` = resultado do
+  município inteiro)
+
+### "Mais votados no seu bairro" — arquivos grátis (`livre.py`)
+
+`livre.py` gera **localmente** em `out/proposta/` (bucket público, publicado só no passo de deploy aprovado):
+
+- `m2024/<uf>/top3-livre/<cd>.json` — Prefeito/Vereador 2024: só a ordem do top 3, os 3 eleitos mais votados no bairro e
+  o selo eleito/não eleito (sem votos). Bairro com menos de 500 eleitores aptos tem `ok: 0` e só o resultado do município.
+  `avisos.suplementar` (eleição refeita: sem eleito para o cargo) e `avisos.relatorio` (situação pelo relatório oficial de
+  totalização de 2024).
+- `e2026/<uf>/top3-livre/<cd>.json` — Senador, Dep. Federal, Dep. Estadual/Distrital 2026, mesmas regras.
+- `m2024/municipios.json` — `[uf, cd, nome, lat, lon]` (centro médio dos locais de votação) para achar o município no aparelho.
+
+```bash
+/workspace/.venv-m2024/bin/python locais2026.py   # sem --subir: só gera out/
+/workspace/.venv-m2024/bin/python livre.py
+```
 
 ## Verificação (por UF)
 

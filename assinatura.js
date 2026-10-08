@@ -329,6 +329,7 @@
       v.innerHTML = `<div class="page-head center"><div class="eyebrow">Conta</div><h1>Minha conta</h1><p>Entre para ver seus relatórios, seu plano e seus dados.</p></div>
         <div class="cmv-conta"><div class="card"><button type="button" class="cmv-btn" data-entrar>Entrar ou criar conta grátis</button></div></div>`;
       v.querySelector('[data-entrar]').addEventListener('click', () => abrirLogin());
+      if (global.Bairro) global.Bairro.contaCard(v);
       return;
     }
     const u = ME.usuario, r = ME.relatorios, a = ME.assinatura;
@@ -370,6 +371,7 @@
         <div class="cmv-msg" data-msg-priv aria-live="polite"></div>
       </div>
     </div>`;
+    if (global.Bairro) global.Bairro.contaCard(v);
     const fd = v.querySelector('[data-form=dados]');
     fd.addEventListener('submit', async ev => {
       ev.preventDefault();

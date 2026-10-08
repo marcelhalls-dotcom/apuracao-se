@@ -1117,6 +1117,7 @@
     <a href="#mapa" data-view="mapa">Mapa de Votação</a>
     <a href="#comparar" data-view="comparar">Comparar candidatos</a>
     <a href="#relatorios" data-view="relatorios">Relatórios em PDF</a>
+    <a href="#bairro" data-view="bairro">Mais votados no seu bairro</a>
     <h3>Cadê Meu Voto</h3>
     <a href="#planos" data-view="planos">Planos e acesso aos dados</a>
     <a href="#ajuda" data-view="ajuda">Ajuda e contato</a>
@@ -1177,6 +1178,12 @@
 
     <h2 class="sec-title" id="sec-resultados-title">Resultados em Sergipe</h2>
     <div class="kpi-grid" id="inicio-kpis" aria-live="polite"></div>
+
+    <a class="bx-home" href="#bairro" id="bx-home-card">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+      <span><strong>Mais votados no seu bairro</strong><small>Vereador e Prefeito 2024, Deputados e Senador 2026, em todo o Brasil.</small></span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
 
     <h2 class="sec-title">Ferramentas</h2>
     <div class="feat-grid">
@@ -1435,6 +1442,8 @@
     </div>
   </section>
 
+  <section class="view" id="view-bairro" aria-label="Mais votados no seu bairro"></section>
+
   <section class="view" id="view-privacidade">
     <div class="page-head">
       <div class="eyebrow">Institucional</div>
@@ -1454,6 +1463,7 @@
         <li><strong>Pagamento</strong>: feito pela Stripe. Dados de cartão e boleto ficam com a Stripe; guardamos apenas a situação da assinatura.</li>
         <li><strong>Assistente com IA</strong>: as perguntas digitadas no chat são enviadas ao nosso servidor (Cloudflare Workers) e a um provedor de IA para gerar a resposta. Não digite dados pessoais no chat.</li>
         <li><strong>Relatórios em PDF e Excel</strong>: são gerados no seu próprio navegador.</li>
+        <li id="priv-localizacao"><strong>Localização (Mais votados no seu bairro)</strong>: só é pedida quando você toca em "Usar minha localização" ou liga o aviso de 20 minutos, e o navegador pede a sua permissão antes. A posição é usada no próprio aparelho para achar o local de votação mais próximo e o bairro; ela não é enviada ao nosso servidor nem a terceiros e não fica guardada (só existe na memória da página enquanto ela está aberta). Para mostrar o resultado, o aparelho baixa arquivos públicos (lista de municípios, locais de votação e o resultado do município). No armazenamento local do navegador ficam apenas a sua escolha do aviso de 20 minutos e os bairros já avisados no dia. Você pode desligar o aviso na tela do recurso ou em Minha conta, e negar ou retirar a permissão nas configurações do navegador; nesse caso, escolha o bairro na lista.</li>
         <li><strong>Formulário de contato</strong>: nome, e-mail, telefone (opcional), assunto e mensagem ficam armazenados na nossa infraestrutura (Cloudflare) apenas para responder ao seu contato e não são compartilhados nem vendidos. O endereço IP é usado temporariamente para limitar envios em excesso (até 2 dias) e não fica gravado junto da mensagem. Você pode pedir a exclusão pelo próprio formulário.</li>
       </ul>
       <h2>Seus direitos</h2>
@@ -1549,9 +1559,10 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261007pwa4"></script>
-<script src="assinatura.js?v=20261007pwa4"></script>
-<script src="relatorios.js?v=20261007pwa4"></script>
+<script src="pwa.js?v=20261007bairro1"></script>
+<script src="assinatura.js?v=20261007bairro1"></script>
+<script src="relatorios.js?v=20261007bairro1"></script>
+<script src="bairro.js?v=20261007bairro1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -2100,7 +2111,7 @@ function el(tag, cls, txt) { const x = document.createElement(tag); if (cls) x.c
 let HIST = null;
 let resultadoFinal = false;
 let viewAtual = 'inicio';
-const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','ajuda','sobre','privacidade','termos','conta'];
+const VIEWS = ['inicio','governo','senado','presidente','federais','estaduais','suplentes','mapa','comparar','relatorios','planos','ajuda','sobre','privacidade','termos','conta','bairro'];
 
 function iniciais(nome) {
   const p = String(nome || '').trim().split(/\s+/).filter(Boolean);
@@ -3954,6 +3965,7 @@ const PAGE_TITLES = {
   sobre: 'Sobre e metodologia · Cadê Meu Voto',
   privacidade: 'Política de privacidade · Cadê Meu Voto',
   conta: 'Minha conta · Cadê Meu Voto',
+  bairro: 'Mais votados no seu bairro · Cadê Meu Voto',
   termos: 'Termos de uso · Cadê Meu Voto',
 };
 const LEGACY_CARGO = { painel: '3', governo: '3', presidente: '1', senadores: '5', senado: '5', federais: '6', estaduais: '7' };
@@ -4300,6 +4312,7 @@ function setView(name, pushHash) {
   setStatusPop(false);
   if (name === 'mapa' || name === 'comparar') mountMapaView(name);
   if (name === 'conta' && window.CMV) window.CMV.renderConta();
+  if (name === 'bairro' && window.Bairro) window.Bairro.render();
   if (name === 'relatorios' && window.Relatorios) {
     // só monta a UI; applyHashFromLocation é chamado por applyHashView / openInPanel
     window.Relatorios.bootUI();

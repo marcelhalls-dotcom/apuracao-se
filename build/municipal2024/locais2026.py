@@ -32,6 +32,8 @@ def eleitorado():
     membro = [n for n in zipfile.ZipFile(z).namelist() if n.endswith('_BRASIL.csv')][0]
     return baixar.extrair(z, membro, RAW)
 
+RK = 15  # tamanho do ranking por bairro no arquivo privado (o detalhe completo continua no Mapa)
+
 def main(ufs, subir_r2):
     csvp = eleitorado(); con = duckdb.connect()
     con.execute(f"""create table loc as select SG_UF uf, lpad(CD_MUNICIPIO,5,'0') cd, NR_ZONA::int z, NR_LOCAL_VOTACAO::int nl, mode(NR_LATITUDE) lat, mode(NR_LONGITUDE) lon,
@@ -63,11 +65,12 @@ def main(ufs, subir_r2):
                         for ca in pa['cand']: sit[(c, ca['n'])] = (ca.get('e') == 's', ca.get('st'))
         cob = {'locais': nloc, 'com_coord': 0, 'com_bairro': sum(1 for b in bairro_l if b), 'sem_cadastro': 0}
         out_pub = os.path.join(OUT, 'pub'); out_pro = os.path.join(OUT, 'pro'); out_prop = os.path.join(OUT, 'proposta')
-        locpub = {}
+        locpub = {}; loc_el = np.zeros(nloc, dtype=np.int64)
         for i, l in enumerate(locs):
             cd = muns[l['m']]['cd']; r = ll.get((cd, int(l['z']), int(l['nl'])))
             la, lo = coord(r[0], r[1]) if r else (None, None)
             cob['com_coord'] += la is not None; cob['sem_cadastro'] += r is None
+            loc_el[i] = int(r[3] or 0) if r else 0
             locpub.setdefault(l['m'], []).append([la, lo, int(loc_b[i]), int(l['z']), int(l['nl']), l.get('nm', '')])
         # votos por bairro × candidato, por cargo
         ag = {}; verif = {'candidatos': 0, 'diferencas': 0}
@@ -95,24 +98,32 @@ def main(ufs, subir_r2):
                 k = (c, ci)
                 if k not in usados:
                     cand = idx['cargos'][c][ci]; e, st = sit.get((c, cand['n']), (False, None))
-                    usados[k] = len(usados); refs.append([c, cand.get('nu') or cand['nm'], cand['sg'], cand['n'], 1 if e else 0])
+                    usados[k] = len(usados); refs.append([c, cand.get('nu') or cand['nm'], cand['sg'], cand['n'], 1 if e else 0, str(cand.get('sq') or '')])
                 return usados[k]
             refs = []
             for b in range(len(bairros)):
-                o = {'b': b, 'nloc': int(((loc_m == m) & (loc_b == b)).sum())}
+                sel = (loc_m == m) & (loc_b == b)
+                o = {'b': b, 'nloc': int(sel.sum()), 'aptos': int(loc_el[sel].sum())}
                 for c in CARGOS:
                     rk = sorted(ag.get(c, {}).get(m, {}).get(b, []), key=lambda p: -p[1])
                     eleitos = [p for p in rk if sit.get((c, idx['cargos'][c][p[0]]['n']), (False,))[0]]
-                    o[c] = {'top3': [[ref(c, p[0]), p[1]] for p in rk[:3]], 'eleitos': [[ref(c, p[0]), p[1]] for p in eleitos]}
+                    o[c] = {'top3': [[ref(c, p[0]), p[1]] for p in rk[:3]], 'eleitos': [[ref(c, p[0]), p[1]] for p in eleitos],
+                            'rk': [[ref(c, p[0]), p[1]] for p in rk[:RK]], 'nom': int(sum(p[1] for p in rk))}
                 top.append(o)
+            # resultado do município inteiro (soma de todos os bairros) — usado quando o bairro é pequeno demais
+            mo = {'aptos': int(loc_el[loc_m == m].sum()), 'nloc': int((loc_m == m).sum())}
+            for c in CARGOS:
+                tot = {}
+                for pares in ag.get(c, {}).get(m, {}).values():
+                    for ci, x in pares: tot[ci] = tot.get(ci, 0) + x
+                rk = sorted(tot.items(), key=lambda p: -p[1])
+                mo[c] = {'top3': [[ref(c, ci), x] for ci, x in rk[:3]], 'rk': [[ref(c, ci), x] for ci, x in rk[:RK]], 'nom': int(sum(tot.values())),
+                         'eleitos': [[ref(c, ci), x] for ci, x in rk if sit.get((c, idx['cargos'][c][ci]['n']), (False,))[0]]}
             obj = {'cd': cd, 'nm': mun['nm'], 'uf': UF, 'ano': 2026, 'turno': 1, 'bairros': bairros, 'cargos': dict(CARGOS, **({'7': 'Deputado Distrital'} if uf == 'df' else {})),
-                   'c': refs, 'campos_c': ['cargo', 'nome de urna', 'partido', 'número', 'eleito'], 'top': top,
-                   'nota': 'Pares [i, votos], i = índice em c. Top 3 pode incluir não eleitos; "eleitos" lista os eleitos do cargo com voto no bairro.'}
+                   'c': refs, 'campos_c': ['cargo', 'nome de urna', 'partido', 'número', 'eleito', 'sq'], 'top': top, 'mun': mo,
+                   'nota': f'Pares [i, votos], i = índice em c. Top 3 pode incluir não eleitos; "eleitos" lista os eleitos do cargo com voto no bairro; rk = ranking (até {RK}); nom = votos nominais do cargo no bairro.'}
             pt = os.path.join(out_pro, PFX, uf, 'top3', f'{cd}.json'); os.makedirs(os.path.dirname(pt), exist_ok=True)
             open(pt, 'w').write(dumps(obj)); nfiles[1] += 1
-            pp = os.path.join(out_prop, PFX, uf, 'top3', f'{cd}.json'); os.makedirs(os.path.dirname(pp), exist_ok=True)
-            open(pp, 'w').write(dumps({'cd': cd, 'nm': mun['nm'], 'uf': UF, 'bairros': bairros, 'c': refs,
-                                       'top': [{'b': o['b'], **{c: [p[0] for p in o[c]['top3']] for c in CARGOS}} for o in top]}))
         r = {'municipios': len(muns), 'arquivos_publicos': nfiles[0], 'arquivos_privados': nfiles[1], 'cobertura': cob, 'verificacao': verif}
         if subir_r2:
             r['upload'] = {'pub': subir.subir_dir(subir.BUCKET_PUB, out_pub, f'{PFX}/{uf}/'),

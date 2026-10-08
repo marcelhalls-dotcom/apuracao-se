@@ -289,12 +289,12 @@
     plano: 'O detalhe por local de votação e por seção é exclusivo da Assinatura.',
     login: 'Entre na sua conta (grátis) para continuar.',
     'chat-limite': 'Você chegou ao limite de perguntas do assistente.',
-    'chat-assinatura': 'O assistente com IA faz parte da Assinatura (R$ 49,90/mês).',
+    'chat-assinatura': 'O assistente com IA faz parte da Assinatura (R$ 9,90/mês).',
   };
   function paywall(motivo, mensagem) {
     if (motivo === 'login' && !ME.logado) return requireLogin();
     const m = modal(`<h2>Assinatura Cadê Meu Voto</h2><p>${esc(mensagem || TXT[motivo] || TXT.nivel)}</p>
-      <p>Na <strong>Assinatura (R$ 49,90/mês)</strong>: mapa completo até a seção eleitoral, 50 relatórios por mês sem marca-d’água, Excel e o assistente com IA (20 perguntas por hora, com detalhe até a seção).</p>
+      <p>Na <strong>Assinatura (R$ 9,90/mês)</strong>: mapa completo até a seção eleitoral, 50 relatórios por mês sem marca-d’água, Excel e o assistente com IA (20 perguntas por hora, com detalhe até a seção).</p>
       <div class="cmv-acoes"><a class="cmv-btn" href="#planos" data-ir-planos>Ver planos</a>${ME.logado ? '' : '<button type="button" class="cmv-btn sec" data-entrar>Já sou assinante: entrar</button>'}</div>`);
     m.querySelector('[data-ir-planos]').addEventListener('click', () => m._close());
     const e = m.querySelector('[data-entrar]'); if (e) e.addEventListener('click', () => { m._close(); abrirLogin(); });
@@ -385,7 +385,7 @@
         <div class="cmv-uso" aria-hidden="true"><div style="width:${pct}%"></div></div>
         <div>Assistente com IA: ${ME.plano === 'pro' && ME.chat && ME.chat.hora ? `até ${ME.chat.hora} perguntas por hora e ${ME.chat.dia} por dia (detalhe completo)` : 'exclusivo da Assinatura'}.</div>
         ${assTxt}
-        <div class="cmv-acoes">${ME.plano === 'pro' && ME.origem === 'assinatura' ? '<button type="button" class="cmv-btn sec" data-portal>Gerenciar assinatura</button>' : (ME.plano !== 'pro' ? '<button type="button" class="cmv-btn" data-assinar>Assinar por R$ 49,90/mês</button>' : '')}</div>
+        <div class="cmv-acoes">${ME.plano === 'pro' && ME.origem === 'assinatura' ? '<button type="button" class="cmv-btn sec" data-portal>Gerenciar assinatura</button>' : (ME.plano !== 'pro' ? '<button type="button" class="cmv-btn" data-assinar>Assinar por R$ 9,90/mês</button>' : '')}</div>
         <div class="cmv-msg" data-msg-plano aria-live="polite"></div>
       </div>
       <div class="card"><h2>Seus dados</h2>

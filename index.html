@@ -1357,7 +1357,7 @@
       <div class="plan featured">
         <div class="plan-tag">Mais completo</div>
         <h2>Assinatura</h2>
-        <div class="price">R$ 49,90<span style="font-size:.9rem;font-weight:500"> /mês</span></div>
+        <div class="price">R$ 9,90<span style="font-size:.9rem;font-weight:500"> /mês</span></div>
         <ul>
           <li>Mapa completo: município → zona → bairro → local de votação → seção</li>
           <li>50 relatórios em PDF por mês, sem marca-d’água (com “Licenciado para” seu nome)</li>
@@ -1395,7 +1395,7 @@
       <h3>O que conta como 1 relatório?</h3>
       <p>Cada vez que você gera um relatório (de qualquer tipo). Um comparativo A × B conta 1. Gerar de novo o mesmo relatório em até 24 horas não conta outra vez, e se a geração falhar o crédito volta.</p>
       <h3>O assistente com IA é grátis?</h3>
-      <p>Não. O assistente com IA faz parte da Assinatura (R$ 49,90/mês): até 20 perguntas por hora e 100 por dia sobre as eleições 2026 nos 26 estados e no Distrito Federal, com detalhe por bairro, local de votação e seção. No plano gratuito você continua com os resultados, o mapa por município e 2 relatórios por mês.</p>
+      <p>Não. O assistente com IA faz parte da Assinatura (R$ 9,90/mês): até 20 perguntas por hora e 100 por dia sobre as eleições 2026 nos 26 estados e no Distrito Federal, com detalhe por bairro, local de votação e seção. No plano gratuito você continua com os resultados, o mapa por município e 2 relatórios por mês.</p>
       <h3>Quando a cota renova?</h3>
       <p>No plano gratuito, no dia 1º de cada mês (horário de Brasília). Na Assinatura, a cada renovação mensal.</p>
       <h3>E se o pagamento falhar?</h3>
@@ -1513,7 +1513,7 @@
         <li>É proibido usar o conteúdo para desinformação ou para atribuir ao site informações que ele não publica.</li>
         <li>A marca Cadê Meu Voto, o layout e as compilações de dados pertencem aos seus titulares. Os dados públicos do TSE continuam públicos.</li>
         <li>Conta: é pessoal. Os relatórios da Assinatura saem com “Licenciado para” o nome do titular. É proibido compartilhar o acesso ou revender os dados de detalhe.</li>
-        <li>Plano gratuito: 2 relatórios por mês, por município, com marca-d’água. Assinatura: R$ 49,90 por mês, inclui o assistente com IA (até 20 perguntas por hora e 100 por dia), renovação automática, cancelável a qualquer momento (o acesso continua até o fim do período pago). Se o pagamento falhar, o acesso continua por 7 dias.</li>
+        <li>Plano gratuito: 2 relatórios por mês, por município, com marca-d’água. Assinatura: R$ 9,90 por mês, inclui o assistente com IA (até 20 perguntas por hora e 100 por dia), renovação automática, cancelável a qualquer momento (o acesso continua até o fim do período pago). Se o pagamento falhar, o acesso continua por 7 dias.</li>
         <li>Podemos ajustar limites para evitar abuso (por exemplo, robôs ou acesso automatizado).</li>
       </ul>
     </div>
@@ -1585,10 +1585,10 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261008estat1"></script>
-<script src="assinatura.js?v=20261008estat1"></script>
-<script src="relatorios.js?v=20261008estat1"></script>
-<script src="bairro.js?v=20261008estat1"></script>
+<script src="pwa.js?v=20261008preco1"></script>
+<script src="assinatura.js?v=20261008preco1"></script>
+<script src="relatorios.js?v=20261008preco1"></script>
+<script src="bairro.js?v=20261008preco1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -4429,7 +4429,7 @@ async function atualizarContadorAcessos() {
 
 /* ===== Chat IA (Worker) — exclusivo da Assinatura ===== */
 const CHAT_API = (window.CMV ? window.CMV.API_BASE : 'https://api.cademeuvoto.com.br') + '/chat';
-const CHAT_PRECO = 'R$ 49,90/mês';
+const CHAT_PRECO = 'R$ 9,90/mês';
 /** "JOÃO DA SILVA" → "João da Silva"; siglas curtas (JHC, ACM) ficam em maiúsculas; "DR." → "Dr.". */
 function chatNome(s) {
   const part = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);

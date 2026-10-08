@@ -580,10 +580,6 @@
 .bx-local-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .84rem; margin-top: 6px; }
 .bx-local-g ol { margin: 4px 0 0; padding-left: 18px; }
 @media (max-width: 520px) { .bx-local-g { grid-template-columns: 1fr; } .bx-badge { font-size: .66rem; padding: 2px 6px; } }
-.bx-home { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 18px 0 0; }
-.bx-home svg { width: 22px; height: 22px; color: var(--accent); flex: 0 0 auto; }
-.bx-home small { display: block; color: var(--subtext); }
-.bx-home .go { margin-left: auto; color: var(--accent); }
 .bx-toast { position: fixed; z-index: 90; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom) + var(--bn-h, 0px));
   max-width: 520px; margin: 0 auto; background: var(--card-2, #162447); color: var(--text); border: 1px solid var(--line-2); border-radius: 16px; padding: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.45);
   display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }

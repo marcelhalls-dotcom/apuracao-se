@@ -760,6 +760,30 @@
   .drawer-panel a { display: flex; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; }
   .drawer-panel a:hover { background: rgba(148,163,184,.10); }
   .drawer-panel a.active { background: rgba(96,165,250,.16); color: #fff; }
+  /* "Mais votados no seu bairro" em destaque */
+  .bx-novo { display: inline-flex; align-items: center; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: #22C55E; color: #052e16; vertical-align: middle; line-height: 1.4; }
+  .drawer-panel a.drawer-destaque { gap: 10px; margin: 10px 0 2px; min-height: 52px; padding: 0 12px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--brand), #3B82F6); box-shadow: 0 6px 18px rgba(37,99,235,.35); }
+  .drawer-panel a.drawer-destaque svg { width: 22px; height: 22px; flex: none; }
+  .drawer-panel a.drawer-destaque span:first-of-type { flex: 1; }
+  .drawer-panel a.drawer-destaque.active { background: linear-gradient(135deg, var(--brand-2), var(--brand)); }
+  .primary-nav a.nav-destaque { display: inline-flex; align-items: center; gap: 6px; color: #fff; background: rgba(37,99,235,.28); box-shadow: inset 0 0 0 1px rgba(96,165,250,.45); font-weight: 600; }
+  .primary-nav a.nav-destaque svg { width: 16px; height: 16px; }
+  .primary-nav a.nav-destaque:hover, .primary-nav a.nav-destaque.active { background: var(--brand); }
+  @media (max-width: 1260px) { .primary-nav a[data-view="sobre"] { display: none; } }  /* Metodologia segue no menu; abre espaço para "Seu bairro" */
+  .bx-destaque { display: flex; align-items: center; gap: 14px; margin: 16px 0 4px; padding: 16px 18px; min-height: 84px; border-radius: 18px; text-decoration: none; color: #fff;
+    background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #3B82F6 100%); box-shadow: 0 10px 30px rgba(37,99,235,.40), inset 0 1px 0 rgba(255,255,255,.18); border: 1px solid rgba(147,197,253,.45);
+    transition: transform .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
+  .bx-destaque:hover { transform: translateY(-1px); box-shadow: 0 14px 36px rgba(37,99,235,.5), inset 0 1px 0 rgba(255,255,255,.2); }
+  .bx-destaque:active { transform: scale(.99); }
+  .bx-destaque:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  .bx-d-ic { flex: none; width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.18); display: inline-flex; align-items: center; justify-content: center; }
+  .bx-d-ic svg { width: 28px; height: 28px; }
+  .bx-d-tx { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
+  .bx-d-tx strong { font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .bx-d-tx small { font-size: .9rem; color: rgba(255,255,255,.88); line-height: 1.35; }
+  .bx-d-go { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #fff; color: var(--brand); display: inline-flex; align-items: center; justify-content: center; }
+  .bx-d-go svg { width: 22px; height: 22px; }
+  @media (max-width: 420px) { .bx-destaque { padding: 14px; gap: 12px; } .bx-d-ic { width: 44px; height: 44px; } .bx-d-ic svg { width: 24px; height: 24px; } .bx-d-tx strong { font-size: 1.08rem; } .bx-d-tx small { font-size: .84rem; } .bx-d-go { width: 34px; height: 34px; } }
 
   /* bottom nav (mobile) */
   .bottom-nav { display: none; }
@@ -1054,6 +1078,7 @@
       <span class="brand-word"><span class="b1">Cadê</span> <span class="b2">Meu Voto</span></span>
     </a>
     <nav class="primary-nav" aria-label="Ferramentas">
+      <a href="#bairro" data-view="bairro" class="nav-destaque"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>Seu bairro</a>
       <a href="#mapa" data-view="mapa">Mapa de Votação</a>
       <a href="#comparar" data-view="comparar">Comparar</a>
       <a href="#relatorios" data-view="relatorios">Relatórios</a>
@@ -1105,6 +1130,7 @@
       <span class="brand-word"><span class="b1">Cadê</span> <span class="b2">Meu Voto</span></span>
       <button type="button" class="drawer-close" data-close-drawer aria-label="Fechar menu">×</button>
     </div>
+    <a href="#bairro" data-view="bairro" class="drawer-destaque"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Mais votados no seu bairro</span><span class="bx-novo">Novo</span></a>
     <h3>Resultados</h3>
     <a href="#inicio" data-view="inicio">Início</a>
     <a href="#governo" data-view="governo">Governo</a>
@@ -1117,7 +1143,6 @@
     <a href="#mapa" data-view="mapa">Mapa de Votação</a>
     <a href="#comparar" data-view="comparar">Comparar candidatos</a>
     <a href="#relatorios" data-view="relatorios">Relatórios em PDF</a>
-    <a href="#bairro" data-view="bairro">Mais votados no seu bairro</a>
     <h3>Cadê Meu Voto</h3>
     <a href="#planos" data-view="planos">Planos e acesso aos dados</a>
     <a href="#ajuda" data-view="ajuda">Ajuda e contato</a>
@@ -1160,6 +1185,11 @@
           <a class="btn-ghost" href="#planos">Planos para campanhas</a>
           <a class="btn-ghost btn-wa" href="https://wa.me/" target="_blank" rel="noopener" data-wa-share="inicio">Compartilhar no WhatsApp</a>
         </div>
+        <a class="bx-destaque" href="#bairro" data-view="bairro" id="bx-home-card">
+          <span class="bx-d-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+          <span class="bx-d-tx"><strong>Mais votados no seu bairro <span class="bx-novo">Novo</span></strong><small>Veja quem foram os mais votados onde você está: Vereador e Prefeito 2024, Deputados e Senador 2026.</small></span>
+          <span class="bx-d-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </a>
         <div class="hero-status" id="inicio-status">Carregando dados do TSE…</div>
       </div>
       <div class="hero-panel" id="hero-panel" aria-label="Números do estado">
@@ -1178,12 +1208,6 @@
 
     <h2 class="sec-title" id="sec-resultados-title">Resultados em Sergipe</h2>
     <div class="kpi-grid" id="inicio-kpis" aria-live="polite"></div>
-
-    <a class="bx-home" href="#bairro" id="bx-home-card">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-      <span><strong>Mais votados no seu bairro</strong><small>Vereador e Prefeito 2024, Deputados e Senador 2026, em todo o Brasil.</small></span>
-      <span class="go" aria-hidden="true">→</span>
-    </a>
 
     <h2 class="sec-title">Ferramentas</h2>
     <div class="feat-grid">
@@ -1559,10 +1583,10 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261007bairro1"></script>
-<script src="assinatura.js?v=20261007bairro1"></script>
-<script src="relatorios.js?v=20261007bairro1"></script>
-<script src="bairro.js?v=20261007bairro1"></script>
+<script src="pwa.js?v=20261008bairro2"></script>
+<script src="assinatura.js?v=20261008bairro2"></script>
+<script src="relatorios.js?v=20261008bairro2"></script>
+<script src="bairro.js?v=20261008bairro2"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.

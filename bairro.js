@@ -226,13 +226,16 @@
     if (semEleito) return '';
     return e ? '<span class="bx-badge ok">Eleito</span>' : '<span class="bx-badge">Não eleito</span>';
   }
+  const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  let travaVotos = false;   // versão grátis: no lugar dos votos, botão "Mostrar votos" (os votos nem são baixados)
+  const travaHtml = (nm, onde) => `<button type="button" class="bx-trava ${onde}" data-bx-votos aria-label="Mostrar votos de ${esc(titulo(nm))} — exclusivo da Assinatura">${LOCK}<span>Mostrar votos</span></button>`;
   /** item: {nm, sg, nu, e, foto, v?, p?} */
   function lista(items, o = {}) {
     if (!items.length) return '<p class="bx-vazio">Sem votos registrados.</p>';
     return `<ol class="bx-lista${o.compacta ? ' compacta' : ''}">${items.map((c, i) => `<li>
       <span class="bx-pos">${(o.start || 0) + i + 1}º</span>${o.compacta ? '' : fotoHtml(c.foto, c.nm)}
-      <span class="bx-nome"><strong>${esc(titulo(c.nm))}</strong><small>${esc(c.sg)} · ${esc(c.nu)}</small></span>
-      <span class="bx-dir">${c.v != null ? `<span class="bx-votos"><strong>${fmt(c.v)}</strong><small>${c.p}</small></span>` : ''}${badge(c.e, o.semEleito)}</span></li>`).join('')}</ol>`;
+      <span class="bx-nome"><strong>${esc(titulo(c.nm))}</strong><small>${esc(c.sg)} · ${esc(c.nu)}</small>${c.v == null && travaVotos ? travaHtml(c.nm, 'n') : ''}</span>
+      <span class="bx-dir">${c.v != null ? `<span class="bx-votos"><strong>${fmt(c.v)}</strong><small>${c.p}</small></span>` : (travaVotos ? travaHtml(c.nm, 'd') : '')}${badge(c.e, o.semEleito)}</span></li>`).join('')}</ol>`;
   }
   function aviso(txt, cls) { return `<p class="bx-aviso${cls ? ' ' + cls : ''}">${esc(txt)}</p>`; }
   function secao(id, titulo_, ano, corpo) {
@@ -246,6 +249,7 @@
     const [l24, l26] = await Promise.all([getJSON(`m2024/${uf}/top3-livre/${cd}.json`).catch(() => null), getJSON(`e2026/${uf}/top3-livre/${cd}.json`).catch(() => null)]);
     if (st.sel !== s) return;
     const pro = isPro();
+    travaVotos = !pro;
     let priv = null, privErro = null;
     if (pro) {
       try {
@@ -276,6 +280,10 @@
     root.innerHTML = html;
     root.querySelector('[data-bx=trocar]').addEventListener('click', () => abrirPicker({ uf: s.uf, cd: s.cd }));
     ligarToggles(root);
+    // "Mostrar votos" (grátis): mesmo fluxo do botão Assinar — entra se preciso, depois assinatura/planos
+    root.querySelectorAll('[data-bx-votos]').forEach(b => b.addEventListener('click', () => {
+      if (global.CMV && typeof global.CMV.assinar === 'function') global.CMV.assinar(); else location.hash = '#planos';
+    }));
     const dd = root.querySelector('[data-bx=drill]');
     if (dd) dd.addEventListener('click', () => drill(dd, uf, cd, b24, priv));
   }
@@ -562,6 +570,11 @@
 .bx-dir { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .bx-votos { display: grid; text-align: right; line-height: 1.15; }
 .bx-votos small { color: var(--subtext); font-size: .75rem; }
+.bx-trava { display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(96,165,250,.5); background: rgba(37,99,235,.16); color: var(--accent); font: inherit; font-size: .74rem; font-weight: 700; white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bx-trava svg { width: 14px; height: 14px; flex: none; }
+.bx-trava.n { display: none; }
+.bx-trava:hover { background: rgba(37,99,235,.28); }
+.bx-trava:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .bx-badge { font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--subtext); white-space: nowrap; }
 .bx-badge.ok { color: var(--text); border-color: rgba(148,163,184,.55); background: rgba(148,163,184,.16); }
 .bx-aviso { font-size: .82rem; color: var(--muted); border-left: 3px solid var(--line-2); padding: 4px 0 4px 10px; margin: 6px 0 10px; }
@@ -580,6 +593,8 @@
 .bx-local-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .84rem; margin-top: 6px; }
 .bx-local-g ol { margin: 4px 0 0; padding-left: 18px; }
 @media (max-width: 520px) { .bx-local-g { grid-template-columns: 1fr; } .bx-badge { font-size: .66rem; padding: 2px 6px; } }
+@media (max-width: 440px) { .bx-lista li { padding: 6px 8px 6px 6px; gap: 8px; } .bx-pos { width: 22px; }
+  .bx-trava.d { display: none; } .bx-trava.n { display: inline-flex; justify-self: start; margin-top: 4px; min-height: 32px; padding: 0 10px; font-size: .72rem; } }
 .bx-toast { position: fixed; z-index: 90; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom) + var(--bn-h, 0px));
   max-width: 520px; margin: 0 auto; background: var(--card-2, #162447); color: var(--text); border: 1px solid var(--line-2); border-radius: 16px; padding: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.45);
   display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }

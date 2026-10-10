@@ -15,7 +15,14 @@ from comum import RAW, OUT, CDN, DOCS, dumps, bairro_norm
 import baixar, subir
 
 SITE = os.environ.get('CMV_SITE', '/workspace/eleicoes-se/site')
-CARGOS = {'5': 'Senador', '6': 'Deputado Federal', '7': 'Deputado Estadual'}
+# 1 = Presidente (eleição 6257, situação NACIONAL do br-c0001); 3 = Governador (6259) — vai nos arquivos, mas a tela só mostra
+# Governador com a chave GOVERNADOR_2026 ligada no bairro.js (aguarda o OK do Marcel).
+CARGOS = {'1': 'Presidente', '3': 'Governador', '5': 'Senador', '6': 'Deputado Federal', '7': 'Deputado Estadual'}
+def sit_code(e, st):
+    # Nunca marca como eleito quem vai ao 2º turno (o TSE manda e='s' com st='2º turno').
+    st = (st or '').lower()
+    if '2º turno' in st or '2o turno' in st: return '2t'
+    return 'e' if e else 'n'
 UFS27 = ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR',
          'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO']
 PFX = 'e2026'
@@ -57,12 +64,15 @@ def main(ufs, subir_r2):
         sit = {}
         for c in CARGOS:
             cc_tse = '8' if (uf == 'df' and c == '7') else c   # DF: Deputado Distrital é o cargo 8 no TSE (no site fica em 7/)
-            p = os.path.join(SITE, 'tse', 'ele2026', '6259', 'dados', uf, f'{uf}-c000{cc_tse}-e006259-u.json')
+            if c == '1': p = os.path.join(SITE, 'tse', 'ele2026', '6257', 'dados', 'br', 'br-c0001-e006257-u.json')
+            else: p = os.path.join(SITE, 'tse', 'ele2026', '6259', 'dados', uf, f'{uf}-c000{cc_tse}-e006259-u.json')
             d = json.load(open(p))
             for cg in d['carg']:
                 for a in cg['agr']:
                     for pa in a['par']:
-                        for ca in pa['cand']: sit[(c, ca['n'])] = (ca.get('e') == 's', ca.get('st'))
+                        for ca in pa['cand']:
+                            sc = sit_code(ca.get('e') == 's', ca.get('st'))
+                            sit[(c, ca['n'])] = (sc == 'e', sc)
         cob = {'locais': nloc, 'com_coord': 0, 'com_bairro': sum(1 for b in bairro_l if b), 'sem_cadastro': 0}
         out_pub = os.path.join(OUT, 'pub'); out_pro = os.path.join(OUT, 'pro'); out_prop = os.path.join(OUT, 'proposta')
         locpub = {}; loc_el = np.zeros(nloc, dtype=np.int64)
@@ -82,7 +92,9 @@ def main(ufs, subir_r2):
                 if not v: continue
                 a = np.array(v, dtype=np.int64); li, q = a[:, 0], a[:, 1]
                 verif['candidatos'] += 1
-                if int(q.sum()) != int(cand['t']): verif['diferencas'] += 1
+                alvo = int(f['tse']) if 'tse' in f else int(cand['t'])   # Presidente/Governador: total do TSE na UF
+                if int(q.sum()) != alvo: verif['diferencas'] += 1; verif.setdefault('dif', []).append([c, cand['n'], int(q.sum()), alvo])
+                verif.setdefault('por_cargo', {}).setdefault(c, [0, 0]); verif['por_cargo'][c][0] += 1; verif['por_cargo'][c][1] += int(q.sum())
                 key = loc_m[li] * 100000 + loc_b[li]
                 u, inv = np.unique(key, return_inverse=True); s = np.bincount(inv, weights=q).astype(np.int64)
                 for k, x in zip(u.tolist(), s.tolist()):
@@ -98,7 +110,7 @@ def main(ufs, subir_r2):
                 k = (c, ci)
                 if k not in usados:
                     cand = idx['cargos'][c][ci]; e, st = sit.get((c, cand['n']), (False, None))
-                    usados[k] = len(usados); refs.append([c, cand.get('nu') or cand['nm'], cand['sg'], cand['n'], 1 if e else 0, str(cand.get('sq') or '')])
+                    usados[k] = len(usados); refs.append([c, cand.get('nu') or cand['nm'], cand['sg'], cand['n'], 1 if e else 0, str(cand.get('sq') or ''), st or 'n'])
                 return usados[k]
             refs = []
             for b in range(len(bairros)):
@@ -119,8 +131,8 @@ def main(ufs, subir_r2):
                 rk = sorted(tot.items(), key=lambda p: -p[1])
                 mo[c] = {'top3': [[ref(c, ci), x] for ci, x in rk[:3]], 'rk': [[ref(c, ci), x] for ci, x in rk[:RK]], 'nom': int(sum(tot.values())),
                          'eleitos': [[ref(c, ci), x] for ci, x in rk if sit.get((c, idx['cargos'][c][ci]['n']), (False,))[0]]}
-            obj = {'cd': cd, 'nm': mun['nm'], 'uf': UF, 'ano': 2026, 'turno': 1, 'bairros': bairros, 'cargos': dict(CARGOS, **({'7': 'Deputado Distrital'} if uf == 'df' else {})),
-                   'c': refs, 'campos_c': ['cargo', 'nome de urna', 'partido', 'número', 'eleito', 'sq'], 'top': top, 'mun': mo,
+            obj = {'cd': cd, 'nm': mun['nm'], 'uf': UF, 'ano': 2026, 'turno': 1, 'bairros': bairros, 't2': {'1': '25/10/2026'}, 'cargos': dict(CARGOS, **({'7': 'Deputado Distrital'} if uf == 'df' else {})),
+                   'c': refs, 'campos_c': ['cargo', 'nome de urna', 'partido', 'número', 'eleito', 'sq', 'situação (e=eleito, 2t=vai ao 2º turno, n=não eleito)'], 'top': top, 'mun': mo,
                    'nota': f'Pares [i, votos], i = índice em c. Top 3 pode incluir não eleitos; "eleitos" lista os eleitos do cargo com voto no bairro; rk = ranking (até {RK}); nom = votos nominais do cargo no bairro.'}
             pt = os.path.join(out_pro, PFX, uf, 'top3', f'{cd}.json'); os.makedirs(os.path.dirname(pt), exist_ok=True)
             open(pt, 'w').write(dumps(obj)); nfiles[1] += 1

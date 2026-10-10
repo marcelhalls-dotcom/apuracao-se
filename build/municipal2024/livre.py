@@ -5,7 +5,7 @@ Entrada (local, gerado por montar_uf.py / locais2026.py):
   out/pro/e2026/<uf>/top3/<cd>.json, out/pub/{m2024,e2026}/<uf>/locais/<cd>.json
 Saída (bucket PÚBLICO, só no passo de deploy):
   out/proposta/m2024/<uf>/top3-livre/<cd>.json   — Prefeito/Vereador 2024: ordem do top 3 + eleito, sem votos
-  out/proposta/e2026/<uf>/top3-livre/<cd>.json   — Senador/Dep. Federal/Dep. Estadual 2026 (DF: Distrital)
+  out/proposta/e2026/<uf>/top3-livre/<cd>.json   — Presidente/Governador/Senador/Dep. Federal/Dep. Estadual 2026 (DF: Distrital); t2 = data do 2º turno por cargo
   out/proposta/m2024/municipios.json             — [uf, cd, nome, lat, lon] (centro médio dos locais) p/ achar o município no aparelho
 
 Regras (decisão de 07/10/2026): bairro com menos de MIN_APTOS eleitores aptos não ganha ranking próprio (ok=0) —
@@ -103,7 +103,7 @@ def livre2026(uf):
                     if c in b: o[c] = [ref(i) for i, _ in b[c]['top3']]
             top.append(o)
         grava(f'e2026/{uf}/top3-livre/{cd}.json', {
-            'cd': cd, 'nm': t['nm'], 'uf': t['uf'], 'ano': 2026, 'turno': 1, 'min_aptos': MIN_APTOS, 'bairros': t['bairros'],
+            'cd': cd, 'nm': t['nm'], 'uf': t['uf'], 'ano': 2026, 'turno': 1, 't2': t.get('t2', {}), 'min_aptos': MIN_APTOS, 'bairros': t['bairros'],
             'cargos': t['cargos'], 'c': refs, 'campos_c': t['campos_c'], 'mun': mo, 'top': top,
             'fonte': 'TSE — Eleições Gerais 2026, 1º turno (votação por seção)'})
         n += 1

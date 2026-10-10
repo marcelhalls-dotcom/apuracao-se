@@ -109,7 +109,7 @@
   function renderIntro() {
     root.innerHTML = `
       <div class="page-head"><div class="eyebrow">Eleições 2024 e 2026</div><h1>Mais votados no seu bairro</h1>
-        <p>Veja quem foram os mais votados no seu bairro para Vereador e Prefeito (2024) e para Deputado Estadual, Deputado Federal e Senador (2026).</p></div>
+        <p>Veja quem foram os mais votados no seu bairro para Vereador e Prefeito (2024) e para Presidente, Senador, Deputado Federal e Deputado Estadual (2026).</p></div>
       <div class="bx-card bx-consent" id="bx-consent">
         <h2>Antes de usar a localização</h2>
         <ul>
@@ -222,11 +222,14 @@
     if (!src) return `<span class="bx-foto">${ini}</span>`;
     return `<span class="bx-foto">${ini}<img src="${esc(src)}" alt="" loading="lazy" decoding="async" onerror="this.remove()"></span>`;
   }
-  function badge(e, semEleito) {
+  function badge(e, semEleito, sit) {
     if (semEleito) return '';
+    if (sit === '2t') return '<span class="bx-badge t2">Vai ao 2º turno</span>';   // nunca "Eleito" antes do 2º turno
     return e ? '<span class="bx-badge ok">Eleito</span>' : '<span class="bx-badge">Não eleito</span>';
   }
   const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  // Governador 2026 já vai nos arquivos, mas só aparece na tela com esta chave ligada (aguarda o OK do Marcel).
+  const GOVERNADOR_2026 = false;
   let travaVotos = false;   // versão grátis: no lugar dos votos, botão "Mostrar votos" (os votos nem são baixados)
   const travaHtml = (nm, onde) => `<button type="button" class="bx-trava ${onde}" data-bx-votos aria-label="Mostrar votos de ${esc(titulo(nm))} — exclusivo da Assinatura">${LOCK}<span>Mostrar votos</span></button>`;
   /** item: {nm, sg, nu, e, foto, v?, p?} */
@@ -235,7 +238,7 @@
     return `<ol class="bx-lista${o.compacta ? ' compacta' : ''}">${items.map((c, i) => `<li>
       <span class="bx-pos">${(o.start || 0) + i + 1}º</span>${o.compacta ? '' : fotoHtml(c.foto, c.nm)}
       <span class="bx-nome"><strong>${esc(titulo(c.nm))}</strong><small>${esc(c.sg)} · ${esc(c.nu)}</small>${c.v == null && travaVotos ? travaHtml(c.nm, 'n') : ''}</span>
-      <span class="bx-dir">${c.v != null ? `<span class="bx-votos"><strong>${fmt(c.v)}</strong><small>${c.p}</small></span>` : (travaVotos ? travaHtml(c.nm, 'd') : '')}${badge(c.e, o.semEleito)}</span></li>`).join('')}</ol>`;
+      <span class="bx-dir">${c.v != null ? `<span class="bx-votos"><strong>${fmt(c.v)}</strong><small>${c.p}</small></span>` : (travaVotos ? travaHtml(c.nm, 'd') : '')}${badge(c.e, o.semEleito, c.s)}</span></li>`).join('')}</ol>`;
   }
   function aviso(txt, cls) { return `<p class="bx-aviso${cls ? ' ' + cls : ''}">${esc(txt)}</p>`; }
   function secao(id, titulo_, ano, corpo) {
@@ -356,29 +359,32 @@
   }
 
   function secoes2026(l, bi, uf, munNome, priv) {
-    const ordem = ['7', '6', '5'];
-    if (!l) return secao('bx-2026', 'Deputados e Senador', '2026', aviso('Resultado de 2026 indisponível para este município.', 'info'));
+    // Ordem: Presidente, (Governador — só com GOVERNADOR_2026), Senador, Deputado Federal, Deputado Estadual/Distrital.
+    // Cargo ausente no arquivo (arquivo antigo, sem Presidente) é pulado.
+    const ordem = ['1', ...(GOVERNADOR_2026 ? ['3'] : []), '5', '6', '7'].filter(c => !l || !l.cargos || l.cargos[c]);
+    if (!l) return secao('bx-2026', 'Presidente, Senador e Deputados', '2026', aviso('Resultado de 2026 indisponível para este município.', 'info'));
     const usaBairro = bi >= 0 && l.top[bi].ok;
     const msg = semBairroMsg(2026, munNome, l, bi);
-    const foto = sq => sq ? url(`tse/ele2026/6259/fotos/${uf}/${sq}.jpeg`) : null;
-    const nomeCargo = c => (l.cargos && l.cargos[c]) || { 5: 'Senador', 6: 'Deputado Federal', 7: 'Deputado Estadual' }[c];
+    const fotoC = (c, sq) => sq ? url(c === '1' ? `tse/ele2026/6257/fotos/br/${sq}.jpeg` : `tse/ele2026/6259/fotos/${uf}/${sq}.jpeg`) : null;
+    const t2 = c => (l.t2 && l.t2[c]) ? `<p class="bx-note bx-t2">1º turno. O 2º turno é em ${esc(l.t2[c])}; o resultado dele aparece aqui depois da apuração.</p>` : '';
+    const nomeCargo = c => (l.cargos && l.cargos[c]) || { 1: 'Presidente', 3: 'Governador', 5: 'Senador', 6: 'Deputado Federal', 7: 'Deputado Estadual' }[c];
     let html = '';
     const t = priv && priv.t26;
     const tb = t && bi >= 0 ? t.top.findIndex(x => norm(t.bairros[x.b]) === norm(l.bairros[bi])) : -1;
     for (const c of ordem) {
       let corpo;
       if (!t) {
-        const ref = i => { const r = l.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: foto(r[5]) }; };
+        const ref = i => { const r = l.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6] }; };
         const src = usaBairro ? l.top[bi] : l.mun;
-        corpo = msg + lista((src[c] || []).map(ref));
+        corpo = msg + t2(c) + lista((src[c] || []).map(ref));
       } else {
-        const ref = (i, v, tot) => { const r = t.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: foto(r[5]), v, p: pct(v, tot) }; };
+        const ref = (i, v, tot) => { const r = t.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6], v, p: pct(v, tot) }; };
         const B = tb >= 0 && t.top[tb].aptos >= MIN_APTOS ? t.top[tb][c] : (tb >= 0 ? t.top[tb][c] : t.mun[c]);
         const info = tb >= 0 ? `<p class="bx-note">${fmt(t.top[tb].aptos)} eleitores aptos · ${t.top[tb].nloc} ${t.top[tb].nloc === 1 ? 'local' : 'locais'} de votação · % dos votos nominais do cargo no bairro.</p>` : msg;
         if (!B) { corpo = aviso('Sem votos registrados.', 'info'); }
         else {
           const rk = B.rk || B.top3;
-          corpo = (c === ordem[0] ? info : '') + lista(rk.slice(0, 3).map(([i, v]) => ref(i, v, B.nom))) +
+          corpo = (c === ordem[0] ? info : '') + t2(c) + lista(rk.slice(0, 3).map(([i, v]) => ref(i, v, B.nom))) +
             (B.eleitos && B.eleitos.length ? `<h3>Eleitos com voto aqui (${B.eleitos.length})</h3>` + lista(B.eleitos.map(([i, v]) => ref(i, v, B.nom)), { compacta: true }) : '') +
             (rk.length > 3 ? `<details class="bx-mais"><summary>Ranking (${rk.length} mais votados)</summary>${lista(rk.slice(3).map(([i, v]) => ref(i, v, B.nom)), { compacta: true, start: 3 })}</details>` : '');
         }
@@ -575,6 +581,7 @@
 .bx-trava.n { display: none; }
 .bx-trava:hover { background: rgba(37,99,235,.28); }
 .bx-trava:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bx-badge.t2 { color: #b45309; border-color: #f59e0b; background: rgba(245,158,11,.12); }
 .bx-badge { font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--subtext); white-space: nowrap; }
 .bx-badge.ok { color: var(--text); border-color: rgba(148,163,184,.55); background: rgba(148,163,184,.16); }
 .bx-aviso { font-size: .82rem; color: var(--muted); border-left: 3px solid var(--line-2); padding: 4px 0 4px 10px; margin: 6px 0 10px; }
@@ -592,7 +599,8 @@
 .bx-local small { color: var(--subtext); }
 .bx-local-g { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .84rem; margin-top: 6px; }
 .bx-local-g ol { margin: 4px 0 0; padding-left: 18px; }
-@media (max-width: 520px) { .bx-local-g { grid-template-columns: 1fr; } .bx-badge { font-size: .66rem; padding: 2px 6px; } }
+@media (max-width: 520px) { .bx-local-g { grid-template-columns: 1fr; } .bx-badge.t2 { color: #b45309; border-color: #f59e0b; background: rgba(245,158,11,.12); }
+.bx-badge { font-size: .66rem; padding: 2px 6px; } }
 @media (max-width: 440px) { .bx-lista li { padding: 6px 8px 6px 6px; gap: 8px; } .bx-pos { width: 22px; }
   .bx-trava.d { display: none; } .bx-trava.n { display: inline-flex; justify-self: start; margin-top: 4px; min-height: 32px; padding: 0 10px; font-size: .72rem; } }
 .bx-toast { position: fixed; z-index: 90; left: max(12px, env(safe-area-inset-left)); right: max(12px, env(safe-area-inset-right)); bottom: calc(12px + env(safe-area-inset-bottom) + var(--bn-h, 0px));

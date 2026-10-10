@@ -10,7 +10,7 @@
  * JS/CSS com ?v= vêm do cache (rápido) e o ?v= novo do index.html força a versão nova. O site mostra "Nova versão —
  * Atualizar" quando um service worker novo estiver esperando.
  */
-const VERSAO = '20261008preco1';
+const VERSAO = '20261009pres1';
 const CACHE = 'cmv-casco-' + VERSAO;
 const OFFLINE = '/offline.html';
 const PRECACHE = [

@@ -131,7 +131,7 @@ def main(ufs, subir_r2):
                 rk = sorted(tot.items(), key=lambda p: -p[1])
                 mo[c] = {'top3': [[ref(c, ci), x] for ci, x in rk[:3]], 'rk': [[ref(c, ci), x] for ci, x in rk[:RK]], 'nom': int(sum(tot.values())),
                          'eleitos': [[ref(c, ci), x] for ci, x in rk if sit.get((c, idx['cargos'][c][ci]['n']), (False,))[0]]}
-            obj = {'cd': cd, 'nm': mun['nm'], 'uf': UF, 'ano': 2026, 'turno': 1, 'bairros': bairros, 't2': {'1': '25/10/2026'}, 'cargos': dict(CARGOS, **({'7': 'Deputado Distrital'} if uf == 'df' else {})),
+            obj = {'cd': cd, 'nm': mun['nm'], 'uf': UF, 'ano': 2026, 'turno': 1, 'bairros': bairros, 't2': dict({'1': '25/10/2026'}, **({'3': '25/10/2026'} if any(k[0] == '3' and v[1] == '2t' for k, v in sit.items()) else {})), 'cargos': dict(CARGOS, **({'7': 'Deputado Distrital'} if uf == 'df' else {})),
                    'c': refs, 'campos_c': ['cargo', 'nome de urna', 'partido', 'número', 'eleito', 'sq', 'situação (e=eleito, 2t=vai ao 2º turno, n=não eleito)'], 'top': top, 'mun': mo,
                    'nota': f'Pares [i, votos], i = índice em c. Top 3 pode incluir não eleitos; "eleitos" lista os eleitos do cargo com voto no bairro; rk = ranking (até {RK}); nom = votos nominais do cargo no bairro.'}
             pt = os.path.join(out_pro, PFX, uf, 'top3', f'{cd}.json'); os.makedirs(os.path.dirname(pt), exist_ok=True)

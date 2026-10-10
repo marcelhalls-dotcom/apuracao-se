@@ -109,7 +109,7 @@
   function renderIntro() {
     root.innerHTML = `
       <div class="page-head"><div class="eyebrow">Eleições 2024 e 2026</div><h1>Mais votados no seu bairro</h1>
-        <p>Veja quem foram os mais votados no seu bairro para Vereador e Prefeito (2024) e para Presidente, Senador, Deputado Federal e Deputado Estadual (2026).</p></div>
+        <p>Veja quem foram os mais votados no seu bairro para Vereador e Prefeito (2024) e para Presidente, Governador, Senador, Deputado Federal e Deputado Estadual (2026).</p></div>
       <div class="bx-card bx-consent" id="bx-consent">
         <h2>Antes de usar a localização</h2>
         <ul>
@@ -229,7 +229,7 @@
   }
   const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   // Governador 2026 já vai nos arquivos, mas só aparece na tela com esta chave ligada (aguarda o OK do Marcel).
-  const GOVERNADOR_2026 = false;
+  const GOVERNADOR_2026 = true;
   let travaVotos = false;   // versão grátis: no lugar dos votos, botão "Mostrar votos" (os votos nem são baixados)
   const travaHtml = (nm, onde) => `<button type="button" class="bx-trava ${onde}" data-bx-votos aria-label="Mostrar votos de ${esc(titulo(nm))} — exclusivo da Assinatura">${LOCK}<span>Mostrar votos</span></button>`;
   /** item: {nm, sg, nu, e, foto, v?, p?} */

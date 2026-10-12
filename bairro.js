@@ -28,13 +28,14 @@
   const fmt = n => Number(n || 0).toLocaleString('pt-BR');
   const pct = (v, t) => t ? (100 * v / t).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%' : '—';
   const base = () => String(global.DATA_BASE || 'https://dados.cademeuvoto.com.br').replace(/\/$/, '');
-  const url = p => base() + '/' + p;
+  const url = p => { const u = base() + '/' + p; return global.cmvComVersao ? global.cmvComVersao(u) : u; };
+  const versao = () => (global.cmvDadosV && global.cmvDadosV.then) ? global.cmvDadosV.catch(() => '') : Promise.resolve('');
   const isPro = () => !!(global.CMV && typeof global.CMV.pro === 'function' && global.CMV.pro());
 
   /* ---------------- dados (com cache em memória) ---------------- */
   const cache = new Map();
   function getJSON(p) {
-    if (!cache.has(p)) cache.set(p, fetch(url(p)).then(r => { if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; } return r.json(); })
+    if (!cache.has(p)) cache.set(p, versao().then(() => fetch(url(p))).then(r => { if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; } return r.json(); })
       .catch(e => { cache.delete(p); throw e; }));
     return cache.get(p);
   }

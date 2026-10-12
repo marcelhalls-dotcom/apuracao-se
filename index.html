@@ -1585,10 +1585,10 @@
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261010pres2"></script>
-<script src="assinatura.js?v=20261010pres2"></script>
-<script src="relatorios.js?v=20261010pres2"></script>
-<script src="bairro.js?v=20261010pres2"></script>
+<script src="pwa.js?v=20261012dadosv1"></script>
+<script src="assinatura.js?v=20261012dadosv1"></script>
+<script src="relatorios.js?v=20261012dadosv1"></script>
+<script src="bairro.js?v=20261012dadosv1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -1989,8 +1989,23 @@ const DATA_BASE = (() => {
   try { const q = new URLSearchParams(location.search).get('dados'); if (q) return q.replace(/\/$/, ''); } catch (_) {}
   return 'https://dados.cademeuvoto.com.br';
 })();
-function dataUrl(p) { p = String(p || ''); return (DATA_BASE && /^(mapa|fotos|tse)\//.test(p)) ? DATA_BASE + '/' + p : p; }
-window.DATA_BASE = DATA_BASE; window.dataUrl = dataUrl;
+/** Versão dos dados: dados-versao.json (no-cache) muda a cada envio ao R2; os JSON de dados levam ?v=<versão>,
+ *  então o celular busca o arquivo novo logo após uma publicação e pode guardar o resto por muito tempo. */
+let DADOS_V = '';
+const DADOS_V_PRONTO = (async () => {
+  let salvo = ''; try { salvo = localStorage.getItem('cmv-dados-v') || ''; } catch (_) {}
+  try {
+    const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    const t = setTimeout(() => ctl && ctl.abort(), 3000);
+    const r = await fetch(DATA_BASE + '/dados-versao.json', { cache: 'no-cache', signal: ctl ? ctl.signal : undefined });
+    clearTimeout(t);
+    if (r.ok) { const j = await r.json(); if (j && j.v) { DADOS_V = String(j.v); try { localStorage.setItem('cmv-dados-v', DADOS_V); } catch (_) {} return DADOS_V; } }
+  } catch (_) {}
+  DADOS_V = salvo; return DADOS_V;
+})();
+function comVersao(u) { return (DADOS_V && /\.(?:json|geojson)(?:$|\?)/i.test(u)) ? u + (u.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(DADOS_V) : u; }
+function dataUrl(p) { p = String(p || ''); return (DATA_BASE && /^(mapa|fotos|tse)\//.test(p)) ? comVersao(DATA_BASE + '/' + p) : p; }
+window.DATA_BASE = DATA_BASE; window.dataUrl = dataUrl; window.cmvDadosV = DADOS_V_PRONTO; window.cmvComVersao = comVersao;
 let FONTE_DADOS = 'snapshot';
 const fmtInt = new Intl.NumberFormat('pt-BR');
 const pad = (n, w) => String(n).padStart(w, '0');
@@ -2006,7 +2021,8 @@ let buscando = false;
 async function getJSON(url) {
   // Detalhe por local de votação/seção: só pela API, com sessão de assinante (ver assinatura.js)
   if (window.CMV && window.CMV.isPrivate(url)) return window.CMV.getPrivate(url);
-  const r = await fetch(dataUrl(url), { cache: 'no-cache' });
+  await DADOS_V_PRONTO;
+  const r = await fetch(dataUrl(url), DADOS_V ? {} : { cache: 'no-cache' });
   if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
   return r.json();
 }

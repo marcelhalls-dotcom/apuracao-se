@@ -310,7 +310,10 @@
   /* ---------------- dados privados ---------------- */
   function isPrivate(p) { return PRIV_RE.test(String(p || '')); }
   async function getPrivate(p) {
-    const r = await fetch(API_BASE + '/dados/' + String(p).replace(/^\/+/, ''), { credentials: 'include' });
+    if (global.cmvDadosV && global.cmvDadosV.then) { try { await global.cmvDadosV; } catch (_) {} }
+    let u = API_BASE + '/dados/' + String(p).replace(/^\/+/, '');
+    if (global.cmvComVersao) u = global.cmvComVersao(u);
+    const r = await fetch(u, { credentials: 'include' });
     if (r.status === 401 || r.status === 402) { const d = await r.json().catch(() => ({})); const e = new Error(d.error || 'Exclusivo da Assinatura'); e.status = r.status; e.paywall = d.motivo || 'plano'; throw e; }
     if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
     return r.json();

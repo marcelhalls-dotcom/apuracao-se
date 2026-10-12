@@ -94,3 +94,7 @@ if __name__ == '__main__':
     dry = '--dry-run' in sys.argv
     if sys.argv[1] == 'indice': print(indice(dry))
     else: print(json.dumps(subir_uf(sys.argv[1].upper(), dry)))
+    if not dry:  # versão dos dados (dados-versao.json): o site passa a pedir os arquivos novos logo após a publicação
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'brasil'))
+        from upload_r2 import bump_versao
+        bump_versao(client(), motivo='m2024/e2026 ' + ' '.join(sys.argv[1:]))

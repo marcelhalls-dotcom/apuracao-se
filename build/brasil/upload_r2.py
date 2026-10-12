@@ -5,6 +5,11 @@ Uso:
   python3 upload_r2.py                 # tudo (incremental: só envia o que mudou — compara MD5/ETag)
   python3 upload_r2.py mapa/sp fotos/sp tse/ele2026/6259/dados/sp ...   # só esses prefixos
   python3 upload_r2.py --dry-run ...
+  python3 upload_r2.py --so-versao     # só troca a versão dos dados (dados-versao.json), sem enviar arquivos
+
+Versão dos dados: depois de cada envio com algo novo, grava dados-versao.json na raiz do bucket (Cache-Control no-cache).
+O site lê esse arquivo e põe ?v=<versão> nos JSON de dados, então o celular busca o arquivo novo logo após a publicação.
+Outros scripts que sobem dados (ex. build/municipal2024/subir.py) chamam bump_versao() daqui.
 
 Credenciais SOMENTE do ambiente (nada gravado em disco):
   R2_ACCESS_KEY_ID + R2_SECRET_ACCESS_KEY   (token S3 do R2), ou
@@ -13,7 +18,7 @@ Credenciais SOMENTE do ambiente (nada gravado em disco):
   CLOUDFLARE_ACCOUNT_ID (padrão: conta Gerenciamento), R2_BUCKET (padrão: cademeuvoto-dados).
 Requer: pip install boto3
 """
-import hashlib, json, mimetypes, os, sys, urllib.request
+import hashlib, json, mimetypes, os, sys, time, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 SITE = os.environ.get('CMV_SITE') or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -56,16 +61,35 @@ def local_files(prefixes):
                 out.append(os.path.relpath(os.path.join(d, f), SITE).replace(os.sep, '/'))
     return sorted(set(out))
 
+VERSAO_KEY = 'dados-versao.json'
+
+def s3_client():
+    import boto3
+    from botocore.config import Config
+    ak, sk = creds()
+    return boto3.client('s3', endpoint_url=f'https://{ACCOUNT}.r2.cloudflarestorage.com', aws_access_key_id=ak,
+                        aws_secret_access_key=sk, region_name='auto',
+                        config=Config(max_pool_connections=32, retries={'max_attempts': 8, 'mode': 'adaptive'}))
+
+def bump_versao(s3=None, motivo=''):
+    """Grava dados-versao.json (sempre no bucket público cademeuvoto-dados) com uma versão nova (data/hora UTC)."""
+    s3 = s3 or s3_client()
+    v = time.strftime('%Y%m%d%H%M%S', time.gmtime())
+    body = json.dumps({'v': v, 'gerado': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'motivo': motivo[:200]},
+                      ensure_ascii=False).encode()
+    s3.put_object(Bucket='cademeuvoto-dados', Key=VERSAO_KEY, Body=body, ContentType='application/json; charset=utf-8',
+                  CacheControl='no-cache, max-age=0')
+    print('versão dos dados:', v)
+    return v
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     dry = '--dry-run' in sys.argv
     files = local_files(args or ROOTS)
-    import boto3
-    from botocore.config import Config
-    ak, sk = creds()
-    s3 = boto3.client('s3', endpoint_url=f'https://{ACCOUNT}.r2.cloudflarestorage.com', aws_access_key_id=ak,
-                      aws_secret_access_key=sk, region_name='auto',
-                      config=Config(max_pool_connections=32, retries={'max_attempts': 8, 'mode': 'adaptive'}))
+    if '--so-versao' in sys.argv:
+        if not dry: bump_versao(motivo='manual')
+        return
+    s3 = s3_client()
     remote = {}
     for pre in sorted({f.split('/')[0] for f in files}):
         for page in s3.get_paginator('list_objects_v2').paginate(Bucket=BUCKET, Prefix=pre + '/'):
@@ -86,6 +110,7 @@ def main():
         if done[0] % 2000 == 0: print(' ', done[0], 'enviados')
     with ThreadPoolExecutor(24) as ex: list(ex.map(put, todo))
     print('OK', len(todo), 'enviados')
+    bump_versao(s3, motivo=' '.join(args) or 'tudo')
 
 if __name__ == '__main__':
     main()

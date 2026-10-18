@@ -1502,7 +1502,7 @@
       const ps = await Promise.all(list.map(k => patrimonioCand(cod, k.n, k.nome, k.sqcand || k.sq)));
       list.forEach((k, i) => todosPat.push({ cargo: String(cod), numero: String(k.n), nome: k.nome || '', sq: ps[i].sq, p: ps[i] }));
       y = sectionTitle(doc, label, y, bookmarks);
-      y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.', 'Patrimônio declarado']], body: list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—'), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 7: { halign: 'right' } }, margin: { left: margins().l, right: margins().r } }) + 6;
+      y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.', 'Patrimônio declarado']], body: list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—'), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 7: { halign: 'right', cellWidth: 118 } }, margin: { left: margins().l, right: margins().r } }) + 6;
       y = patRodapeMulti(doc, y, ps) + 4;
     }
     if (!relMun() && todosPat.length) y = (await secaoPatrimonioPDF(doc, y, bookmarks, todosPat, 'Patrimônio declarado — detalhe dos candidatos (Assinatura)')).y;
@@ -1598,7 +1598,7 @@
         const ps = await Promise.all(rows.map(r => patrimonioCand(cg, r.n, r.nm, r.sq)));
         rows.forEach((r, i) => todosPat.push({ cargo: cg, numero: String(r.n), nome: r.nm || '', sq: ps[i].sq }));
         y = sectionTitle(doc, CARGO_NOME[cg] || cg, y, bookmarks);
-        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total ' + ufRel().toUpperCase(), 'Patrimônio declarado']], body: rows.map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 6: { halign: 'right' } }, margin: { left: margins().l, right: margins().r } }) + 6;
+        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total ' + ufRel().toUpperCase(), 'Patrimônio declarado']], body: rows.map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 6: { halign: 'right', cellWidth: 118 } }, margin: { left: margins().l, right: margins().r } }) + 6;
         y = patRodapeMulti(doc, y, ps) + 4;
       }
       if (!relMun() && todosPat.length) y = (await secaoPatrimonioPDF(doc, y, bookmarks, todosPat, 'Patrimônio declarado — detalhe dos candidatos (Assinatura)')).y;

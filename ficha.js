@@ -44,6 +44,10 @@
   .fc-seg button{appearance:none;border:0;background:transparent;color:var(--muted,#CBD5E1);font:inherit;font-size:.8rem;font-weight:600;padding:7px 12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .fc-seg button[aria-pressed="true"]{background:var(--brand,#2563EB);color:#fff}
   .fc-pos{font-size:.86rem;color:var(--muted,#CBD5E1);margin:4px 0 8px}
+  .fc-atip{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28);font-size:.8rem;color:var(--muted,#CBD5E1);line-height:1.4}
+  .fc-atip b{display:block;color:#FCD34D;font-weight:700;font-size:.8rem;margin-bottom:2px}
+  .fc-atip a{color:#93C5FD;text-decoration:underline;overflow-wrap:anywhere}
+  .fc-rk .at{color:#FCD34D;font-size:.72rem;font-weight:700;margin-left:4px}
   .fc-rk{list-style:none;margin:0;padding:0}
   .fc-rk li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 4px;border-top:1px solid var(--line,rgba(148,163,184,.16));font-size:.85rem;cursor:pointer;border-radius:8px}
   .fc-rk li:hover{background:rgba(148,163,184,.08)}.fc-rk li.eu{background:rgba(96,165,250,.14)}
@@ -76,6 +80,22 @@
     return pro.get(uf);
   }
   const ehPro = () => !!(global.CMV && global.CMV.pro && global.CMV.pro());
+  // Selo "valor atípico" (pipeline marcar_atipicos.py): posição 5 = true, 6 = motivo. O valor nunca é alterado.
+  const REGIAO = { ac: 'NORTE', am: 'NORTE', ap: 'NORTE', pa: 'NORTE', ro: 'NORTE', rr: 'NORTE', to: 'NORTE', al: 'NORDESTE', ba: 'NORDESTE', ce: 'NORDESTE', ma: 'NORDESTE',
+    pb: 'NORDESTE', pe: 'NORDESTE', pi: 'NORDESTE', rn: 'NORDESTE', se: 'NORDESTE', df: 'CENTROOESTE', go: 'CENTROOESTE', ms: 'CENTROOESTE', mt: 'CENTROOESTE',
+    es: 'SUDESTE', mg: 'SUDESTE', rj: 'SUDESTE', sp: 'SUDESTE', pr: 'SUL', rs: 'SUL', sc: 'SUL', br: 'BRASIL' };
+  const divulgaCand = (uf, sq) => REGIAO[uf] && /^\d{6,13}$/.test(sq) ? `https://divulgacandcontas.tse.jus.br/divulga/#/candidato/${REGIAO[uf]}/${uf.toUpperCase()}/20322002026/${sq}/2026/${uf.toUpperCase()}` : null;
+  const atipico = e => !!(e && e[5] === true);
+  function seloAtipico(uf, sq, e) {
+    const box = el('div', 'fc-atip'); box.setAttribute('role', 'note');
+    box.appendChild(el('b', null, '⚠ Valor atípico'));
+    box.appendChild(doc.createTextNode('Valor como declarado ao TSE; pode conter erro de digitação. '));
+    const u = divulgaCand(uf, sq);
+    if (u) { const a = el('a', null, 'Confira no DivulgaCand'); a.href = u; a.target = '_blank'; a.rel = 'noopener noreferrer'; box.appendChild(a); box.appendChild(doc.createTextNode('.')); }
+    else box.appendChild(doc.createTextNode('Confira no DivulgaCand.'));
+    if (e[6]) box.title = 'Critério: ' + e[6];
+    return box;
+  }
   // espera a sessão (/me) antes de decidir grátis × Assinatura — evita mostrar o aviso a quem assina e tocou cedo
   const planoPronto = () => (global.CMV && global.CMV.ready) ? Promise.race([global.CMV.ready, new Promise(r => setTimeout(r, 5000))]).catch(() => {}) : Promise.resolve();
 
@@ -146,7 +166,9 @@
         const li = el('li', k === sq ? 'eu' : null); li.tabIndex = 0;
         li.appendChild(el('span', 'i', String(lst.findIndex(([q]) => q === k) + 1)));
         const n = el('span', 'n', x[4] || '—'); n.appendChild(el('small', null, x[3] || '')); li.appendChild(n);
-        li.appendChild(el('span', 'v', x[1] ? BRL0.format(x[0]) : 'sem bens'));
+        const v = el('span', 'v', x[1] ? BRL0.format(x[0]) : 'sem bens');
+        if (atipico(x)) { const at = el('span', 'at', '⚠'); at.title = 'Valor atípico: como declarado ao TSE; pode conter erro de digitação'; at.setAttribute('aria-label', 'valor atípico'); v.appendChild(at); }
+        li.appendChild(v);
         const go = () => { if (k !== sq) abrir(k, uf, x[4]); };
         li.addEventListener('click', go); li.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); go(); } });
         ol.appendChild(li);
@@ -178,6 +200,7 @@
     pat.appendChild(el('div', 'fc-l', 'Patrimônio declarado'));
     pat.appendChild(el('div', 'fc-v' + (e[1] ? '' : ' fc-nada'), e[1] ? BRL.format(e[0]) : 'Nenhum bem declarado'));
     pat.appendChild(el('div', 'fc-m', e[1] ? `${INT.format(e[1])} ${e[1] === 1 ? 'bem declarado' : 'bens declarados'} no registro da candidatura de 2026` : 'O candidato não declarou bens no registro da candidatura de 2026.'));
+    if (atipico(e)) pat.appendChild(seloAtipico(uf, sq, e));
     body.appendChild(pat);
     if (!ehPro()) {
       const txt = 'A lista de bens, a composição, a evolução desde 2022 e 2024 e o ranking de patrimônio por cargo e partido são exclusivos da Assinatura.';

@@ -981,8 +981,11 @@
     try {
       const idx = await patCached('idx:' + ufRel(), () => global.getJSON(mapaBaseRel() + '/index.json'));
       const ent = ((idx.cargos && idx.cargos[String(cargo)]) || []).find(c => String(c.n) === String(numero));
-      return ent && ent.sq ? String(ent.sq).replace(/^0+/, '') : null;
-    } catch (_) { return null; }
+      if (ent && ent.sq) return String(ent.sq).replace(/^0+/, '');
+    } catch (_) { /* segue para o mapa por número */ }
+    // candidaturas que o índice traz sem sq (votos anulados/sub judice): o arquivo público traz nr = {cargo: {número: sq}}
+    try { const P = await patPublico(String(cargo) === '1' ? 'br' : ufRel()); const sq = P && P.nr && P.nr[String(cargo)] && P.nr[String(cargo)][String(numero)]; return sq || null; }
+    catch (_) { return null; }
   }
   /** Patrimônio de um candidato: { nome, cargo, numero, partido, arq, sq, total, n, atipico, link, pro: {bens, grupos, ant} | null } */
   async function patrimonioCand(cargo, numero, nomeHint, sqHint) {
@@ -1009,7 +1012,7 @@
     return out;
   }
   const patVarTxt = a => `${a.ano} (${a.cargo || '—'}${a.ue ? ', ' + a.ue : ''}${a.uf ? ' · ' + a.uf : ''}): ${fmtBRL(a.total)} em ${a.n || 0} ${a.n === 1 ? 'bem' : 'bens'}`
-    + (a.variacao != null ? ` → variação ${a.variacao >= 0 ? '+' : ''}${a.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% até 2026` : ' (sem bens declarados; variação não calculável)');
+    + (a.variacao != null ? `; variação ${a.variacao >= 0 ? '+' : ''}${a.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% até 2026` : ' (sem bens declarados; variação não calculável)');
   function patLink(doc, y, url) {
     const m = margins(); const { h } = pageSize(doc);
     if (y > h - m.b) { doc.addPage(); y = m.t; }

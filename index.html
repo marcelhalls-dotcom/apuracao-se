@@ -1061,11 +1061,36 @@
     .site-header #status.status { padding: 6px; min-width: 36px; justify-content: center; }
   }
   @media (max-width: 340px) { .brand-word { display: none; } }
-  /* telas bem estreitas: o ícone do Instagram sai do topo (segue no menu ☰ e no rodapé) para o ☰ não ser espremido */
-  .hamburger { flex: none; }
+  /* ---------- topo sem estouro lateral (18/10) ----------
+     Nada no cabeçalho pode passar da largura da tela. Em vez de esconder coisas, os itens elásticos encolhem:
+     1º o texto do status (vira só o ponto colorido; detalhes no toque), 2º o nome da conta (reticências).
+     Selo "Assinante" vira um ✓ verde compacto até 1200px. Logotipo, Instagram, Planos e ☰ não encolhem. */
+  .hdr-inner { min-width: 0; }
+  .hdr-tools { min-width: 0; flex: 0 1 auto; }
+  .status-wrap { min-width: 36px; flex: 0 1000 auto; }
+  .site-header #status.status { max-width: 100%; min-width: 36px; overflow: hidden; }
+  #status-curto { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hdr-ig, .btn-cta, .hamburger, .brand { flex: none; }
+  .site-header #cmv-entrar.cmv-entrar {
+    display: inline-block; flex: 0 1 auto; min-width: 64px; max-width: 16em; overflow: hidden; text-overflow: ellipsis;
+    line-height: 22px; vertical-align: middle; position: relative;
+  }
+  .site-header #cmv-entrar.cmv-entrar[title^="Entrar"] { flex-shrink: 0; min-width: 0; }  /* visitante: "Entrar" nunca vira "Entr…" */
+  @media (max-width: 1200px) {
+    .site-header #cmv-entrar.cmv-entrar:has(.cmv-badge) { padding-right: 30px; }
+    .site-header #cmv-entrar .cmv-badge {
+      position: absolute; right: 7px; top: 50%; transform: translateY(-50%); margin: 0; padding: 0;
+      width: 18px; height: 18px; border-radius: 50%; font-size: 0; letter-spacing: 0; line-height: 18px; text-align: center;
+    }
+    .site-header #cmv-entrar .cmv-badge::after { content: "✓"; font-size: .72rem; font-weight: 800; }
+    .site-header #cmv-entrar.cmv-entrar { max-width: 11em; }
+  }
+  @media (max-width: 480px) { .site-header #cmv-entrar.cmv-entrar { max-width: 8.5em; } }
+  @media (max-width: 430px) { #status-curto { display: none; } }
+  /* telas bem estreitas: o ícone do Instagram sai do topo (segue no menu ☰ e no rodapé) */
   @media (max-width: 380px) { .hdr-ig { display: none; } }
-  @media (min-width: 431px) and (max-width: 620px) { .hdr-ig { display: none; } }  /* aqui o status mostra texto e o "Planos" volta: sem espaço */
-  @media (max-width: 1120px) { .hdr-tools:has(.cmv-badge) .hdr-ig { display: none; } }  /* assinante: nome + selo ocupam o espaço */
+  /* logado no celular: o nome da conta tem prioridade sobre o ícone do Instagram (que segue no menu ☰ e no rodapé) */
+  @media (max-width: 640px) { .hdr-tools:has(#cmv-entrar[title="Minha conta"]) .hdr-ig { display: none; } }
 
 
   /* ---------- áreas seguras (iPhone com Dynamic Island/notch e celulares com recorte) ----------

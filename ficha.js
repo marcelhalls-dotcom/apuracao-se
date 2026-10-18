@@ -76,6 +76,8 @@
     return pro.get(uf);
   }
   const ehPro = () => !!(global.CMV && global.CMV.pro && global.CMV.pro());
+  // espera a sessão (/me) antes de decidir grátis × Assinatura — evita mostrar o aviso a quem assina e tocou cedo
+  const planoPronto = () => (global.CMV && global.CMV.ready) ? Promise.race([global.CMV.ready, new Promise(r => setTimeout(r, 5000))]).catch(() => {}) : Promise.resolve();
 
   let ov = null, ultimoFoco = null;
   function fechar() {
@@ -165,7 +167,7 @@
     const sub = el('div', 'fc-sub', ''); info.appendChild(sub); hd.appendChild(info); body.appendChild(hd);
     const wait = el('div', 'fc-wait', 'Carregando patrimônio declarado…'); wait.setAttribute('role', 'status'); body.appendChild(wait);
     let P;
-    try { P = await carregaPub(uf); } catch (_) { wait.textContent = 'Não foi possível carregar o patrimônio agora. Tente de novo em instantes.'; return; }
+    try { [P] = await Promise.all([carregaPub(uf), planoPronto()]); } catch (_) { wait.textContent = 'Não foi possível carregar o patrimônio agora. Tente de novo em instantes.'; return; }
     if (!ov || body.parentNode == null) return;
     const e = P.c && P.c[sq];
     wait.remove();

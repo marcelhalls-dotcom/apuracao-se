@@ -16,6 +16,7 @@
   let geoLocCache = null;
   function resetUfCaches() {
     geoLocCache = null; munIdxCache = null; secMetaCache = null; geoMunCache = null;
+    if (typeof patCache !== 'undefined') patCache.clear();
     if (typeof secCandCache !== 'undefined' && secCandCache.clear) secCandCache.clear();
   }
   window.RelatoriosResetUf = resetUfCaches;
@@ -944,6 +945,159 @@
     return doc.lastAutoTable.finalY;
   }
 
+  /* ---------- Patrimônio declarado (TSE 2026) ----------
+     Total, nº de bens e selo "valor atípico": arquivo público (dados.cademeuvoto.com.br/patrimonio/2026/<uf|br>.json).
+     Composição, variação 2022/2024 e lista (só tipo e valor): SÓ Assinatura, pelo caminho privado (API /dados, controle de plano no servidor).
+     Nunca a descrição livre dos bens, CPF ou título (não existem nesses arquivos). */
+  const PAT_AVISO = 'Valor declarado pelo próprio candidato à Justiça Eleitoral no registro da candidatura de 2026, em geral pelo valor de aquisição (não é valor de mercado).';
+  const PAT_FONTE = 'Fonte: TSE — Dados Abertos, bens declarados pelos candidatos (2026).';
+  const PAT_RESSALVA = 'Valor atípico: valor como declarado ao TSE; pode conter erro de digitação. Confira no DivulgaCand.';
+  const PAT_REGIAO = { ac: 'NORTE', am: 'NORTE', ap: 'NORTE', pa: 'NORTE', ro: 'NORTE', rr: 'NORTE', to: 'NORTE', al: 'NORDESTE', ba: 'NORDESTE', ce: 'NORDESTE', ma: 'NORDESTE',
+    pb: 'NORDESTE', pe: 'NORDESTE', pi: 'NORDESTE', rn: 'NORDESTE', se: 'NORDESTE', df: 'CENTROOESTE', go: 'CENTROOESTE', ms: 'CENTROOESTE', mt: 'CENTROOESTE',
+    es: 'SUDESTE', mg: 'SUDESTE', rj: 'SUDESTE', sp: 'SUDESTE', pr: 'SUL', rs: 'SUL', sc: 'SUL', br: 'BRASIL' };
+  const PAT_GRUPOS = ['Imóveis', 'Veículos e bens móveis', 'Participação em empresas', 'Aplicações e investimentos', 'Dinheiro e depósitos', 'Créditos e outros'];
+  const patCache = new Map();
+  const BRLp = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtBRL = v => BRLp.format(Number(v) || 0).replace(/\u00a0/g, ' ');
+  function patDivulgaCand(arq, sq) {
+    return PAT_REGIAO[arq] && /^\d{6,13}$/.test(String(sq)) ? `https://divulgacandcontas.tse.jus.br/divulga/#/candidato/${PAT_REGIAO[arq]}/${arq.toUpperCase()}/20322002026/${sq}/2026/${arq.toUpperCase()}` : null;
+  }
+  function patCached(key, fn) { if (!patCache.has(key)) patCache.set(key, fn().catch(e => { patCache.delete(key); throw e; })); return patCache.get(key); }
+  async function patPublico(arq) {
+    return patCached('pub:' + arq, async () => {
+      if (global.cmvDadosV && global.cmvDadosV.then) { try { await global.cmvDadosV; } catch (_) {} }
+      let u = String(global.DATA_BASE || 'https://dados.cademeuvoto.com.br').replace(/\/$/, '') + '/patrimonio/2026/' + arq + '.json';
+      if (global.cmvComVersao) u = global.cmvComVersao(u);
+      const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+    });
+  }
+  // Detalhe: só com Assinatura e só pela API (o servidor responde 401/402 a quem não assina)
+  async function patPrivado(arq) {
+    if (relMun() || !global.CMV || !global.CMV.getPrivate) return null;
+    return patCached('pro:' + arq + ':' + (global.CMV.me && global.CMV.me().usuario ? global.CMV.me().usuario.id : ''), () => global.CMV.getPrivate('patrimonio/2026/' + arq + '.json')).catch(() => null);
+  }
+  async function patSq(cargo, numero, sqHint) {
+    if (sqHint && /^\d{6,13}$/.test(String(sqHint))) return String(sqHint).replace(/^0+/, '');
+    try {
+      const idx = await patCached('idx:' + ufRel(), () => global.getJSON(mapaBaseRel() + '/index.json'));
+      const ent = ((idx.cargos && idx.cargos[String(cargo)]) || []).find(c => String(c.n) === String(numero));
+      return ent && ent.sq ? String(ent.sq).replace(/^0+/, '') : null;
+    } catch (_) { return null; }
+  }
+  /** Patrimônio de um candidato: { nome, cargo, numero, partido, arq, sq, total, n, atipico, link, pro: {bens, grupos, ant} | null } */
+  async function patrimonioCand(cargo, numero, nomeHint, sqHint) {
+    const arq = String(cargo) === '1' ? 'br' : ufRel();
+    const sq = await patSq(cargo, numero, sqHint);
+    const base = { cargo: String(cargo), numero: String(numero), nome: nomeHint || '', arq, sq, ok: false };
+    if (!sq) return base;
+    let P; try { P = await patPublico(arq); } catch (_) { return base; }
+    const e = P && P.c && P.c[sq];
+    if (!e) return base;
+    const out = Object.assign(base, { ok: true, total: Number(e[0]) || 0, n: Number(e[1]) || 0, partido: e[3] || '', nome: nomeHint || e[4] || '', atipico: e[5] === true,
+      link: e[5] === true ? patDivulgaCand(arq, sq) : null, pro: null });
+    const D = await patPrivado(arq);
+    const c = D && D.c && D.c[sq];
+    if (c) {
+      const tipos = D.tipos || {}, grupos = D.grupos || PAT_GRUPOS;
+      out.pro = {
+        bens: (c.b || []).map(([cd, v]) => ({ tipo: tipos[cd] || 'Outros', valor: Number(v) || 0 })),
+        grupos: grupos.map((g, i) => ({ grupo: g, valor: Number((c.g || [])[i]) || 0 })).filter(x => x.valor > 0).sort((a, b) => b.valor - a.valor),
+        ant: (c.ant || []).map(a => ({ ano: a.ano, total: Number(a.t) || 0, n: a.n, cargo: a.cargo, ue: a.ue || '', uf: a.uf || '',
+          variacao: a.t > 0 ? Math.round((out.total - a.t) / a.t * 1000) / 10 : null })),
+      };
+    }
+    return out;
+  }
+  const patVarTxt = a => `${a.ano} (${a.cargo || '—'}${a.ue ? ', ' + a.ue : ''}${a.uf ? ' · ' + a.uf : ''}): ${fmtBRL(a.total)} em ${a.n || 0} ${a.n === 1 ? 'bem' : 'bens'}`
+    + (a.variacao != null ? ` → variação ${a.variacao >= 0 ? '+' : ''}${a.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% até 2026` : ' (sem bens declarados; variação não calculável)');
+  const patTotalCelula = p => (!p || !p.ok) ? '—' : (p.n ? fmtBRL(p.total) : 'Nenhum bem') + (p.atipico ? ' *' : '');
+  function patLink(doc, y, url) {
+    const m = margins(); const { h } = pageSize(doc);
+    if (y > h - m.b) { doc.addPage(); y = m.t; }
+    doc.setFont('NotoSans', 'normal'); doc.setFontSize(7.5); doc.setTextColor(29, 78, 216);
+    const lines = doc.splitTextToSize(url, pageSize(doc).w - m.l - m.r);
+    for (const ln of lines) { doc.textWithLink(ln, m.l, y, { url }); y += 9; }
+    doc.setTextColor(0); return y + 3;
+  }
+  function patAtipicoPDF(doc, y, p) {
+    doc.setTextColor(146, 64, 14); y = bodyText(doc, PAT_RESSALVA, y); doc.setTextColor(0);
+    if (p.link) y = patLink(doc, y - 4, p.link);
+    return y;
+  }
+  /** Bloco de patrimônio de um candidato no PDF (gratuito: total + nº de bens + fonte; Assinatura: + composição, variação e lista tipo/valor). */
+  function writePatrimonioPDF(doc, y, p, rotulo) {
+    const m = margins();
+    if (rotulo) { if (y > pageSize(doc).h - 120) { doc.addPage(); y = m.t; } doc.setFont('NotoSans', 'bold'); doc.setFontSize(10.5); doc.text(pdfSafe(rotulo), m.l, y); y += 14; }
+    if (!p || !p.ok) return bodyText(doc, 'Patrimônio declarado: indisponível para este candidato nos dados do TSE.', y);
+    doc.setFont('NotoSans', 'bold'); doc.setFontSize(10);
+    y = bodyText(doc, p.n ? `Patrimônio declarado: ${fmtBRL(p.total)} — ${p.n} ${p.n === 1 ? 'bem declarado' : 'bens declarados'} no registro da candidatura de 2026.` : 'Patrimônio declarado: nenhum bem declarado no registro da candidatura de 2026.', y);
+    if (p.atipico) y = patAtipicoPDF(doc, y, p);
+    if (!p.pro) {
+      if (relMun()) y = bodyText(doc, 'Composição, evolução desde 2022 e 2024 e a lista de bens (tipo e valor) fazem parte da Assinatura (cademeuvoto.com.br/#planos).', y);
+      return y;
+    }
+    if (p.pro.ant.length) for (const a of p.pro.ant) y = bodyText(doc, 'Desde ' + patVarTxt(a), y);
+    else y = bodyText(doc, 'Sem declaração encontrada nas eleições de 2022 e 2024 para comparar.', y);
+    if (p.pro.grupos.length) {
+      y = autoTable(doc, { startY: y, head: [['Composição (grupo)', 'Valor declarado', '% do total']],
+        body: p.pro.grupos.map(g => [g.grupo, fmtBRL(g.valor), p.total > 0 ? (100 * g.valor / p.total).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : '—']),
+        styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+        margin: { left: m.l, right: m.r } }) + 8;
+    }
+    if (p.pro.bens.length) {
+      y = autoTable(doc, { startY: y, head: [['Bem declarado (tipo)', 'Valor declarado']],
+        body: p.pro.bens.slice().sort((a, b) => b.valor - a.valor).map(b => [b.tipo, fmtBRL(b.valor)]),
+        styles: { font: 'NotoSans', fontSize: 7.5, cellPadding: 2 }, headStyles: { fillColor: [51, 65, 85], textColor: 255 }, columnStyles: { 1: { halign: 'right' } },
+        margin: { left: m.l, right: m.r } }) + 8;
+    }
+    return y;
+  }
+  function patRodapePDF(doc, y, algumAtipico) {
+    doc.setTextColor(90); y = bodyText(doc, PAT_FONTE + ' ' + PAT_AVISO + (algumAtipico ? ' (*) Valor atípico: valor como declarado ao TSE; pode conter erro de digitação. Confira no DivulgaCand.' : ''), y); doc.setTextColor(0);
+    return y;
+  }
+  const patCelula = p => (!p || !p.ok) ? '—' : (p.n ? fmtBRL(p.total) + ' · ' + p.n + (p.n === 1 ? ' bem' : ' bens') : 'Nenhum bem') + (p.atipico ? ' *' : '');
+  /** Rodapé das tabelas com vários candidatos: fonte, aviso e, para cada valor atípico, a ressalva e o link do DivulgaCand. */
+  function patRodapeMulti(doc, y, ps) {
+    doc.setTextColor(90); y = bodyText(doc, 'Patrimônio declarado: ' + PAT_FONTE + ' ' + PAT_AVISO, y); doc.setTextColor(0);
+    for (const p of ps.filter(p => p && p.atipico)) {
+      doc.setTextColor(146, 64, 14); y = bodyText(doc, '(*) ' + (p.nome || 'nº ' + p.numero) + ' — ' + PAT_RESSALVA, y); doc.setTextColor(0);
+      if (p.link) y = patLink(doc, y - 4, p.link);
+    }
+    return y;
+  }
+  /** Seção completa de patrimônio para uma lista de candidatos (relatórios com vários candidatos). */
+  async function secaoPatrimonioPDF(doc, y, bookmarks, lista, titulo) {
+    const ps = await Promise.all(lista.map(c => patrimonioCand(c.cargo, c.numero, c.nome, c.sq)));
+    y = sectionTitle(doc, titulo || 'Patrimônio declarado (TSE 2026)', y, bookmarks, 'patrimonio', 120);
+    for (let i = 0; i < ps.length; i++) {
+      const c = lista[i];
+      y = writePatrimonioPDF(doc, y, ps[i], (c.rotulo ? c.rotulo + ' — ' : '') + (c.nome || ps[i].nome || ('nº ' + c.numero)) + ' (' + (CARGO_NOME[c.cargo] || c.cargo) + ', nº ' + c.numero + ')') + 4;
+    }
+    y = patRodapePDF(doc, y, ps.some(p => p.atipico));
+    return { y, ps };
+  }
+  /** Abas de Excel (só Assinatura): "Patrimônio declarado" (uma linha por candidato) e "Bens declarados" (tipo e valor). */
+  async function abasPatrimonioXlsx(add, lista) {
+    const ps = await Promise.all(lista.map(c => patrimonioCand(c.cargo, c.numero, c.nome, c.sq)));
+    const head = ['Cargo', 'Nº', 'Candidato', 'Partido', 'Total declarado (R$)', 'Nº de bens', 'Valor atípico', 'Confira no DivulgaCand',
+      'Total 2022 (R$)', 'Variação desde 2022 (%)', 'Total 2024 (R$)', 'Variação desde 2024 (%)'].concat(PAT_GRUPOS.map(g => g + ' (R$)'));
+    const rows = [head], bens = [['Cargo', 'Nº', 'Candidato', 'Tipo do bem', 'Valor declarado (R$)']];
+    ps.forEach((p, i) => {
+      const c = lista[i], nome = c.nome || p.nome || '';
+      if (!p.ok) { rows.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, '', 'indisponível']); return; }
+      const a22 = p.pro && p.pro.ant.find(a => a.ano === 2022), a24 = p.pro && p.pro.ant.find(a => a.ano === 2024);
+      const g = PAT_GRUPOS.map(n => { const x = p.pro && p.pro.grupos.find(y => y.grupo === n); return x ? x.valor : (p.pro ? 0 : ''); });
+      rows.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, p.partido, p.total, p.n, p.atipico ? PAT_RESSALVA : '', p.link || '',
+        a22 ? a22.total : '', a22 && a22.variacao != null ? a22.variacao : '', a24 ? a24.total : '', a24 && a24.variacao != null ? a24.variacao : ''].concat(g));
+      if (p.pro) for (const b of p.pro.bens.slice().sort((x, y) => y.valor - x.valor)) bens.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, b.tipo, b.valor]);
+    });
+    rows.push([], [PAT_FONTE], [PAT_AVISO]);
+    add('Patrimônio declarado', rows);
+    add('Bens declarados', bens);
+    return ps;
+  }
+
   async function writeCover(doc, title, scope, notes, photoUrls) {
     const { w, h } = pageSize(doc); const m = margins();
     try {
@@ -1069,6 +1223,7 @@
     const stats0 = computeKeyStats(tree, null, 'a');
     stats0.wins = 0; stats0.totalMun = tree.munList.length;
     y = writeKeyStatsBlock(doc, y, st.nome, stats0, munNames0);
+    y = (await secaoPatrimonioPDF(doc, y, bookmarks, [{ cargo, numero, nome: st.nome }])).y;
 
     let secCtx = null;
     if (wantSec) {
@@ -1198,6 +1353,7 @@
     const statsB = computeKeyStats(treeB, cmpRows, 'b');
     y = writeKeyStatsBlock(doc, y, 'A (' + stA.nome + ')', statsA, munNames);
     y = writeKeyStatsBlock(doc, y, 'B (' + stB.nome + ')', statsB, munNames);
+    y = (await secaoPatrimonioPDF(doc, y, bookmarks, [{ cargo, numero: aN, nome: stA.nome, rotulo: 'A' }, { cargo, numero: bN, nome: stB.nome, rotulo: 'B' }])).y;
 
     let secCtx = null;
     if (wantSec) {
@@ -1322,6 +1478,7 @@
     return { doc, stA, stB, treeA, treeB, cmpRows, aByI, bByI, winByI, geojson };
   }
 
+  const RESUMO_BLOCOS = () => [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente ' + ufEmRel(), 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]];
   async function buildResumo(spec) {
     // keep lightweight resumo from before (simplified)
     const opts = Object.assign({ landscape: false, hist: true }, spec.options || {});
@@ -1330,17 +1487,24 @@
     doc.addPage(); const tocPage = doc.internal.getCurrentPageInfo().pageNumber;
     const bookmarks = []; doc.addPage(); let y = margins().t;
     const blocks = spec.blocks || ['gov', 'sen', 'pres', 'fed', 'est', 'eleitos'];
-    function rowsFor(codigo, topN) {
+    function listFor(codigo, topN) {
       const { dados } = cargoDados(codigo);
       let list = sortedTodos(dados);
       if (topN) list = list.slice(0, topN);
-      return list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—')]);
+      return list;
     }
-    for (const [id, cod, label, top] of [['gov', 3, 'Governador', 0], ['sen', 5, 'Senado', 0], ['pres', 1, 'Presidente ' + ufEmRel(), 0], ['fed', 6, 'Dep. Federal (top)', 8], ['est', 7, 'Dep. Estadual (top)', 24]]) {
+    const todosPat = [];
+    for (const [id, cod, label, top] of RESUMO_BLOCOS()) {
       if (!blocks.includes(id)) continue;
+      const list = listFor(cod, top);
+      const ps = await Promise.all(list.map(k => patrimonioCand(cod, k.n, k.nome, k.sqcand || k.sq)));
+      list.forEach((k, i) => todosPat.push({ cargo: String(cod), numero: String(k.n), nome: k.nome || '', sq: ps[i].sq, p: ps[i] }));
       y = sectionTitle(doc, label, y, bookmarks);
-      y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.']], body: rowsFor(cod, top), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 10;
+      y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos', '%', 'Sit.', 'Patrimônio declarado']], body: list.map((k, i) => [String(i + 1), String(k.n), k.nome || '', k.partido || '', fmtN(k.vap), fmtP(k.pvap), k.eleito ? 'Eleito' : (k.st || '—'), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 7: { halign: 'right' } }, margin: { left: margins().l, right: margins().r } }) + 6;
+      y = patRodapeMulti(doc, y, ps) + 4;
     }
+    if (!relMun() && todosPat.length) y = (await secaoPatrimonioPDF(doc, y, bookmarks, todosPat, 'Patrimônio declarado — detalhe dos candidatos (Assinatura)')).y;
+    doc.__patCands = todosPat.length;
     writeToc(doc, bookmarks, tocPage);
     addFooterAll(doc, { subtitle: 'Resumo da eleição — ' + ufNomeRel() });
     return { doc };
@@ -1425,12 +1589,18 @@
     else {
       let munData = null;
       try { munData = await global.getJSON(mapaBaseRel() + '/mun/' + mun.cd + '.json'); } catch (_) {}
+      const todosPat = [];
       for (const cg of ['3', '5', '1', '6', '7']) {
-        const rows = (munData && munData.cargos && munData.cargos[cg]) || [];
+        const rows = ((munData && munData.cargos && munData.cargos[cg]) || []).slice(0, opts.topN || 10);
         if (!rows.length) continue;
+        const ps = await Promise.all(rows.map(r => patrimonioCand(cg, r.n, r.nm, r.sq)));
+        rows.forEach((r, i) => todosPat.push({ cargo: cg, numero: String(r.n), nome: r.nm || '', sq: ps[i].sq }));
         y = sectionTitle(doc, CARGO_NOME[cg] || cg, y, bookmarks);
-        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total ' + ufRel().toUpperCase()]], body: rows.slice(0, opts.topN || 10).map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t)]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, margin: { left: margins().l, right: margins().r } }) + 8;
+        y = autoTable(doc, { startY: y, head: [['#', 'Nº', 'Nome', 'Partido', 'Votos mun.', 'Total ' + ufRel().toUpperCase(), 'Patrimônio declarado']], body: rows.map((r, i) => [String(i + 1), String(r.n), r.nm || '', r.sg || '', fmtN(r.v), fmtN(r.t), patCelula(ps[i])]), styles: { font: 'NotoSans', fontSize: 8 }, headStyles: { fillColor: [30, 64, 120], textColor: 255 }, columnStyles: { 6: { halign: 'right' } }, margin: { left: margins().l, right: margins().r } }) + 6;
+        y = patRodapeMulti(doc, y, ps) + 4;
       }
+      if (!relMun() && todosPat.length) y = (await secaoPatrimonioPDF(doc, y, bookmarks, todosPat, 'Patrimônio declarado — detalhe dos candidatos (Assinatura)')).y;
+      doc.__patCands = todosPat.length;
       if (opts.secoes !== false) {
         try { y = await writeMunicipioSecoes(doc, y, mun, munData, bookmarks, opts); }
         catch (e) { y = bodyText(doc, 'Seções indisponíveis: ' + (e.message || e), y); }
@@ -1522,26 +1692,6 @@
   /* ---------- Excel (somente Assinatura) ---------- */
   // Aba "Patrimônio declarado" (TSE 2026): só tipo e valor de cada bem — o arquivo vem do bucket privado via Worker
   // (controle de plano no servidor). Sem acesso ou sem dados, a planilha sai sem a aba.
-  async function abaPatrimonio(add, cargo, numero) {
-    try {
-      if (!global.CMV || !global.CMV.getPrivate) return;
-      const idx = await global.getJSON(mapaBaseRel() + '/index.json');
-      const ent = ((idx.cargos && idx.cargos[cargo]) || []).find(c => String(c.n) === String(numero));
-      if (!ent || !ent.sq) return;
-      const arq = String(cargo) === '1' ? 'br' : ufRel();
-      const d = await global.CMV.getPrivate('patrimonio/2026/' + arq + '.json');
-      const c = d && d.c && d.c[String(ent.sq).replace(/^0+/, '')];
-      if (!c) return;
-      const bens = c.b || [];
-      const total = bens.reduce((a, x) => a + (Number(x[1]) || 0), 0);
-      const rows = [['Patrimônio declarado ao TSE — eleição 2026'], ['Total declarado (R$)', Math.round(total * 100) / 100], ['Quantidade de bens', bens.length], []];
-      if (bens.length) { rows.push(['Tipo do bem', 'Valor declarado (R$)']); for (const [cd, v] of bens) rows.push([(d.tipos && d.tipos[cd]) || 'Outros', v]); }
-      else rows.push(['Nenhum bem declarado']);
-      if (c.ant && c.ant.length) { rows.push([], ['Eleições anteriores', 'Total declarado (R$)', 'Variação até 2026']); for (const a of c.ant) rows.push([String(a.ano) + (a.cargo ? ' — ' + a.cargo + (a.ue ? ' (' + a.ue + ')' : '') : ''), a.t, a.t > 0 ? Math.round((total - a.t) / a.t * 1000) / 10 + '%' : '—']); }
-      rows.push([], ['Fonte: ' + (d.fonte || 'TSE — Dados Abertos')], [d.aviso || 'Valor declarado pelo próprio candidato, em geral pelo valor de aquisição.']);
-      add('Patrimônio declarado', rows);
-    } catch (_) { /* sem Assinatura ou sem dados: segue sem a aba */ }
-  }
   async function buildExcelBook(s) {
     const X = await global.CMV.loadXlsx();
     const wb = X.utils.book_new();
@@ -1576,7 +1726,7 @@
           add('Seções', rows);
         }
       }
-      await abaPatrimonio(add, cargo, numero);
+      await abasPatrimonioXlsx(add, [{ cargo, numero, nome: st.nome }]);
     } else if (t === 'comparar') {
       await ensureCargoEstado(cargo);
       const stA = candState(cargo, s.a), stB = candState(cargo, s.b);
@@ -1589,22 +1739,35 @@
       add('Municípios', [['Município', 'Votos A', 'Votos B', 'Diferença (A−B)']].concat([...ids].map(i => { const a = (tA.byI.get(i) || {}).v || 0, b = (tB.byI.get(i) || {}).v || 0; return [munNm.get(i) || i, a, b, a - b]; }).sort((x, y) => (y[1] + y[2]) - (x[1] + x[2]))));
       add('Locais A', linhasLocais(tA, 'A'));
       add('Locais B', linhasLocais(tB, 'B'));
+      await abasPatrimonioXlsx(add, [{ cargo, numero: String(s.a), nome: stA.nome }, { cargo, numero: String(s.b), nome: stB.nome }]);
     } else if (t === 'municipio') {
       const mun = (munIdx.muns || []).find(m => String(m.cd) === String(s.cd || s.mun));
       info.push(['Município', mun ? mun.nm : '']);
       add('Info', info);
       const md = mun ? await global.getJSON(mapaBaseRel() + '/mun/' + mun.cd + '.json').catch(() => null) : null;
+      const lista = [];
       for (const cg of ['3', '5', '1', '6', '7']) {
         const rows = (md && md.cargos && md.cargos[cg]) || [];
-        if (rows.length) add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos no município', 'Total ' + ufRel().toUpperCase()]].concat(rows.map(r => [r.n, r.nm, r.sg, r.v, r.t])));
+        if (!rows.length) continue;
+        const ps = await Promise.all(rows.map(r => patrimonioCand(cg, r.n, r.nm, r.sq)));
+        rows.forEach((r, i) => lista.push({ cargo: cg, numero: String(r.n), nome: r.nm || '', sq: ps[i].sq }));
+        add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos no município', 'Total ' + ufRel().toUpperCase(), 'Patrimônio declarado (R$)', 'Nº de bens', 'Valor atípico']]
+          .concat(rows.map((r, i) => [r.n, r.nm, r.sg, r.v, r.t, ps[i].ok ? ps[i].total : '', ps[i].ok ? ps[i].n : '', ps[i].atipico ? 'sim' : ''])));
       }
+      await abasPatrimonioXlsx(add, lista);
     } else {
       add('Info', info);
       const idx = await global.getJSON(mapaBaseRel() + '/index.json');
+      const lista = [];
       for (const cg of ['3', '5', '1', '6', '7']) {
-        const lst = (idx.cargos && idx.cargos[cg]) || [];
-        if (lst.length) add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos']].concat(lst.map(c => [c.n, c.nm, c.sg, Number(c.t) || 0]).sort((a, b) => b[3] - a[3])));
+        const lst = ((idx.cargos && idx.cargos[cg]) || []).slice().sort((a, b) => (Number(b.t) || 0) - (Number(a.t) || 0));
+        if (!lst.length) continue;
+        const ps = await Promise.all(lst.map(c => patrimonioCand(cg, c.n, c.nm, c.sq)));
+        lst.forEach((c, i) => lista.push({ cargo: cg, numero: String(c.n), nome: c.nm || '', sq: ps[i].sq }));
+        add(CARGO_NOME[cg] || cg, [['Nº', 'Nome', 'Partido', 'Votos', 'Patrimônio declarado (R$)', 'Nº de bens', 'Valor atípico']]
+          .concat(lst.map((c, i) => [c.n, c.nm, c.sg, Number(c.t) || 0, ps[i].ok ? ps[i].total : '', ps[i].ok ? ps[i].n : '', ps[i].atipico ? 'sim' : ''])));
       }
+      await abasPatrimonioXlsx(add, lista);
     }
     return { X, wb };
   }

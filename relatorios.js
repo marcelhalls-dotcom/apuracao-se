@@ -1520,6 +1520,28 @@
   }
 
   /* ---------- Excel (somente Assinatura) ---------- */
+  // Aba "Patrimônio declarado" (TSE 2026): só tipo e valor de cada bem — o arquivo vem do bucket privado via Worker
+  // (controle de plano no servidor). Sem acesso ou sem dados, a planilha sai sem a aba.
+  async function abaPatrimonio(add, cargo, numero) {
+    try {
+      if (!global.CMV || !global.CMV.getPrivate) return;
+      const idx = await global.getJSON(mapaBaseRel() + '/index.json');
+      const ent = ((idx.cargos && idx.cargos[cargo]) || []).find(c => String(c.n) === String(numero));
+      if (!ent || !ent.sq) return;
+      const arq = String(cargo) === '1' ? 'br' : ufRel();
+      const d = await global.CMV.getPrivate('patrimonio/2026/' + arq + '.json');
+      const c = d && d.c && d.c[String(ent.sq).replace(/^0+/, '')];
+      if (!c) return;
+      const bens = c.b || [];
+      const total = bens.reduce((a, x) => a + (Number(x[1]) || 0), 0);
+      const rows = [['Patrimônio declarado ao TSE — eleição 2026'], ['Total declarado (R$)', Math.round(total * 100) / 100], ['Quantidade de bens', bens.length], []];
+      if (bens.length) { rows.push(['Tipo do bem', 'Valor declarado (R$)']); for (const [cd, v] of bens) rows.push([(d.tipos && d.tipos[cd]) || 'Outros', v]); }
+      else rows.push(['Nenhum bem declarado']);
+      if (c.ant && c.ant.length) { rows.push([], ['Eleições anteriores', 'Total declarado (R$)', 'Variação até 2026']); for (const a of c.ant) rows.push([String(a.ano) + (a.cargo ? ' — ' + a.cargo + (a.ue ? ' (' + a.ue + ')' : '') : ''), a.t, a.t > 0 ? Math.round((total - a.t) / a.t * 1000) / 10 + '%' : '—']); }
+      rows.push([], ['Fonte: ' + (d.fonte || 'TSE — Dados Abertos')], [d.aviso || 'Valor declarado pelo próprio candidato, em geral pelo valor de aquisição.']);
+      add('Patrimônio declarado', rows);
+    } catch (_) { /* sem Assinatura ou sem dados: segue sem a aba */ }
+  }
   async function buildExcelBook(s) {
     const X = await global.CMV.loadXlsx();
     const wb = X.utils.book_new();
@@ -1554,6 +1576,7 @@
           add('Seções', rows);
         }
       }
+      await abaPatrimonio(add, cargo, numero);
     } else if (t === 'comparar') {
       await ensureCargoEstado(cargo);
       const stA = candState(cargo, s.a), stB = candState(cargo, s.b);

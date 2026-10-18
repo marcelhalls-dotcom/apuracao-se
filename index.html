@@ -1638,8 +1638,9 @@
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
 <script src="pwa.js?v=20261012dadosv1"></script>
 <script src="assinatura.js?v=20261012dadosv1"></script>
-<script src="relatorios.js?v=20261012dadosv1"></script>
-<script src="bairro.js?v=20261012dadosv1"></script>
+<script src="relatorios.js?v=20261018pat1"></script>
+<script src="bairro.js?v=20261018pat1"></script>
+<script src="ficha.js?v=20261018pat1"></script>
 <script>
 /* =====================================================================
    CONFIGURAÇÃO — edite aqui.
@@ -2229,8 +2230,17 @@ const FOTO_IO = ('IntersectionObserver' in window) ? new IntersectionObserver((e
 }, { rootMargin: '600px 0px' }) : null;
 function makeAvatar(sqcand, nome, uf, eleicao, sm) {
   const wrap = el('div', 'avatar' + (sm ? ' sm' : ''));
-  wrap.setAttribute('aria-hidden', 'true');
   wrap.textContent = iniciais(nome);
+  if (sqcand && /^\d{6,13}$/.test(String(sqcand))) {
+    // ficha do candidato (ficha.js): tocar na foto ou na linha abre o patrimônio declarado
+    wrap.dataset.fichaSq = String(sqcand);
+    wrap.dataset.fichaUf = fotoUfDe(uf, eleicao);
+    if (nome) wrap.dataset.fichaNome = nome;
+    wrap.setAttribute('role', 'button');
+    wrap.tabIndex = 0;
+    wrap.setAttribute('aria-label', 'Ver ficha e patrimônio declarado' + (nome ? ' de ' + nome : ''));
+    wrap.title = 'Ver ficha e patrimônio declarado';
+  } else wrap.setAttribute('aria-hidden', 'true');
   const url = fotoUrl(sqcand, uf, eleicao);
   if (!url) return wrap;
   const img = document.createElement('img');
@@ -2250,7 +2260,7 @@ function makeAvatar(sqcand, nome, uf, eleicao, sm) {
     if (!img.naturalWidth) return;
     img.dataset.shown = '1';
     wrap.textContent = '';
-    wrap.removeAttribute('aria-hidden');
+    if (!wrap.dataset.fichaSq) wrap.removeAttribute('aria-hidden');
     img.style.opacity = '1';
     img.style.position = 'static';
     if (!img.parentNode) wrap.appendChild(img);
@@ -3124,6 +3134,13 @@ function expandMapaCompact(raw, geo) {
   return data;
 }
 
+// botão "Ficha e patrimônio" no cabeçalho do mapa (sq vem do índice público do mapa)
+function fichaBtn(head, cargo, numero, nome) {
+  try {
+    const ent = ((MAPA_INDEX && MAPA_INDEX.cargos && MAPA_INDEX.cargos[String(cargo)]) || []).find(x => String(x.n) === String(numero));
+    if (ent && ent.sq && window.CMV_FICHA) head.appendChild(window.CMV_FICHA.botao(ent.sq, String(cargo) === '1' ? 'br' : currentUf, ent.nu || nome));
+  } catch (e) { console.warn('ficha', e); }
+}
 async function loadMapaCand(cargo, numero) {
   const pro = cmvPro();
   const key = `${currentUf}:${cargo}:${numero}:${pro ? 'pro' : 'mun'}`;
@@ -3885,6 +3902,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
       setResumo(resumoA, dataA, numero);
       headA.replaceChildren(document.createTextNode('A · ' + (dataA.nome || numero)));
       if (dataA.partido) headA.appendChild(el('span', 'sub', ' · ' + dataA.partido));
+      fichaBtn(headA, cargoPadrao, numero, dataA.nome);
       paintTree(bodyA, dataA, cargoPadrao);
       paintDiff();
       pushHash();
@@ -3906,6 +3924,7 @@ function renderMapaPanel(cargoCodigo, titulo, viewHint, panelOpts) {
       const lab = MAPA_CARGO_LABEL[String(cargoB)] || '';
       headB.replaceChildren(document.createTextNode('B · ' + (dataB.nome || numero)));
       headB.appendChild(el('span', 'sub', ' · ' + lab + (dataB.partido ? ' · ' + dataB.partido : '')));
+      fichaBtn(headB, cargoB, numero, dataB.nome);
       paintTree(bodyB, dataB, cargoB);
       paintDiff();
       pushHash();

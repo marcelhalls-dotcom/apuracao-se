@@ -236,7 +236,8 @@
   /** item: {nm, sg, nu, e, foto, v?, p?} */
   function lista(items, o = {}) {
     if (!items.length) return '<p class="bx-vazio">Sem votos registrados.</p>';
-    return `<ol class="bx-lista${o.compacta ? ' compacta' : ''}">${items.map((c, i) => `<li>
+    const fichaAttr = c => (c.fsq && /^\d{6,13}$/.test(String(c.fsq)) && /^[a-z]{2}$/.test(String(c.fuf || ''))) ? ` data-ficha-sq="${esc(String(c.fsq))}" data-ficha-uf="${esc(c.fuf)}" data-ficha-nome="${esc(titulo(c.nm))}" title="Ver ficha e patrimônio declarado"` : '';
+    return `<ol class="bx-lista${o.compacta ? ' compacta' : ''}">${items.map((c, i) => `<li${fichaAttr(c)}>
       <span class="bx-pos">${(o.start || 0) + i + 1}º</span>${o.compacta ? '' : fotoHtml(c.foto, c.nm)}
       <span class="bx-nome"><strong>${esc(titulo(c.nm))}</strong><small>${esc(c.sg)} · ${esc(c.nu)}</small>${c.v == null && travaVotos ? travaHtml(c.nm, 'n') : ''}</span>
       <span class="bx-dir">${c.v != null ? `<span class="bx-votos"><strong>${fmt(c.v)}</strong><small>${c.p}</small></span>` : (travaVotos ? travaHtml(c.nm, 'd') : '')}${badge(c.e, o.semEleito, c.s)}</span></li>`).join('')}</ol>`;
@@ -375,11 +376,11 @@
     for (const c of ordem) {
       let corpo;
       if (!t) {
-        const ref = i => { const r = l.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6] }; };
+        const ref = i => { const r = l.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6], fsq: r[5], fuf: r[0] === '1' ? 'br' : uf }; };
         const src = usaBairro ? l.top[bi] : l.mun;
         corpo = msg + t2(c) + lista((src[c] || []).map(ref));
       } else {
-        const ref = (i, v, tot) => { const r = t.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6], v, p: pct(v, tot) }; };
+        const ref = (i, v, tot) => { const r = t.c[i]; return { nm: r[1], sg: r[2], nu: r[3], e: r[4], foto: fotoC(r[0], r[5]), s: r[6], v, p: pct(v, tot), fsq: r[5], fuf: r[0] === '1' ? 'br' : uf }; };
         const B = tb >= 0 && t.top[tb].aptos >= MIN_APTOS ? t.top[tb][c] : (tb >= 0 ? t.top[tb][c] : t.mun[c]);
         const info = tb >= 0 ? `<p class="bx-note">${fmt(t.top[tb].aptos)} eleitores aptos · ${t.top[tb].nloc} ${t.top[tb].nloc === 1 ? 'local' : 'locais'} de votação · % dos votos nominais do cargo no bairro.</p>` : msg;
         if (!B) { corpo = aviso('Sem votos registrados.', 'info'); }

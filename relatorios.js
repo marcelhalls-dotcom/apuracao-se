@@ -2473,6 +2473,7 @@
     applySpecToUI, applyHashFromLocation, BLOCKS, CARGO_NOME,
     buildChoroplethSVG, buildVoteTree, // exposed for mapa panel reuse
     loadSecaoMeta, loadSecaoCand,
+    buildExcelBook, // testes automatizados (o Excel continua só para Assinatura: excelAndDownload + dados privados com controle de plano)
   };
 
   function autoBoot() {

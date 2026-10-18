@@ -988,7 +988,7 @@
   async function patrimonioCand(cargo, numero, nomeHint, sqHint) {
     const arq = String(cargo) === '1' ? 'br' : ufRel();
     const sq = await patSq(cargo, numero, sqHint);
-    const base = { cargo: String(cargo), numero: String(numero), nome: nomeHint || '', arq, sq, ok: false };
+    const base = { cargo: String(cargo), numero: String(numero), nome: nomeHint || '', arq, sq, ok: false, legenda: /^[67]$/.test(String(cargo)) && String(numero).length === 2 };
     if (!sq) return base;
     let P; try { P = await patPublico(arq); } catch (_) { return base; }
     const e = P && P.c && P.c[sq];
@@ -1010,7 +1010,6 @@
   }
   const patVarTxt = a => `${a.ano} (${a.cargo || '—'}${a.ue ? ', ' + a.ue : ''}${a.uf ? ' · ' + a.uf : ''}): ${fmtBRL(a.total)} em ${a.n || 0} ${a.n === 1 ? 'bem' : 'bens'}`
     + (a.variacao != null ? ` → variação ${a.variacao >= 0 ? '+' : ''}${a.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% até 2026` : ' (sem bens declarados; variação não calculável)');
-  const patTotalCelula = p => (!p || !p.ok) ? '—' : (p.n ? fmtBRL(p.total) : 'Nenhum bem') + (p.atipico ? ' *' : '');
   function patLink(doc, y, url) {
     const m = margins(); const { h } = pageSize(doc);
     if (y > h - m.b) { doc.addPage(); y = m.t; }
@@ -1028,7 +1027,7 @@
   function writePatrimonioPDF(doc, y, p, rotulo) {
     const m = margins();
     if (rotulo) { if (y > pageSize(doc).h - 120) { doc.addPage(); y = m.t; } doc.setFont('NotoSans', 'bold'); doc.setFontSize(10.5); doc.text(pdfSafe(rotulo), m.l, y); y += 14; }
-    if (!p || !p.ok) return bodyText(doc, 'Patrimônio declarado: indisponível para este candidato nos dados do TSE.', y);
+    if (!p || !p.ok) return bodyText(doc, p && p.legenda ? 'Voto de legenda (partido): não há patrimônio declarado.' : 'Patrimônio declarado: sem registro desta candidatura nos dados de bens do TSE 2026.', y);
     doc.setFont('NotoSans', 'bold'); doc.setFontSize(10);
     y = bodyText(doc, p.n ? `Patrimônio declarado: ${fmtBRL(p.total)} — ${p.n} ${p.n === 1 ? 'bem declarado' : 'bens declarados'} no registro da candidatura de 2026.` : 'Patrimônio declarado: nenhum bem declarado no registro da candidatura de 2026.', y);
     if (p.atipico) y = patAtipicoPDF(doc, y, p);
@@ -1056,7 +1055,7 @@
     doc.setTextColor(90); y = bodyText(doc, PAT_FONTE + ' ' + PAT_AVISO + (algumAtipico ? ' (*) Valor atípico: valor como declarado ao TSE; pode conter erro de digitação. Confira no DivulgaCand.' : ''), y); doc.setTextColor(0);
     return y;
   }
-  const patCelula = p => (!p || !p.ok) ? '—' : (p.n ? fmtBRL(p.total) + ' · ' + p.n + (p.n === 1 ? ' bem' : ' bens') : 'Nenhum bem') + (p.atipico ? ' *' : '');
+  const patCelula = p => (!p || !p.ok) ? (p && p.legenda ? 'legenda' : 'sem registro no TSE') : (p.n ? fmtBRL(p.total) + ' · ' + p.n + (p.n === 1 ? ' bem' : ' bens') : 'Nenhum bem') + (p.atipico ? ' *' : '');
   /** Rodapé das tabelas com vários candidatos: fonte, aviso e, para cada valor atípico, a ressalva e o link do DivulgaCand. */
   function patRodapeMulti(doc, y, ps) {
     doc.setTextColor(90); y = bodyText(doc, 'Patrimônio declarado: ' + PAT_FONTE + ' ' + PAT_AVISO, y); doc.setTextColor(0);
@@ -1085,7 +1084,7 @@
     const rows = [head], bens = [['Cargo', 'Nº', 'Candidato', 'Tipo do bem', 'Valor declarado (R$)']];
     ps.forEach((p, i) => {
       const c = lista[i], nome = c.nome || p.nome || '';
-      if (!p.ok) { rows.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, '', 'indisponível']); return; }
+      if (!p.ok) { rows.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, '', p.legenda ? 'voto de legenda' : 'sem registro desta candidatura nos dados de bens do TSE 2026']); return; }
       const a22 = p.pro && p.pro.ant.find(a => a.ano === 2022), a24 = p.pro && p.pro.ant.find(a => a.ano === 2024);
       const g = PAT_GRUPOS.map(n => { const x = p.pro && p.pro.grupos.find(y => y.grupo === n); return x ? x.valor : (p.pro ? 0 : ''); });
       rows.push([CARGO_NOME[c.cargo] || c.cargo, c.numero, nome, p.partido, p.total, p.n, p.atipico ? PAT_RESSALVA : '', p.link || '',

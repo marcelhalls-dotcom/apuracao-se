@@ -995,6 +995,22 @@
   .chat-panel { background: var(--bg-2); }
   .chat-head h2 { color: var(--text); }
 
+
+  /* ---------- Instagram (@cademeuvotobr): link simples, SVG inline, sem embed/script do Meta ---------- */
+  .hdr-ig {
+    display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 999px;
+    color: var(--text); border: 1px solid var(--line-2); background: rgba(148,163,184,.06); text-decoration: none;
+  }
+  .hdr-ig svg { width: 19px; height: 19px; }
+  .hdr-ig:hover, .hdr-ig:focus-visible { color: #fff; border-color: transparent; background: linear-gradient(45deg, #F58529, #DD2A7B 55%, #8134AF); }
+  .drawer-panel a.drawer-ig { gap: 10px; }
+  .drawer-panel a.drawer-ig svg { width: 20px; height: 20px; flex: none; }
+  .site-footer a.ft-ig { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 7px 14px 7px 10px; border: 1px solid var(--line-2); border-radius: 999px; color: var(--text); font-weight: 600; }
+  .site-footer a.ft-ig svg { width: 18px; height: 18px; flex: none; }
+  .site-footer a.ft-ig:hover, .site-footer a.ft-ig:focus-visible { color: #fff; border-color: transparent; background: linear-gradient(45deg, #F58529, #DD2A7B 55%, #8134AF); }
+  .site-footer a.ft-ig-txt { display: inline-flex; align-items: center; gap: 6px; }
+  .site-footer a.ft-ig-txt svg { width: 15px; height: 15px; flex: none; }
+
   /* ---------- responsivo ---------- */
   @media (max-width: 1060px) {
     .primary-nav { display: none; }
@@ -1045,6 +1061,11 @@
     .site-header #status.status { padding: 6px; min-width: 36px; justify-content: center; }
   }
   @media (max-width: 340px) { .brand-word { display: none; } }
+  /* telas bem estreitas: o ícone do Instagram sai do topo (segue no menu ☰ e no rodapé) para o ☰ não ser espremido */
+  .hamburger { flex: none; }
+  @media (max-width: 380px) { .hdr-ig { display: none; } }
+  @media (min-width: 431px) and (max-width: 620px) { .hdr-ig { display: none; } }  /* aqui o status mostra texto e o "Planos" volta: sem espaço */
+  @media (max-width: 1120px) { .hdr-tools:has(.cmv-badge) .hdr-ig { display: none; } }  /* assinante: nome + selo ocupam o espaço */
 
 
   /* ---------- áreas seguras (iPhone com Dynamic Island/notch e celulares com recorte) ----------
@@ -1104,6 +1125,7 @@
           </div>
         </div>
       </div>
+      <a class="hdr-ig" href="https://www.instagram.com/cademeuvotobr/" target="_blank" rel="noopener noreferrer" aria-label="Instagram do Cadê Meu Voto (@cademeuvotobr), abre em nova aba" title="Siga @cademeuvotobr no Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg></a>
       <a class="btn-cta" href="#planos" data-view="planos">Planos</a>
       <button type="button" class="hamburger" id="nav-toggle" aria-controls="nav-drawer" aria-expanded="false" aria-label="Abrir menu">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -1151,6 +1173,7 @@
     <a href="#sobre" data-view="sobre">Sobre e metodologia</a>
     <a href="#privacidade" data-view="privacidade">Privacidade</a>
     <a href="#termos" data-view="termos">Termos de uso</a>
+    <a class="drawer-ig" href="https://www.instagram.com/cademeuvotobr/" target="_blank" rel="noopener noreferrer" data-close-drawer aria-label="Instagram do Cadê Meu Voto (@cademeuvotobr), abre em nova aba"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg><span>Instagram @cademeuvotobr</span></a>
   </div>
 </div>
 
@@ -1531,6 +1554,7 @@
       </a>
       <p>Dados eleitorais oficiais, organizados até a seção eleitoral.</p>
       <p class="ft-disc">Projeto independente, sem vínculo com o TSE ou partidos.</p>
+      <a class="ft-ig" href="https://www.instagram.com/cademeuvotobr/" target="_blank" rel="noopener noreferrer" aria-label="Siga o Cadê Meu Voto no Instagram (@cademeuvotobr), abre em nova aba"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg><span>@cademeuvotobr</span></a>
     </div>
     <div>
       <h4>Resultados</h4>
@@ -1542,7 +1566,7 @@
     </div>
     <div>
       <h4>Cadê Meu Voto</h4>
-      <a href="#planos">Planos</a><a href="#ajuda">Ajuda e contato</a><a href="#sobre">Sobre e metodologia</a><a href="#privacidade">Privacidade</a><a href="#termos">Termos de uso</a>
+      <a href="#planos">Planos</a><a href="#ajuda">Ajuda e contato</a><a href="#sobre">Sobre e metodologia</a><a href="#privacidade">Privacidade</a><a href="#termos">Termos de uso</a><a class="ft-ig-txt" href="https://www.instagram.com/cademeuvotobr/" target="_blank" rel="noopener noreferrer" aria-label="Instagram do Cadê Meu Voto (@cademeuvotobr), abre em nova aba"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>Instagram</a>
     </div>
   </div>
   <div class="ft-bottom">

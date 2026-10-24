@@ -21,7 +21,7 @@
   let silAudio = null;
   function destravar() {
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
-    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc8'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
+    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc9'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!ctx && AC) ctx = new AC(); if (ctx) { if (ctx.state !== 'running') { const pr = ctx.resume(); if (pr && pr.catch) pr.catch(() => {}); }
       const buf = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(0); } } catch (_) {}
   }
@@ -30,7 +30,7 @@
   const MUS = (() => {
     const LOOK = 0.15, VOL = 0.2;
     let bus = null, tr = null, tm = null, passo = 0, prox = 0, tocando = false, querida = false;
-    function tick() { if (!ctx || ctx.state !== 'running') return; while (prox < ctx.currentTime + LOOK) { tr.agenda(passo, prox); prox += tr.PASSO; passo = (passo + 1) % tr.N; } }
+    function tick() { if (!ctx || ctx.state !== 'running') return; if (prox < ctx.currentTime) prox = ctx.currentTime + 0.03; /* nunca despeja atraso acumulado */ while (prox < ctx.currentTime + LOOK) { tr.agenda(passo, prox); prox += tr.PASSO; passo = (passo + 1) % tr.N; } }
     function iniciar(atraso = 0) {
       querida = true; if (mudo || tocando || !ctx || document.hidden || !window.CMVTrilha) return;
       if (!bus) { bus = ctx.createGain(); bus.connect(ctx.destination); tr = CMVTrilha(ctx, bus); }
@@ -40,11 +40,19 @@
     function parar(esquecer) { if (esquecer) querida = false; if (!tocando) return; tocando = false; clearInterval(tm); tm = null;
       try { bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setTargetAtTime(0, ctx.currentTime, 0.03); } catch (_) {} }
     function retomar() { if (querida && !tocando) iniciar(); }
-    function abaixar() { if (!tocando) return; const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t);
-      bus.gain.linearRampToValueAtTime(VOL * 0.4, t + 0.08); bus.gain.setValueAtTime(VOL * 0.4, t + 1.5); bus.gain.linearRampToValueAtTime(VOL, t + 2.1); }
+    // ducking idempotente: um único envelope; golpes seguidos só estendem o fim (nunca lê gain.value durante automação).
+    let duckFim = 0;
+    function abaixar() {
+      if (!tocando) return; const t = ctx.currentTime, g = bus.gain, BAIXO = VOL * 0.4, fim = t + 1.5;
+      const jaBaixo = t < duckFim + 0.6; duckFim = Math.max(duckFim, fim);
+      g.cancelScheduledValues(t);
+      if (jaBaixo) g.setValueAtTime(BAIXO, t); else { g.setValueAtTime(VOL, t); g.linearRampToValueAtTime(BAIXO, t + 0.08); }
+      g.setValueAtTime(BAIXO, duckFim); g.linearRampToValueAtTime(VOL, duckFim + 0.6);
+    }
     document.addEventListener('visibilitychange', () => { if (document.hidden) parar(false); });
-    return { iniciar, parar, retomar, abaixar };
+    return { iniciar, parar, retomar, abaixar, get ganho() { return bus ? bus.gain.value : null; }, get tocando() { return tocando; } };
   })();
+  window.__cmvMus = MUS; // diagnóstico (somente leitura)
   // "ROUND 2... VOTE!": melodia 8-bit sintetizada + voz opcional do próprio navegador (speechSynthesis), só após o clique.
   function narrar() {
     som([392, 392, 523, 0, 659, 784, 1047], 0.13);
@@ -60,7 +68,7 @@
   function somEspecial(gesto) {
     if (mudo) return;
     MUS.abaixar();
-    if (gesto && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Vota-kên!'); u.lang = 'pt-BR'; u.rate = 1.25; u.pitch = 0.4; u.volume = 1; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (_) {} }
+    if (gesto && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Vota-kên!'); u.lang = 'pt-BR'; u.rate = 1.25; u.pitch = 0.4; u.volume = 1; if (!speechSynthesis.speaking) speechSynthesis.speak(u); } catch (_) {} }
     if (!ctx) return;
     try {
       const t0 = ctx.currentTime + 0.02, out = ctx.destination;
@@ -113,7 +121,7 @@
     const q = id => document.getElementById(id);
     q('ar-start').onclick = () => { destravar(); narrar(); MUS.iniciar(1.3); q('ar-intro').hidden = true; q('ar-sel').hidden = false; };
     q('ar-luta').onclick = () => { destravar(); MUS.iniciar(); q('ar-sel').hidden = true; som([392, 523, 659], 0.1); setTimeout(especial, 400); };
-    q('ar-especial').onclick = () => { destravar(); especial(true); };
+    q('ar-especial').onclick = e => { const bt = e.currentTarget; if (bt.disabled) return; bt.disabled = true; bt.setAttribute('aria-busy', 'true'); setTimeout(() => { bt.disabled = false; bt.removeAttribute('aria-busy'); }, 1200); destravar(); MUS.retomar(); especial(true); };
     q('ar-mudo').onclick = e => { mudo = !mudo; if (mudo && 'speechSynthesis' in window) speechSynthesis.cancel(); if (mudo) { pararSilencio(); MUS.parar(false); } else { destravar(); som([523, 784], 0.07); MUS.retomar(); } e.currentTarget.textContent = mudo ? '🔇 MUDO' : '🔊 SOM'; e.currentTarget.setAttribute('aria-pressed', String(mudo)); };
     q('ar-voltar').onclick = () => fechar();
     return el;

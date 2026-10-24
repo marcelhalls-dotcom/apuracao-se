@@ -89,6 +89,7 @@
     if (eleitoL) man = 'Lula eleito, segundo o TSE'; else if (eleitoF) man = 'Flávio Bolsonaro eleito, segundo o TSE';
     else if (comecou) man = lider === 'l' ? 'Lula lidera' : lider === 'f' ? 'Flávio Bolsonaro lidera' : 'Empate';
     txt('manchete', man);
+    window.dispatchEvent(new CustomEvent('cmv:dados', { detail: { comecou, concluido, pl, pf, pst, man, eleitoL, eleitoF, lider, sim: SIM !== null, hora: d.hg ? `TSE ${d.dg || ''} ${d.hg}` : '' } }));
     txt('dif', comecou ? `Diferença: ${int.format(Math.abs(L.vap - F.vap))} votos · válidos apurados: ${int.format(vv)}` : 'Os percentuais aparecem quando o TSE divulgar os primeiros boletins.');
 
     // Abstenção ao vivo: abstenções ÷ eleitores das seções já apuradas (TSE).

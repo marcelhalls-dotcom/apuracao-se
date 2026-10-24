@@ -1,4 +1,4 @@
-/* Cadê Meu Voto · Modo Arcade: cena em canvas (pixel art 100% original, gerada por código).
+/* Cadê Meu Voto · Modo Arcade: cena em canvas (Esplanada dos Ministérios) (pixel art 100% original, gerada por código).
  * Lutadores idênticos e espelhados (só a faixa muda), praça com público genérico e urna estilizada. Sem imagens externas. */
 (function () {
   'use strict';
@@ -87,22 +87,37 @@
   const PUB = ['#6b7280', '#8b5e3c', '#a16207', '#0f766e', '#4d7c0f', '#78716c', '#d6d3d1', '#57534e', '#92400e', '#7c6f9b', '#c2a26b', '#3f6f5e'];
   const PELE = ['#5c3a24', '#8a5a3b', '#b07a52', '#d1a07a', '#e6c2a0'];
   let fundo = null, publico = [];
+  // Esplanada dos Ministérios ao pôr do sol: simétrica em torno do eixo central (x = 180 no fundo de 360 px).
   function montaFundo() {
-    const c = document.createElement('canvas'); c.width = W + 40; c.height = H; const x = c.getContext('2d');
-    // céu de fim de tarde com faixas (dither)
-    const ceu = ['#2a1b4d', '#3d2463', '#5b2f73', '#86407a', '#b8577a', '#e07c6c', '#f2a35e'];
-    ceu.forEach((cor, i) => { x.fillStyle = cor; x.fillRect(0, i * 12, W + 40, 13); if (i) for (let k = 0; k < W + 40; k += 2) { x.fillStyle = ceu[i - 1]; x.fillRect(k + (i % 2), i * 12, 1, 1); } });
-    x.fillStyle = '#ffd98a'; x.fillRect(250, 50, 14, 14); x.fillStyle = '#ffe9b8'; x.fillRect(252, 52, 10, 10); // sol
-    // prédios distantes
-    const r = rng(7); for (let i = 0; i < 26; i++) { const w = 10 + r() * 16, h = 20 + r() * 40, px = i * 14 - 6; x.fillStyle = '#2b2440'; x.fillRect(px, 92 - h, w, h); x.fillStyle = '#3a3157'; x.fillRect(px, 92 - h, 2, h);
-      x.fillStyle = '#f5c56b'; for (let yy = 96 - h; yy < 88; yy += 5) for (let xx = px + 3; xx < px + w - 2; xx += 4) if (r() > 0.6) x.fillRect(xx, yy, 1, 2); }
-    // palmeiras / árvores da praça
-    for (const px of [30, 290]) { x.fillStyle = '#4a3222'; x.fillRect(px, 62, 3, 40); x.fillStyle = '#1f4d2c'; for (let k = 0; k < 6; k++) { x.fillRect(px - 12 + k * 4, 58 + (k % 2) * 3, 6, 3); } x.fillStyle = '#2f6b3d'; x.fillRect(px - 6, 56, 14, 4); }
+    const FW = W + 40, C = FW / 2, c = document.createElement('canvas'); c.width = FW; c.height = H; const x = c.getContext('2d');
+    const r = (a, b, w, h, cor) => { x.fillStyle = cor; x.fillRect(a, b, w, h); };
+    const esp = (a, b, w, h, cor) => { r(a, b, w, h, cor); r(FW - a - w, b, w, h, cor); }; // desenha e espelha
+    const ceu = ['#2a1b4d', '#3d2463', '#5b2f73', '#86407a', '#b8577a', '#e07c6c', '#f2a35e', '#f7c072'];
+    ceu.forEach((cor, i) => { r(0, i * 11, FW, 12, cor); if (i) for (let k = 0; k < FW; k += 2) r(k + (i % 2), i * 11, 1, 1, ceu[i - 1]); });
+    // sol baixo, centralizado atrás das torres
+    for (let yy = -9; yy <= 9; yy++) { const w = Math.round(Math.sqrt(81 - yy * yy)); r(C - w, 70 + yy, w * 2, 1, yy < -3 ? '#ffe9b8' : '#ffd98a'); }
+    // horizonte
+    r(0, 86, FW, 6, '#4a2f5c');
+    // Congresso Nacional (centralizado): plataforma, torres gêmeas com passarela, cúpula convexa (Senado) e côncava (Câmara) em distâncias iguais do eixo
+    r(C - 74, 82, 148, 6, '#3a2a4e'); r(C - 74, 82, 148, 1, '#6b5580'); r(C - 74, 88, 148, 2, '#1d1428');
+    for (const tx of [C - 7, C + 2]) { r(tx, 36, 5, 46, '#3a2a4e'); r(tx, 36, 1, 46, '#7a6490'); for (let yy = 39; yy < 80; yy += 3) r(tx + 2, yy, 2, 1, '#f5c56b'); }
+    r(C - 2, 46, 4, 3, '#3a2a4e');
+    for (let yy = 0; yy <= 8; yy++) { const w = Math.round(16 * Math.sqrt(1 - (yy / 8.5) ** 2)); r(C - 52 - w, 82 - yy, w * 2, 1, yy > 6 ? '#6b5580' : '#3a2a4e'); } // convexa
+    for (let yy = 0; yy <= 8; yy++) { const w = Math.round(19 - yy * 1.3); r(C + 52 - w, 74 + yy, w * 2, 1, yy === 0 ? '#6b5580' : '#3a2a4e'); } // côncava
+    // blocos dos ministérios: idênticos e espelhados, em perspectiva até o ponto de fuga central
+    for (let i = 0; i < 7; i++) { const k = i / 7, w = Math.round(26 - k * 18), h = Math.round(40 - k * 28), bx = Math.round(4 + i * (110 / 7) + k * 18), by = 92 - h;
+      esp(bx, by, w, h, '#3b3550'); esp(bx, by, w, 1, '#8a7aa0'); esp(bx, by + h - 1, w, 1, '#1d1828');
+      for (let yy = by + 2; yy < by + h - 2; yy += Math.max(2, Math.round(4 - k * 2))) for (let xx = bx + 1; xx < bx + w - 1; xx += 2) if ((xx * 7 + yy * 3 + i) % 5) esp(xx, yy, 1, 1, '#f5c56b'); }
+    // gramado central da Esplanada (trapézio simétrico) com vias dos lados
+    for (let yy = 92; yy < 124; yy++) { const t = (yy - 92) / 32, hw = Math.round(14 + t * 120), rw = Math.round(4 + t * 22);
+      r(C - hw - rw, yy, rw, 1, '#3c3a44'); r(C + hw, yy, rw, 1, '#3c3a44'); r(C - hw, yy, hw * 2, 1, (yy % 4 < 2) ? '#3f7a32' : '#467f38'); }
+    r(0, 92, FW, 1, '#2b3b24');
     return c;
   }
-  function montaPublico() {
+  function montaPublico() { // público genérico, espelhado (mesmas cores dos dois lados), sem bandeiras
     const r = rng(42); publico = [];
-    for (let fila = 0; fila < 3; fila++) for (let i = 0; i < 64; i++) publico.push({ x: i * 5.4 + (fila % 2) * 2.5 + r() * 2 - 12, y: 104 + fila * 7, cor: PUB[Math.floor(r() * PUB.length)], pele: PELE[Math.floor(r() * PELE.length)], fase: r() * 6.28, f: fila });
+    for (let fila = 0; fila < 3; fila++) for (let i = 0; i < 30; i++) { const p = { x: i * 5.4 + (fila % 2) * 2.5 + r() * 2 - 12, y: 104 + fila * 7, cor: PUB[Math.floor(r() * PUB.length)], pele: PELE[Math.floor(r() * PELE.length)], fase: r() * 6.28, f: fila };
+      publico.push(p, Object.assign({}, p, { x: W - 4 - p.x, fase: p.fase + 1.3 })); }
   }
   function urna(x, t) { // urna eletrônica gigante estilizada (genérica)
     const ux = 132, uy = 76;
@@ -114,11 +129,11 @@
     x.fillStyle = '#f2f2f2'; x.fillRect(ux + 4, uy + 30, 12, 6); x.fillStyle = '#e07b2a'; x.fillRect(ux + 18, uy + 30, 12, 6); x.fillStyle = '#2fa84f'; x.fillRect(ux + 33, uy + 30, 18, 6); // branco, corrige, confirma
     x.fillStyle = '#6b6457'; x.fillRect(ux + 18, uy + 44, 20, 20); x.fillStyle = '#4a4539'; x.fillRect(ux + 34, uy + 44, 4, 20); // pedestal
   }
-  function chao(x) { // calçada de pedras portuguesas (ondas)
-    for (let y = 124; y < H; y++) for (let i = 0; i < W; i++) { const onda = Math.sin(i / 9 + y / 4) > 0.15; x.fillStyle = onda ? (y < 140 ? '#2b2b33' : '#1c1c22') : (y < 140 ? '#cfc8b8' : '#a9a293'); x.fillRect(i, y, 1, 1); }
+  function chao(x) { // gramado em faixas (corte de grama), simétrico
+    for (let y = 124; y < H; y++) { x.fillStyle = y < 140 ? '#3f7a32' : '#33662a'; x.fillRect(0, y, W, 1); }
+    for (let i = 0; i < W / 2; i += 20) { x.fillStyle = 'rgba(255,255,255,.06)'; x.fillRect(W / 2 + i, 124, 10, H - 124); x.fillRect(W / 2 - i - 10, 124, 10, H - 124); }
     x.fillStyle = '#05050a'; x.fillRect(0, 123, W, 1);
   }
-
   // ---------- loop ----------
   let cv, cx, raf = 0, t0 = 0, golpe = null, faiscas = [];
   const PX_L = 96, PX_F = W - 96, CHAO = 172; // posições simétricas

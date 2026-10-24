@@ -1,0 +1,68 @@
+@font-face{font-family:'Inter';src:url('/fonts/InterVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+:root{--bg:#0A1428;--card:#111E3A;--card-2:#162447;--line:rgba(148,163,184,.16);--text:#F1F5F9;--sub:#94A3B8;--accent:#60A5FA;
+--pt:#E4142C;--pl:#1C3F94;--pl-claro:#3B6FD8}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:960px;margin:0 auto;padding:12px 12px calc(24px + env(safe-area-inset-bottom))}
+a{color:var(--accent)}
+.topo{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:rgba(10,20,40,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.marca{color:var(--text);text-decoration:none;font-size:17px}.marca b{color:var(--accent)}
+.status{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status.vivo::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#22C55E;margin-right:6px;animation:pulsa 1.4s infinite}
+.status.erro{color:#F59E0B}
+@keyframes pulsa{50%{opacity:.3}}
+h1{font-size:20px;margin:14px 2px 10px;line-height:1.25}h1 small{display:block;font-size:13px;color:var(--sub);font-weight:500;margin-top:2px}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:15px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.rot{display:block;font-size:12px;color:var(--sub);margin-bottom:2px}
+.apur{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.apur b{font-size:24px}.barra-apur{height:10px;background:var(--card-2);border-radius:6px;overflow:hidden}
+.barra-apur i{display:block;height:100%;width:0;background:var(--accent);transition:width .6s}
+.atualiz{grid-column:1/-1;font-size:12px;color:var(--sub)}
+.aguardando{margin:12px 0;padding:12px;border-radius:10px;background:var(--card-2);text-align:center}
+.aguardando b{display:block;font-size:17px;margin-bottom:4px}.aguardando span{font-size:13px;color:var(--sub)}
+.manchete{margin:14px 0 8px;font-size:18px;text-align:center}
+.placar{position:relative;display:flex;height:42px;border-radius:10px;overflow:hidden;background:var(--card-2)}
+.bar{display:flex;align-items:center;transition:width .6s;min-width:0;font-weight:700;font-size:15px;white-space:nowrap}
+.bar span{padding:0 10px}
+.bar.lula{background:var(--pt);justify-content:flex-start}.bar.flavio{background:var(--pl);justify-content:flex-end}
+.placar .meio{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;opacity:.8}
+.dif{text-align:center;font-size:13px;color:var(--sub);margin-top:8px}
+.duelo{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:12px 0}
+.cand{background:var(--card);border-radius:14px;padding:12px 8px;text-align:center;border-top:6px solid}
+.cand.lula{border-color:var(--pt)}.cand.flavio{border-color:var(--pl-claro)}
+.cand img{width:100%;max-width:170px;height:auto;aspect-ratio:161/225;object-fit:cover;border-radius:10px;background:var(--card-2)}
+.nome{font-weight:800;font-size:14px;margin-top:8px}.nome small{display:block;color:var(--sub);font-weight:500;font-size:12px}
+.pct{font-size:28px;font-weight:800;margin-top:4px}.cand.lula .pct{color:#FF5A6E}.cand.flavio .pct{color:#7FA6FF}
+.votos{font-size:13px;color:var(--sub)}
+.sel{margin-top:6px;min-height:22px}.sel span{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#F59E0B;color:#111}
+.sel span.eleito{background:#22C55E}
+.x{font-size:20px;color:var(--sub);font-weight:700}
+.abst{border:1px solid rgba(245,158,11,.5);box-shadow:0 0 0 1px rgba(245,158,11,.15) inset}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpis div{background:var(--card-2);border-radius:10px;padding:10px}
+.kpis b{font-size:20px;display:block}.kpis small{font-size:11px;color:var(--sub)}
+.termo{margin:16px 0}.termo-rot{font-size:13px;margin-bottom:8px;font-weight:600}
+.termo-esc{position:relative;height:22px;border-radius:11px;background:linear-gradient(90deg,#334155,#1e293b)}
+.termo-esc .faixa{position:absolute;top:0;bottom:0;left:29.41%;width:58.82%;background:linear-gradient(90deg,rgba(228,20,44,.55),rgba(228,20,44,.9));border-radius:11px}
+.marca-atual{position:absolute;top:-6px;width:4px;height:34px;margin-left:-2px;background:#FDE047;border-radius:2px;box-shadow:0 0 6px #FDE047;transition:left .6s}
+.termo-leg{position:relative;height:18px;font-size:11px;color:var(--sub);margin-top:4px}
+.termo-leg span{position:absolute;transform:translateX(-50%)}
+.termo-leg span:nth-child(1){left:4%}.termo-leg span:nth-child(2){left:11.76%}.termo-leg span:nth-child(3){left:29.41%}.termo-leg span:nth-child(4){left:58.82%}.termo-leg span:nth-child(5){left:88.23%}
+.termo-txt{font-size:13px;color:var(--muted,#CBD5E1);margin:8px 0 0}
+.precisa{background:var(--card-2);border-radius:10px;padding:12px;text-align:center}
+.precisa b{display:block;font-size:30px;color:#FF5A6E;margin:2px 0}.precisa small{font-size:12px;color:var(--sub)}
+.conta{margin-top:14px;font-size:14px;line-height:1.5}.conta summary{font-weight:700;cursor:pointer}
+.conta ol{padding-left:20px;margin:8px 0}.conta li{margin:4px 0}
+code{background:#0b1224;padding:1px 6px;border-radius:6px;font-size:13px;white-space:normal}
+.nota{font-size:12px;color:var(--sub)}
+.btg{margin-top:14px;padding:12px;border-left:4px solid #F59E0B;background:rgba(245,158,11,.07);border-radius:8px;font-size:14px;line-height:1.5}
+.btg ul{padding-left:18px;margin:6px 0}
+.t1-res{font-size:13px;color:var(--sub);margin-bottom:10px}
+.t1-item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin:8px 0;font-size:14px}
+.t1-item .b{grid-column:1/-1;height:8px;background:var(--card-2);border-radius:4px;overflow:hidden}.t1-item .b i{display:block;height:100%}
+.t1-item small{color:var(--sub)}
+.fonte{font-size:12px;color:var(--sub);line-height:1.5}
+.sim{background:#7C2D12;color:#FED7AA;text-align:center;font-size:12px;padding:6px;font-weight:700}
+@media (min-width:720px){h1{font-size:26px}.pct{font-size:40px}.manchete{font-size:22px}.duelo{gap:20px}.cand img{max-width:220px}.kpis b{font-size:26px}}
+@media (max-width:380px){.kpis{grid-template-columns:1fr}.pct{font-size:24px}}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.cademeuvoto.com.br https://dados.cademeuvoto.com.br https://resultados.tse.jus.br https://cloudflareinsights.com http://localhost:8787; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apuração 2º turno — Presidente 2026 | Cadê Meu Voto</title>
+<meta name="description" content="Apuração ao vivo do 2º turno para Presidente (25/10/2026), dados oficiais do TSE, atualizada a cada 5 segundos. Lula × Flávio Bolsonaro e o fator abstenção.">
+<meta property="og:title" content="Apuração ao vivo — 2º turno Presidente 2026">
+<meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto-brasil.jpg">
+<meta property="og:url" content="https://cademeuvoto.com.br/2turno/">
+<link rel="canonical" href="https://cademeuvoto.com.br/2turno/">
+<link rel="icon" href="/favicon.svg?v=20261007br1" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261007pwa4">
+<link rel="manifest" href="/site.webmanifest?v=20261007pwa4">
+<meta name="theme-color" content="#0A1428">
+<link rel="stylesheet" href="/2turno/app.css?v=20261024t2a">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="/?painel=1">Cadê <b>Meu Voto</b></a>
+  <span id="status" class="status">carregando…</span>
+</header>
+<main>
+  <h1>2º turno · Presidente da República <small>25/10/2026 · Brasil</small></h1>
+
+  <section class="card" id="ao-vivo" aria-live="polite">
+    <div class="apur">
+      <div><span class="rot">Urnas apuradas</span><b id="pst">—</b></div>
+      <div class="barra-apur"><i id="pst-bar"></i></div>
+      <div class="atualiz"><span id="hora">—</span> · <span id="prox">atualiza a cada 5 s</span></div>
+    </div>
+    <div id="aguardando" class="aguardando" hidden>
+      <b>Aguardando início da apuração</b>
+      <span>As urnas fecham às 17h (horário de Brasília). A apuração aparece aqui automaticamente.</span>
+    </div>
+    <h2 id="manchete" class="manchete">—</h2>
+    <div class="placar" role="img" aria-label="Divisão dos votos válidos">
+      <div id="bar-l" class="bar lula" style="width:50%"><span id="bp-l"></span></div>
+      <div id="bar-f" class="bar flavio" style="width:50%"><span id="bp-f"></span></div>
+      <i class="meio" title="50%"></i>
+    </div>
+    <div class="dif" id="dif">—</div>
+  </section>
+
+  <section class="duelo">
+    <article class="cand lula">
+      <img src="/2turno/lula.jpeg" alt="Foto oficial de Lula (TSE)" width="161" height="225">
+      <div class="nome">LULA <small>13 · PT</small></div>
+      <div class="pct" id="pct-l">—</div>
+      <div class="votos" id="vot-l">—</div>
+      <div class="sel" id="sel-l"></div>
+    </article>
+    <div class="x">×</div>
+    <article class="cand flavio">
+      <img src="/2turno/flavio.jpeg" alt="Foto oficial de Flávio Bolsonaro (TSE)" width="161" height="225">
+      <div class="nome">FLÁVIO BOLSONARO <small>22 · PL</small></div>
+      <div class="pct" id="pct-f">—</div>
+      <div class="votos" id="vot-f">—</div>
+      <div class="sel" id="sel-f"></div>
+    </article>
+  </section>
+
+  <section class="card abst" id="abstencao">
+    <h2>O fator abstenção: o que Lula precisa para virar</h2>
+    <div class="kpis">
+      <div><span class="rot">Abstenção 1º turno</span><b id="a1">—</b><small id="a1n"></small></div>
+      <div><span class="rot">Abstenção 2º turno (ao vivo)</span><b id="a2">—</b><small id="a2n"></small></div>
+      <div><span class="rot">Variação</span><b id="da">—</b><small>pontos percentuais</small></div>
+    </div>
+
+    <div class="termo">
+      <div class="termo-rot">Queda de abstenção necessária para Lula virar (premissas do BTG Pactual)</div>
+      <div class="termo-esc">
+        <i class="faixa" title="Faixa do BTG: 3 a 13 p.p."></i>
+        <i class="marca-atual" id="termo-atual" hidden></i>
+      </div>
+      <div class="termo-leg"><span>sobe</span><span>0</span><span>−3 p.p.</span><span>−8</span><span>−13 p.p.</span></div>
+      <p class="termo-txt" id="termo-txt">A faixa vermelha é a queda de 3 a 13 p.p. que o BTG estima ser necessária para Lula empatar só com novos eleitores. Uma queda assim não tem precedente desde 2002. O marcador mostra a variação real, ao vivo.</p>
+    </div>
+
+    <div class="precisa" id="precisa-box">
+      <span class="rot">Ao vivo: dos votos válidos que ainda faltam apurar, Lula precisa de</span>
+      <b id="precisa">—</b>
+      <small id="precisa-txt">Disponível quando a apuração começar.</small>
+    </div>
+
+    <details class="conta" open>
+      <summary>A conta, em linguagem simples</summary>
+      <ol>
+        <li>No 1º turno, <b id="c-abs">33,5 milhões</b> de eleitores não votaram (<span id="c-pa">21,1%</span> do eleitorado, TSE).</li>
+        <li>Quem não votou no 1º turno e vota no 2º é um <b>novo eleitor</b> (uma “entrada”). Quem votou no 1º e falta no 2º é uma <b>saída</b>.</li>
+        <li>Cada entrada só ajuda Lula pela diferença entre a parte que vai para ele e a parte que vai para Flávio:<br>
+          <code>ganho líquido = entradas × (fatia Lula − fatia Flávio)</code></li>
+        <li>Exemplo: se 70% das entradas forem para Lula e 30% para Flávio, cada entrada vale <b>0,70 − 0,30 = 0,40</b> voto líquido.</li>
+        <li>Para zerar a vantagem do cenário central do BTG (~3,2 milhões): <code>3,2 mi ÷ 0,40 ≈ 8 milhões de entradas</code>, cerca de <b id="c-pp8">5 p.p.</b> do eleitorado.</li>
+        <li>Como parte de quem votou no 1º turno deixa de votar no 2º (as saídas), a conta sobe para algo como <b>12,5 milhões de entradas</b>. Na faixa do BTG, de <b>10 a 25 milhões</b>, isso equivale a uma queda de <b>3 a 13 p.p.</b> na abstenção.</li>
+      </ol>
+      <p class="nota">Itens 4 a 6 são uma conta ilustrativa feita sobre as premissas do BTG Pactual; não é projeção do Cadê Meu Voto. Dados ao vivo: TSE.</p>
+    </details>
+
+    <div class="btg">
+      <h3>Contexto: análise do BTG Pactual (23/10/2026)</h3>
+      <ul>
+        <li>Historicamente, a abstenção <b>sobe</b> no 2º turno. Uma queda expressiva em 2026 não teria precedente desde 2002.</li>
+        <li>Antes do efeito da abstenção: Flávio 52,1% × Lula 47,9%, vantagem de 5,05 milhões de votos.</li>
+        <li>Cenário central (5,5 milhões de eleitores entrando e 5 milhões deixando de votar): Flávio 51,3% × Lula 48,7%, vantagem de cerca de 3,2 milhões.</li>
+        <li>Flávio fica à frente nas 27 combinações testadas, com vantagem entre 300 mil e 4,7 milhões de votos.</li>
+        <li>Para Lula empatar só com novos eleitores, seriam necessárias de 10 a 25 milhões de entradas no 2º turno, ou seja, queda de 3 a 13 p.p. na abstenção, sem precedente na série histórica.</li>
+      </ul>
+      <p class="nota">Fonte: BTG Pactual, “Eleições 2026: abstenção pode aproximar disputa, mas cenários mantêm Flávio à frente”, 23/10/2026. Cenários são do banco, não resultados.</p>
+    </div>
+  </section>
+
+  <section class="card" id="turno1">
+    <h2>Resultado do 1º turno · Presidente (04/10/2026)</h2>
+    <div id="t1-res" class="t1-res">carregando…</div>
+    <div id="t1-lista" class="t1-lista"></div>
+  </section>
+
+  <p class="fonte">Fonte: TSE, <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a> (eleição 6258, 2º turno, e 6257, 1º turno). Percentuais sobre votos válidos. A página só diz “eleito” quando o TSE conclui a totalização. <a href="/?painel=1">Painel completo do Cadê Meu Voto →</a></p>
+</main>
+<script src="/2turno/app.js?v=20261024t2a"></script>
+</body>
+</html>

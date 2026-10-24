@@ -1,0 +1,1091 @@
+{
+  "titulo": "Checagem das falas: Flávio Bolsonaro × Lula",
+  "subtitulo": "Debate da TV Globo, 2º turno, 23/10/2026. Todas as falas checadas pelo g1 Fato ou Fake, com o mesmo critério para os dois candidatos.",
+  "data_debate": "2026-10-23",
+  "fonte_principal": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml",
+  "atualizado_em": "2026-10-24",
+  "metodologia": "1. Fonte do debate: íntegra oficial no g1/Globoplay e os 15 vídeos por bloco publicados pelo g1. Vídeos repostados por terceiros não são usados como fonte.\n2. Não foi possível obter transcrição ou legenda completa (o Globoplay exige autenticação). As falas reproduzidas são as citadas literalmente, ou resumidas quando longas, na checagem do g1 Fato ou Fake.\n3. Incluímos todas as falas checadas pelo Fato ou Fake, dos dois candidatos, sem seleção adicional. Uma checagem foi dividida em duas falas e algumas foram agrupadas.\n4. Correspondência de selos: #FATO = Verdadeiro; #NÃOÉBEMASSIM = Impreciso; #FAKE = Falso.\n5. O minuto exato de cada fala não está disponível sem transcrição; cada fala aponta para a íntegra, e a lista ao lado leva aos vídeos oficiais de cada bloco.\n6. Todos os links foram abertos em 24/10/2026. Nenhum número foi estimado ou inventado; nada aqui indica resultado da eleição.\nCobertura do g1: página ao vivo (https://g1.globo.com/politica/eleicoes/2026/ao-vivo/debate-globo-segundo-turno.ghtml); íntegra e trechos (https://g1.globo.com/politica/eleicoes/2026/noticia/2026/10/24/debate-presidencial-na-globo-entre-lula-pt-e-flavio-bolsonaro-pl-veja-a-integra-e-trechos.ghtml).",
+  "aviso": "Site independente, sem vínculo com o TSE, partidos ou candidatos.",
+  "fontes": [
+    {
+      "nome": "g1 Fato ou Fake",
+      "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "nome": "Globoplay – íntegra do debate (117 min)",
+      "url": "https://globoplay.globo.com/v/15118513/"
+    },
+    {
+      "nome": "g1 – playlist dos 15 blocos",
+      "url": "https://g1.globo.com/politica/eleicoes/2026/playlist/videos-debate-na-globo-2-turno-candidatos-a-presidente-lula-pt-flavio-bolsonaro-pl.ghtml"
+    }
+  ],
+  "falas": [
+    {
+      "id": 1,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "O vídeo de Bolsonaro suspirando não era deboche de quem estava sem ar; não havia vacina nem remédio.",
+      "veredito": "Falso",
+      "tema": "Saúde",
+      "explicacao": "O vídeo publicado é versão editada da live de 18/03/2021, com 30 s suprimidos; a vacinação começou em 17/01/2021.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Live original de 18/03/2021",
+          "url": "https://www.youtube.com/watch?v=xVWLlFdRNt8"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 2,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Pegamos o Brasil em 2019 com cerca de 14 mil obras inacabadas e entregamos com pouco mais de 8 mil.",
+      "veredito": "Verdadeiro",
+      "tema": "Infraestrutura",
+      "explicacao": "Auditoria do TCU de 2019 apontou 14.403 obras paralisadas; o painel do TCU registrava 8.674 em agosto de 2022.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 3,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "O TCU acaba de soltar relatório com mais de 11,5 mil obras paralisadas do atual governo.",
+      "veredito": "Falso",
+      "tema": "Infraestrutura",
+      "explicacao": "O painel do TCU indica 4.215 obras federais paralisadas em abril de 2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 4,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Foi o Bolsonaro que deu no mínimo R$ 600 do Bolsa Família.",
+      "veredito": "Impreciso",
+      "tema": "Políticas sociais",
+      "explicacao": "O piso de R$ 400 veio de MP do governo (MP 1.076/2021); a elevação a R$ 600 veio da EC 123/2022, promulgada pelo Congresso.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "EC 123/2022 (Planalto)",
+          "url": "https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc123.htm"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 5,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Cerca de 90 milhões sem esgoto tratado e 40 milhões sem água tratada; a bancada do PT votou contra o marco do saneamento.",
+      "veredito": "Verdadeiro",
+      "tema": "Saneamento",
+      "explicacao": "O PT votou contra nas duas Casas; cerca de 90 milhões não têm coleta de esgoto (Trata Brasil). O número sem água citado é maior que a estimativa mais recente.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Lei 14.026/2020 (Planalto)",
+          "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14026.htm"
+        },
+        {
+          "titulo": "Ranking do Saneamento 2026",
+          "url": "https://tratabrasil.org.br/ranking-do-saneamento-2026/"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 6,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Quem concluiu as obras da transposição e fez a água chegar ao Nordeste foi Jair Bolsonaro.",
+      "veredito": "Impreciso",
+      "tema": "Infraestrutura",
+      "explicacao": "Bolsonaro concluiu etapas do Eixo Norte, mas boa parte da obra já estava executada (86,3% em 2016) e ramais seguem em obra.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 7,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Instalamos mais de 21,3 mil pontos de internet, em mais de 3,1 mil cidades, para mais de 11 milhões de brasileiros.",
+      "veredito": "Impreciso",
+      "tema": "Infraestrutura",
+      "explicacao": "Os números de 2022 conferem (NIC.br), mas cerca de 11 mil conexões do Gesac já existiam em 2017.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 8,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Milei começou o governo com 211% de inflação; a taxa de juros chegou a 100%.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "Inflação de 12 meses de 211,4% em dez/2023; o BC argentino fixou juros de 100% ao ano em 18/12/2023.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 9,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Lula é o pai do Tigrinho, do cassino on-line; ele criou, ele liberou.",
+      "veredito": "Impreciso",
+      "tema": "Apostas",
+      "explicacao": "As apostas de quota fixa foram criadas pela Lei 13.756/2018; a lei de 2023, sancionada por Lula, regulamentou o setor e incluiu jogos on-line.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 10,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Meu concorrente chegou a dizer: 'Se a comida está cara, não compra'.",
+      "veredito": "Impreciso",
+      "tema": "Economia",
+      "explicacao": "Em entrevista a rádios da Bahia, Lula disse que o consumidor que desconfiar de preço alto pode não comprar; a frase citada não é literal.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 11,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Foi o CNJ que criou a audiência de custódia, quando era presidido por Ricardo Lewandowski.",
+      "veredito": "Verdadeiro",
+      "tema": "Segurança",
+      "explicacao": "As audiências foram criadas em 2015 por iniciativa do CNJ, então presidido por Lewandowski.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 12,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Lula votou contra a Constituição de 88, que criou o SUS.",
+      "veredito": "Verdadeiro",
+      "tema": "Saúde",
+      "explicacao": "O Diário da Assembleia Constituinte registra voto contrário de Lula, por orientação do PT; os petistas assinaram o texto.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 13,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "O atual governo está deixando uma dívida de R$ 11 trilhões.",
+      "veredito": "Verdadeiro",
+      "tema": "Dívida pública",
+      "explicacao": "Dívida Bruta do Governo Geral de R$ 11,1 tri em ago/2026 (Banco Central); inclui estados e municípios.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 14,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Em 2022, a previsão era que hoje tivéssemos juros em torno de 7%; hoje temos 14%.",
+      "veredito": "Impreciso",
+      "tema": "Economia",
+      "explicacao": "O Focus de out/2022 projetava 7,75% para o fim de 2025, não para 2026; a Selic atual é 13,75%, e projeções não são garantias.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 15,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Caso Ana Clara: era uma troca de tiros em comunidade conflagrada; o policial nem foi julgado.",
+      "veredito": "Impreciso",
+      "tema": "Segurança",
+      "explicacao": "A investigação do MP-RJ contradiz a versão de confronto; o policial de fato ainda não foi julgado (júri marcado para maio de 2027).",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 16,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Você gastou mais de R$ 405 bilhões para tentar se eleger; nada disso estava previsto na LOA.",
+      "veredito": "Impreciso",
+      "tema": "Dívida pública",
+      "explicacao": "R$ 405 bi é o 'Gastômetro' do Estadão; o Valor calcula R$ 270 bi e a IFI, R$ 300 bi.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 17,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Lula não atualizou a tabela SUS.",
+      "veredito": "Falso",
+      "tema": "Saúde",
+      "explicacao": "Lei sancionada em jan/2024 prevê revisão anual; portarias de dez/2024 e dez/2025 formalizaram reajustes.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 18,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "O atual governo fala que ladrão de celular não tem que ser preso porque é só para uma cervejinha.",
+      "veredito": "Falso",
+      "tema": "Segurança",
+      "explicacao": "A frase vem de vídeo editado que juntou dois trechos de entrevista de 2017; o TSE suspendeu propaganda com a montagem em 2022.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 19,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "O projeto sobre marcação de munição andou na Câmara; não tem nada a ver comigo e nem foi aprovado.",
+      "veredito": "Impreciso",
+      "tema": "Segurança",
+      "explicacao": "O PL 3.723/2019 foi aprovado na Câmara e tramita no Senado, onde Flávio se posicionou a favor dele ao menos duas vezes.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 20,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "São mais de 80 milhões de brasileiros com contas atrasadas.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "A Serasa registrou 83,9 milhões de inadimplentes em agosto de 2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 21,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "No governo Bolsonaro anistiamos quase 99% das dívidas do Fies e demos o maior reajuste da história aos professores, 33%.",
+      "veredito": "Impreciso",
+      "tema": "Educação",
+      "explicacao": "99% era o desconto máximo para parte dos devedores, não o total anistiado; o reajuste de 33,24% em 2022 seguiu regra legal, após piso congelado em 2021.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 22,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Os estados do Nordeste, administrados pelo PT e parceiros, são os mais violentos do Brasil.",
+      "veredito": "Verdadeiro",
+      "tema": "Segurança",
+      "explicacao": "As cidades com mais mortes violentas estão no Nordeste (FBSP); seis dos nove governadores são do PT ou aliados do MDB.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Anuário FBSP",
+          "url": "https://forumseguranca.org.br/anuario-brasileiro-seguranca-publica/"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 23,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Willer Tomaz é meu amigo, não meu sócio; o sócio dele é o advogado de Lula, Eugênio Aragão.",
+      "veredito": "Impreciso",
+      "tema": "Investigações",
+      "explicacao": "Aragão é sócio de Tomaz (Receita Federal), mas a PF aponta indícios de participação de Flávio em empresa ligada a Tomaz; há inquérito no STF.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 24,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "A espera para cirurgia de câncer de tireoide ultrapassou 700 dias.",
+      "veredito": "Verdadeiro",
+      "tema": "Saúde",
+      "explicacao": "Tempo médio de 719 dias em 2025 (RNDS); em 2022 era 1.121 dias.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 25,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Nós temos uma das maiores taxas de juros do mundo.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "Maior juro real do mundo (8,45%) e 4º maior nominal (13,75%) em set/2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 26,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "A barra de chocolate que tinha 120 g agora tem só 80 g.",
+      "veredito": "Impreciso",
+      "tema": "Economia",
+      "explicacao": "A reduflação existe desde o fim dos anos 1990 e já era registrada em 2022.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Folha / Lupa",
+          "url": "https://www1.folha.uol.com.br/poder/2026/10/flavio-bolsonaro-e-lula-citam-informacoes-falsas-exageradas-e-fora-de-contexto-no-debate-da-globo.shtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 27,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Lula já se colocou a favor de manter as saidinhas.",
+      "veredito": "Verdadeiro",
+      "tema": "Segurança",
+      "explicacao": "Lula vetou parcialmente o fim da saída temporária em 2024; o Congresso derrubou o veto.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 28,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Lula chamou Roberta Luchsinger de pilantra e disse que não a conhecia.",
+      "veredito": "Verdadeiro",
+      "tema": "Investigações",
+      "explicacao": "Lula negou conhecê-la em 27/08; publicações dela mostram os dois juntos antes disso.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 29,
+      "candidato": "Flávio Bolsonaro",
+      "trecho": "Eu vou criar a Casa da Mulher Brasileira.",
+      "veredito": "Falso",
+      "tema": "Mulheres",
+      "explicacao": "O programa já existe, com 13 unidades no país.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 30,
+      "candidato": "Lula",
+      "trecho": "Nós herdamos 6 mil obras paradas.",
+      "veredito": "Verdadeiro",
+      "tema": "Infraestrutura",
+      "explicacao": "O painel do TCU registrava 8.603 obras paralisadas em abril de 2023.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 31,
+      "candidato": "Lula",
+      "trecho": "Eu tinha acabado com a fome neste país em 2012.",
+      "veredito": "Impreciso",
+      "tema": "Políticas sociais",
+      "explicacao": "A subnutrição era 6,9% em 2012 (FAO); o Brasil saiu do Mapa da Fome em 2014, no governo Dilma.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 32,
+      "candidato": "Lula",
+      "trecho": "Voltei em 2023 com 33 milhões de pessoas passando fome.",
+      "veredito": "Verdadeiro",
+      "tema": "Políticas sociais",
+      "explicacao": "Inquérito da Rede Penssan (nov/2021 a abr/2022) apontou 33 milhões em situação de fome.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 33,
+      "candidato": "Lula",
+      "trecho": "Abrimos 700 novos mercados e o superávit comercial foi para quase R$ 85 bilhões.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "707 mercados abertos desde 2023; o valor é US$ 84,4 bi (previsão 2026), não reais; a campanha reconheceu a troca de moeda.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 34,
+      "candidato": "Lula",
+      "trecho": "Anunciamos um PAC de R$ 1,7 trilhão; quase R$ 800 bilhões já foram executados.",
+      "veredito": "Verdadeiro",
+      "tema": "Infraestrutura",
+      "explicacao": "O balanço do PAC mostra execução acima do citado; a maior parte vem do setor privado e de estatais.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 35,
+      "candidato": "Lula",
+      "trecho": "Eles anularam o Fundo Amazônia; fomos nós que fizemos o fundo funcionar.",
+      "veredito": "Verdadeiro",
+      "tema": "Meio ambiente",
+      "explicacao": "Fundo paralisado em abril de 2019; o STF mandou reativar em nov/2022 e decreto de jan/2023 o retomou.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Fundo Amazônia",
+          "url": "https://www.fundoamazonia.gov.br/pt/home/"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 36,
+      "candidato": "Lula",
+      "trecho": "O Tigrinho foi criado por vocês em 2022.",
+      "veredito": "Falso",
+      "tema": "Apostas",
+      "explicacao": "As apostas de quota fixa foram legalizadas pela Lei 13.756/2018; a regulamentação veio em 2023–2024.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 37,
+      "candidato": "Lula",
+      "trecho": "Fui presidente e não troquei o presidente do Banco Central; FHC trocou quatro vezes.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "Meirelles presidiu o BC de 2003 a 2011; FHC nomeou quatro presidentes.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 38,
+      "candidato": "Lula",
+      "trecho": "Na Argentina a pobreza chegou a 40%; o povo está comendo carne de burro.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "INDEC: 40,1% na posse de Milei; reportagem mostrou consumo de carne de burro na Patagônia.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "INDEC – pobreza",
+          "url": "https://www.indec.gob.ar/indec/web/Nivel4-Tema-4-46-152"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 39,
+      "candidato": "Lula",
+      "trecho": "Herdamos juros de 13% e estão em 13,75% com Banco Central independente.",
+      "veredito": "Impreciso",
+      "tema": "Economia",
+      "explicacao": "Em jan/2023 a Selic já era 13,75%; caiu a 10,50% e subiu depois, voltando a 13,75% em set/2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 40,
+      "candidato": "Lula",
+      "trecho": "Flávio discursou na Alerj defendendo miliciano e oferecendo condecoração a miliciano.",
+      "veredito": "Verdadeiro",
+      "tema": "Segurança",
+      "explicacao": "Flávio propôs homenagens a Adriano da Nóbrega e Ronald Pereira em 2003–2005.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 41,
+      "candidato": "Lula",
+      "trecho": "Por que você chamou o Bolsa Família de Bolsa Farelo?",
+      "veredito": "Verdadeiro",
+      "tema": "Políticas sociais",
+      "explicacao": "Post de Flávio de 24/06/2013 dizia que 'o PT perpetua a pobreza com o bolsa farelo'.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 42,
+      "candidato": "Lula",
+      "trecho": "O governo Bolsonaro gastou quase 30% a mais que nós no cartão corporativo.",
+      "veredito": "Falso",
+      "tema": "Gastos públicos",
+      "explicacao": "Nos primeiros 44 meses de cada mandato, a diferença foi de cerca de 4%, em valores corrigidos.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 43,
+      "candidato": "Lula",
+      "trecho": "No governo do pai dele, quem tomasse vacina ia virar gay, ia virar jacaré.",
+      "veredito": "Impreciso",
+      "tema": "Saúde",
+      "explicacao": "Jair Bolsonaro falou em 'virar jacaré' ao comentar o contrato da Pfizer em 2020; o g1 classificou a fala de Lula como 'não é bem assim'.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 44,
+      "candidato": "Lula",
+      "trecho": "Estamos fazendo a BR-319, que ninguém teve coragem de fazer.",
+      "veredito": "Impreciso",
+      "tema": "Infraestrutura",
+      "explicacao": "A rodovia foi inaugurada em 1976; a reconstrução está no novo PAC e as obras foram retomadas em 2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 45,
+      "candidato": "Lula",
+      "trecho": "Sem os governos do PT reajustando acima da inflação, o salário mínimo seria R$ 900.",
+      "veredito": "Impreciso",
+      "tema": "Trabalho",
+      "explicacao": "Houve aumento real em todos os anos de 2004 a 2016 (Dieese); o g1 classificou o cálculo como 'não é bem assim'.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Dieese",
+          "url": "https://www.dieese.org.br/"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 46,
+      "candidato": "Lula",
+      "trecho": "Nós já enviamos a proposta para comprar dívidas e publicamos edital para leilão das carteiras.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "MP do Desenrola 3.0 enviada em 25/09/2026; chamada da Fazenda publicada em 22/10/2026.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 47,
+      "candidato": "Lula",
+      "trecho": "A economia não crescia acima de 3% desde que deixei a Presidência, em 2010.",
+      "veredito": "Falso",
+      "tema": "Economia",
+      "explicacao": "O PIB cresceu 3,9% em 2011, 3% em 2013 e 4,6% em 2021 (IBGE).",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 48,
+      "candidato": "Lula",
+      "trecho": "Flávio foi o único deputado estadual do RJ a votar contra o aumento da licença-maternidade.",
+      "veredito": "Verdadeiro",
+      "tema": "Mulheres",
+      "explicacao": "A PEC 04/2007 da Alerj foi aprovada por 45 a 1 em 2009; o voto contrário foi de Flávio.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 49,
+      "candidato": "Lula",
+      "trecho": "Anunciamos o perdão de quase R$ 15 bilhões em dívidas de 4 milhões de MEIs.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "A lei prevê perdão de R$ 12,6 bi para cerca de 3,6 milhões de MEIs, segundo o governo.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 50,
+      "candidato": "Lula",
+      "trecho": "Nunca se exportou tanto neste país.",
+      "veredito": "Verdadeiro",
+      "tema": "Economia",
+      "explicacao": "Exportações recordes de US$ 348,3 bi em 2025 e alta em 2026 (Secex/MDIC).",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "MDIC – comércio exterior",
+          "url": "https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 51,
+      "candidato": "Lula",
+      "trecho": "O que leva um senador a defender um policial que deu um tiro de fuzil numa menina de cinco anos?",
+      "veredito": "Verdadeiro",
+      "tema": "Segurança",
+      "explicacao": "Flávio integrou a defesa do policial no recurso ao STJ em 2024.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 52,
+      "candidato": "Lula",
+      "trecho": "Encontramos 5,6 mil creches e escolas paralisadas.",
+      "veredito": "Verdadeiro",
+      "tema": "Educação",
+      "explicacao": "O FNDE apresentou na Câmara 5.642 obras de educação paralisadas ou inacabadas.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 53,
+      "candidato": "Lula",
+      "trecho": "1 milhão de trabalhadores se acidentam por irresponsabilidade patronal.",
+      "veredito": "Impreciso",
+      "tema": "Trabalho",
+      "explicacao": "O Ministério do Trabalho registrou 806.011 acidentes de trabalho em 2025, abaixo de 1 milhão.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    },
+    {
+      "id": 54,
+      "candidato": "Lula",
+      "trecho": "Quando assumi, o Nordeste era a região mais pobre, mais desnutrida, mais analfabeta, com menos universidades, doutores e mestres.",
+      "veredito": "Impreciso",
+      "tema": "Políticas sociais",
+      "explicacao": "Pobreza, analfabetismo e evasão escolar eram os maiores do país (Ipea, IBGE, Inep); o g1 não confirmou todos os itens citados.",
+      "evidencias": [
+        {
+          "titulo": "g1 Fato ou Fake",
+          "url": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+        },
+        {
+          "titulo": "Íntegra do debate",
+          "url": "https://g1.globo.com/politica/eleicoes/2022/video/debate-na-globo-entre-lula-e-flavio-bolsonaro-veja-integra-15118492.ghtml"
+        }
+      ],
+      "fonte": "https://g1.globo.com/fato-ou-fake/eleicoes/noticia/2026/10/23/veja-o-que-e-fato-ou-fake-nas-falas-de-flavio-bolsonaro-e-lula-no-debate-da-globo-no-2o-turno-das-eleicoes-2026.ghtml"
+    }
+  ]
+}

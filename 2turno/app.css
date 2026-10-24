@@ -66,3 +66,5 @@ code{background:#0b1224;padding:1px 6px;border-radius:6px;font-size:13px;white-s
 .sim{background:#7C2D12;color:#FED7AA;text-align:center;font-size:12px;padding:6px;font-weight:700}
 @media (min-width:720px){h1{font-size:26px}.pct{font-size:40px}.manchete{font-size:22px}.duelo{gap:20px}.cand img{max-width:220px}.kpis b{font-size:26px}}
 @media (max-width:380px){.kpis{grid-template-columns:1fr}.pct{font-size:24px}}
+
+.faixa-checagem{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;margin:0 0 4px;background:var(--card-2);border:1px solid var(--line);border-radius:12px;color:var(--text);text-decoration:none;font-size:14px;line-height:1.35}.faixa-checagem span{flex:1;min-width:0}.faixa-checagem b{color:var(--accent)}.faixa-checagem i{font-style:normal;color:var(--sub);font-size:20px}

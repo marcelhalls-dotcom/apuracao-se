@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checagem do debate Globo 2º turno: Flávio × Lula | Cadê Meu Voto</title>
+<meta name="description" content="As 54 falas de Flávio Bolsonaro e Lula no debate da Globo (23/10/2026) checadas pelo g1 Fato ou Fake, com veredito e fontes.">
+<meta property="og:title" content="Checagem do debate: o que é verdade nas falas dos candidatos">
+<meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto-brasil.jpg">
+<meta property="og:url" content="https://cademeuvoto.com.br/checagem/">
+<link rel="canonical" href="https://cademeuvoto.com.br/checagem/">
+<link rel="icon" href="/favicon.svg?v=20261007br1" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261007pwa4">
+<link rel="manifest" href="/site.webmanifest?v=20261007pwa4">
+<meta name="theme-color" content="#0A1428">
+<link rel="stylesheet" href="/2turno/app.css?v=20261024chk1">
+<link rel="stylesheet" href="/checagem/checagem.css?v=20261024chk1">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="/">Cadê <b>Meu Voto</b></a>
+  <a class="status" href="/2turno/">← Apuração 2º turno</a>
+</header>
+<main>
+  <h1 id="titulo">Checagem do debate <small id="sub"></small></h1>
+  <nav class="abas" role="tablist">
+    <button role="tab" data-aba="geral" aria-selected="true">Visão geral</button>
+    <button role="tab" data-aba="Flávio Bolsonaro">Flávio</button>
+    <button role="tab" data-aba="Lula">Lula</button>
+    <button role="tab" data-aba="metodologia">Metodologia</button>
+  </nav>
+  <div id="conteudo">
+    <section id="kpis" class="kpis"></section>
+    <section class="card"><h2>Comportamento das falas <small>% das falas checadas de cada candidato</small></h2><div id="barras" class="barras"></div></section>
+    <section class="card">
+      <h2>Falas checadas</h2>
+      <div class="filtros">
+        <label>Veredito<select id="f-ver"><option value="">Todos</option><option>Verdadeiro</option><option>Impreciso</option><option>Falso</option></select></label>
+        <label>Tema<select id="f-tema"><option value="">Todos</option></select></label>
+        <label id="lb-cand">Candidato<select id="f-cand"><option value="">Ambos</option><option>Flávio Bolsonaro</option><option>Lula</option></select></label>
+      </div>
+      <p id="contagem" class="sub"></p>
+      <ol id="lista" class="lista"></ol>
+    </section>
+  </div>
+  <section id="metodologia" class="card" hidden><h2>Metodologia</h2><div id="met"></div></section>
+  <section class="card fontes"><h2>Fontes</h2><p class="sub">Checagens e vereditos: <b>g1 Fato ou Fake</b>. O Cadê Meu Voto reproduz o trabalho do g1, sem alterar vereditos.</p><ul id="fontes"></ul></section>
+  <p class="aviso" id="aviso"></p>
+</main>
+<script src="/checagem/app.js?v=20261024chk1"></script>
+</body>
+</html>

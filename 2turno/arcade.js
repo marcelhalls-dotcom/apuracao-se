@@ -21,7 +21,7 @@
   let silAudio = null;
   function destravar() {
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
-    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc9'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
+    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc10'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!ctx && AC) ctx = new AC(); if (ctx) { if (ctx.state !== 'running') { const pr = ctx.resume(); if (pr && pr.catch) pr.catch(() => {}); }
       const buf = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(0); } } catch (_) {}
   }
@@ -65,13 +65,13 @@
     somEspecial(gesto);
   }
   // Som original do golpe (tudo agendado no relógio do AudioContext no próprio clique — sem setTimeout — p/ iOS).
-  function somEspecial(gesto) {
+  function somEspecial(gesto, v = 1) {
     if (mudo) return;
-    MUS.abaixar();
+    if (gesto) MUS.abaixar(); // a simulação não abaixa a música (fica em volume baixo próprio)
     if (gesto && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Vota-kên!'); u.lang = 'pt-BR'; u.rate = 1.25; u.pitch = 0.4; u.volume = 1; if (!speechSynthesis.speaking) speechSynthesis.speak(u); } catch (_) {} }
     if (!ctx) return;
     try {
-      const t0 = ctx.currentTime + 0.02, out = ctx.destination;
+      const t0 = ctx.currentTime + 0.02, out = ctx.createGain(); out.gain.value = v; out.connect(ctx.destination);
       // 1) carga: varredura ascendente 0–600 ms
       const o1 = ctx.createOscillator(), g1 = ctx.createGain(); o1.type = 'square'; o1.frequency.setValueAtTime(90, t0); o1.frequency.exponentialRampToValueAtTime(880, t0 + 0.58);
       g1.gain.setValueAtTime(0.0001, t0); g1.gain.exponentialRampToValueAtTime(0.05, t0 + 0.1); g1.gain.setValueAtTime(0.05, t0 + 0.55); g1.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
@@ -88,6 +88,44 @@
       g4.gain.setValueAtTime(0.15, t0 + 1); g4.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5); o4.connect(g4).connect(out); o4.start(t0 + 1); o4.stop(t0 + 1.52);
     } catch (_) {}
   }
+  // Golpe de UM lutador. Trava de 1,2 s POR LUTADOR (o outro lado continua livre). humano=true pausa a simulação.
+  const trava = { l: 0, f: 0 };
+  function golpeLado(lado, tipo, humano) {
+    const el = document.getElementById('arcade'); if (!el || el.hidden || !window.CMVCena) return false;
+    const agora = performance.now(); if (agora < trava[lado]) return false;
+    if (humano) { DEMO.pausar(); }
+    if (!CMVCena.golpe(lado, tipo)) return false;
+    trava[lado] = agora + 1200;
+    el.querySelectorAll(`.ar-gb[data-lado="${lado}"]`).forEach(b => { b.classList.add('trav'); b.setAttribute('aria-busy', 'true'); });
+    setTimeout(() => el.querySelectorAll(`.ar-gb[data-lado="${lado}"]`).forEach(b => { b.classList.remove('trav'); b.removeAttribute('aria-busy'); }), 1200);
+    const a = el.querySelector(`.ar-gb[data-lado="${lado}"][data-tipo="${tipo}"]`); if (a) { a.classList.remove('hit'); void a.offsetWidth; a.classList.add('hit'); }
+    if (tipo === 'especial') somEspecial(humano, humano ? 1 : 0.45); else somSoco(humano ? 1 : 0.45);
+    return true;
+  }
+  function somSoco(v) { if (mudo || !ctx) return; try { const t = ctx.currentTime + 0.01, out = ctx.destination;
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.12); g.gain.setValueAtTime(0.07 * v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14); o.connect(g).connect(out); o.start(t); o.stop(t + 0.15);
+    const n = Math.floor(ctx.sampleRate * 0.12), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const ns = ctx.createBufferSource(), g2 = ctx.createGain(); ns.buffer = b; g2.gain.value = 0.08 * v; ns.connect(g2).connect(out); ns.start(t + 0.14); } catch (_) {} }
+  // Simulação (demo): os dois lutam sozinhos, ALTERNANDO. Tipos sorteados em pares: o que um faz, o outro faz em seguida
+  // (quem começa o par também é sorteado) => sempre o mesmo nº de golpes de cada tipo para cada lado. Pausa ao toque humano, retoma após 6 s.
+  const DEMO = (() => {
+    let ligada = true, tm = null, fila = [], volta = null, pausada = false;
+    const rnd = () => (crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296);
+    function proximo() {
+      if (!fila.length) { const tipo = rnd() < 0.65 ? 'soco' : 'especial', ini = rnd() < 0.5 ? 'l' : 'f'; fila = [[ini, tipo], [ini === 'l' ? 'f' : 'l', tipo]]; }
+      const [lado, tipo] = fila[0]; if (golpeLado(lado, tipo, false)) { fila.shift(); window.__cmvDemo.n[lado][tipo]++; }
+    }
+    function ciclo() { clearTimeout(tm); if (!ligada || pausada) return; proximo(); tm = setTimeout(ciclo, 1300 + rnd() * 500); }
+    function pintar() { const b = document.getElementById('ar-demo'), st = document.getElementById('ar-demo-st'); if (!b) return; const on = ligada && !pausada;
+      if (window.CMVCena) CMVCena.demo = on; b.textContent = ligada ? (pausada ? '⏯ SIMULAÇÃO: PAUSADA' : '⏯ SIMULAÇÃO: LIGADA') : '⏯ SIMULAÇÃO: DESLIGADA'; b.setAttribute('aria-pressed', String(ligada));
+      st.textContent = !ligada ? 'Simulação desligada. Use os botões de cada lutador.' : pausada ? 'Você está jogando. A demonstração volta após 6 s sem toques.' : 'Demonstração automática, sem relação com votos. Toque nos botões de cada lutador para jogar (2 jogadores no mesmo aparelho).'; }
+    function iniciar() { pausada = false; pintar(); clearTimeout(tm); if (ligada) tm = setTimeout(ciclo, 900); }
+    function parar() { clearTimeout(tm); clearTimeout(volta); if (window.CMVCena) CMVCena.demo = false; }
+    function pausar() { if (!ligada) return; pausada = true; clearTimeout(tm); clearTimeout(volta); volta = setTimeout(() => { pausada = false; pintar(); ciclo(); }, 6000); pintar(); }
+    function alternar() { ligada = !ligada; fila = []; clearTimeout(volta); pausada = false; if (ligada) iniciar(); else { parar(); pintar(); } }
+    window.__cmvDemo = { n: { l: { soco: 0, especial: 0 }, f: { soco: 0, especial: 0 } }, get ligada() { return ligada; }, get pausada() { return pausada; } };
+    return { iniciar, parar, pausar, alternar };
+  })();
   // Timer central: NUNCA conta para um "fim de luta". Aguardando: 17:00 e contagem até o início; depois: % de urnas apuradas.
   const INICIO = Date.parse('2026-10-25T17:00:00-03:00');
   function relogio() {
@@ -112,22 +150,34 @@
         <div class="ar-timer" id="ar-timer" aria-label="Urnas apuradas"><b id="ar-tm">17:00</b><small id="ar-tm2">INÍCIO</small></div>
         <div class="d"><div class="ar-nome">FLÁVIO · 22</div><div class="vida"><i id="ar-v-f"></i></div><div class="ar-pct" id="ar-p-f">—</div><div id="ar-s-f"></div></div>
       </div>
-      <div class="ar-arena"><div class="ar-placa" id="ar-man">—</div><canvas id="ar-cv" width="320" height="180" aria-label="Cena arcade: dois lutadores idênticos numa praça com uma urna eletrônica ao centro"></canvas></div>
-      <div class="ar-golpe"><button type="button" id="ar-especial">⚡ GOLPE ESPECIAL</button></div>
+      <div class="ar-palco">
+        <div class="ar-pad e" role="group" aria-label="Golpes do lutador da esquerda (faixa PT)"><button type="button" class="ar-gb" data-lado="l" data-tipo="soco">👊<span>SOCO</span></button><button type="button" class="ar-gb" data-lado="l" data-tipo="especial">⚡<span>ESPECIAL</span></button></div>
+        <div class="ar-arena"><div class="ar-placa" id="ar-man">—</div><canvas id="ar-cv" width="320" height="180" aria-label="Cena arcade: dois lutadores idênticos na Esplanada com uma urna eletrônica ao centro"></canvas></div>
+        <div class="ar-pad d" role="group" aria-label="Golpes do lutador da direita (faixa PL)"><button type="button" class="ar-gb" data-lado="f" data-tipo="soco">👊<span>SOCO</span></button><button type="button" class="ar-gb" data-lado="f" data-tipo="especial">⚡<span>ESPECIAL</span></button></div>
+      </div>
+      <div class="ar-demo"><button type="button" id="ar-demo" aria-pressed="true">⏯ SIMULAÇÃO: LIGADA</button><small id="ar-demo-st">Demonstração automática, sem relação com votos. Toque nos botões de cada lutador para jogar (2 jogadores no mesmo aparelho).</small></div>
+      <div class="ar-golpe"><button type="button" id="ar-especial">⚡ GOLPE DUPLO (os dois juntos)</button></div>
       <div class="ar-apur"><i id="ar-apur"></i></div>
       <div class="ar-info"><span id="ar-pst">—</span> · <span id="ar-hora"></span><br>Barras = % dos votos válidos apurados (TSE). Atualiza a cada 5 s.</div>`;
     document.body.appendChild(el);
     ['touchend', 'click'].forEach(t => el.addEventListener(t, () => { if (!mudo) { destravar(); MUS.retomar(); } }, { capture: true, passive: true }));
     const q = id => document.getElementById(id);
     q('ar-start').onclick = () => { destravar(); narrar(); MUS.iniciar(1.3); q('ar-intro').hidden = true; q('ar-sel').hidden = false; };
-    q('ar-luta').onclick = () => { destravar(); MUS.iniciar(); q('ar-sel').hidden = true; som([392, 523, 659], 0.1); setTimeout(especial, 400); };
+    q('ar-luta').onclick = () => { destravar(); MUS.iniciar(); q('ar-sel').hidden = true; som([392, 523, 659], 0.1); setTimeout(especial, 400); setTimeout(DEMO.iniciar, 2000); };
     q('ar-especial').onclick = e => { const bt = e.currentTarget; if (bt.disabled) return; bt.disabled = true; bt.setAttribute('aria-busy', 'true'); setTimeout(() => { bt.disabled = false; bt.removeAttribute('aria-busy'); }, 1200); destravar(); MUS.retomar(); especial(true); };
+    // botões de cada lutador: pointerdown (multitoque: dois jogadores ao mesmo tempo); click só p/ teclado.
+    el.querySelectorAll('.ar-gb').forEach(bt => {
+      bt.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' && e.button !== 0) return; e.preventDefault(); bt.__pd = performance.now(); golpeLado(bt.dataset.lado, bt.dataset.tipo, true); });
+      bt.addEventListener('click', e => { if (bt.__pd && performance.now() - bt.__pd < 1500) return; golpeLado(bt.dataset.lado, bt.dataset.tipo, true); });
+      bt.addEventListener('contextmenu', e => e.preventDefault());
+    });
+    q('ar-demo').onclick = () => DEMO.alternar();
     q('ar-mudo').onclick = e => { mudo = !mudo; if (mudo && 'speechSynthesis' in window) speechSynthesis.cancel(); if (mudo) { pararSilencio(); MUS.parar(false); } else { destravar(); som([523, 784], 0.07); MUS.retomar(); } e.currentTarget.textContent = mudo ? '🔇 MUDO' : '🔊 SOM'; e.currentTarget.setAttribute('aria-pressed', String(mudo)); };
     q('ar-voltar').onclick = () => fechar();
     return el;
   }
   function abrir() { const el = document.getElementById('arcade') || montar(); el.hidden = false; aberto = true; document.getElementById('ar-intro').hidden = false; document.getElementById('ar-sel').hidden = true; if (window.CMVCena) CMVCena.iniciar(document.getElementById('ar-cv')); relogio(); if (ultimo) pintar(ultimo); history.replaceState(null, '', paramArcade(true)); }
-  function fechar() { pararSilencio(); MUS.parar(true); if (window.CMVCena) CMVCena.parar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
+  function fechar() { DEMO.parar(); pararSilencio(); MUS.parar(true); if (window.CMVCena) CMVCena.parar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
   function paramArcade(on) { const u = new URL(location.href); on ? u.searchParams.set('arcade', '1') : u.searchParams.delete('arcade'); return u.pathname + u.search; }
   function pintar(d) {
     const q = id => document.getElementById(id); if (!q('arcade')) return;

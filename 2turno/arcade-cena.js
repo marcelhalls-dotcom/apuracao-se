@@ -144,27 +144,47 @@
       cx.fillStyle = '#05050a'; cx.fillRect(px - 1, py - 1, 6, 16); cx.fillStyle = p.cor; cx.fillRect(px, py + 4, 4, 11); cx.fillStyle = p.pele; cx.fillRect(px, py, 4, 4);
       if (Math.sin(p.fase * 3) > 0.7) { cx.fillStyle = p.pele; cx.fillRect(px + (p.fase > 3 ? -1 : 4), py - 3 - pul, 1, 4); } } // braços para cima
     urna(cx, t); chao(cx);
-    // fase do golpe
+    // fase do golpe simétrico (dados novos do TSE): os dois disparam juntos e as energias se anulam no centro
     let pose = 'idle', fx = null, glow = 0;
     if (golpe) { const e = t - golpe.s;
       if (e < 600) { pose = 'carga'; glow = e / 600; }
       else if (e < 1000) { pose = 'disparo'; fx = (e - 600) / 400; }
-      else if (e < 1700) { pose = 'disparo'; if (!golpe.f) { golpe.f = 1; for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283; faiscas.push({ x: W / 2, y: golpeY, vx: Math.cos(a) * (0.5 + 0.35 * (i % 3)), vy: Math.sin(a) * (0.5 + 0.35 * (i % 3)), v: 1 }); } } }
+      else if (e < 1700) { pose = 'disparo'; if (!golpe.f) { golpe.f = 1; explode(W / 2, golpeY, 26); } }
       else golpe = null; }
+    // golpes individuais (botões de cada lutador / simulação): mesmas regras e mesmos tempos para os dois lados.
+    // Ninguém sofre dano: todo golpe termina numa DEFESA do outro lado (faísca na guarda).
+    const st = { l: { pose, dx: 0, glow, proj: null }, f: { pose, dx: 0, glow, proj: null } };
+    for (const k of ['l', 'f']) { const a = acoes[k]; if (!a || golpe) continue; const o = k === 'l' ? 'f' : 'l', e = t - a.s;
+      if (a.tipo === 'soco') { if (e < 150) { st[k].pose = 'disparo'; st[k].dx = 18 * e / 150; } else if (e < 520) { st[k].pose = 'disparo'; st[k].dx = 18 * (1 - (e - 150) / 370);
+          if (!a.f) { a.f = 1; a.hit = 1; } if (e < 380) { st[o].pose = 'carga'; st[o].dx = -3; } } else acoes[k] = null; }
+      else { if (e < 500) { st[k].pose = 'carga'; st[k].glow = e / 500; } else if (e < 950) { st[k].pose = 'disparo'; st[k].proj = (e - 500) / 450; }
+        else if (e < 1400) { st[k].pose = 'disparo'; if (!a.f) { a.f = 1; a.hit = 1; } if (e < 1250) { st[o].pose = 'carga'; st[o].dx = -4; } } else acoes[k] = null; } }
     const fr = Math.floor(t / 140) % 6;
-    const lado = (spr, px, esp) => { const s = pose === 'idle' ? spr.idle[fr] : spr[pose]; cx.save(); cx.translate(px, CHAO - SH); if (esp) { cx.scale(-1, 1); cx.drawImage(s.c, -SW / 2, 0); } else cx.drawImage(s.c, -SW / 2, 0); cx.restore(); return s; };
+    const lado = (spr, px, esp, p) => { const s = p === 'idle' ? spr.idle[fr] : spr[p]; cx.save(); cx.translate(Math.round(px), CHAO - SH); if (esp) { cx.scale(-1, 1); cx.drawImage(s.c, -SW / 2, 0); } else cx.drawImage(s.c, -SW / 2, 0); cx.restore(); return s; };
+    const xL = PX_L + st.l.dx, xF = PX_F - st.f.dx;
     // sombras no chão
-    cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(PX_L - 16, CHAO - 2, 32, 3); cx.fillRect(PX_F - 16, CHAO - 2, 32, 3);
-    const sl = lado(S.pt, PX_L, false); lado(S.pl, PX_F, true);
-    const my = CHAO - SH + sl.mao[1], mxL = PX_L - SW / 2 + sl.mao[0], mxF = PX_F + SW / 2 - sl.mao[0];
+    cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(xL - 16, CHAO - 2, 32, 3); cx.fillRect(xF - 16, CHAO - 2, 32, 3);
+    const sl = lado(S.pt, xL, false, st.l.pose), sf = lado(S.pl, xF, true, st.f.pose);
+    const my = CHAO - SH + sl.mao[1], mxL = xL - SW / 2 + sl.mao[0], mxF = xF + SW / 2 - sf.mao[0];
     golpeY = my;
     if (glow > 0) for (const m of [mxL + 2, mxF - 2]) { bola(m, my, 3 + glow * 6, glow * 0.45); bola(m, my, 2 + glow * 3, glow); };
     if (fx !== null) { const xl = mxL + (W / 2 - mxL) * fx, xf = mxF + (W / 2 - mxF) * fx; bola(xl, my, 6, 1); bola(xf, my, 6, 1); rastro(xl, my, -1); rastro(xf, my, 1); }
+    if (!golpe) for (const k of ['l', 'f']) { const s0 = st[k], a = acoes[k], dir = k === 'l' ? 1 : -1, mx = k === 'l' ? mxL + 2 : mxF - 2, alvo = k === 'l' ? PX_F - 14 : PX_L + 14;
+      if (s0.glow > 0) { bola(mx, my, 3 + s0.glow * 6, s0.glow * 0.45); bola(mx, my, 2 + s0.glow * 3, s0.glow); }
+      if (s0.proj !== null) { const x0 = mx + (alvo - mx) * s0.proj; bola(x0, my, 6, 1); rastro(x0, my, -dir); }
+      if (a && a.hit === 1) { a.hit = 2; explode(alvo, my, a.tipo === 'soco' ? 10 : 20); textos.push({ x: alvo, y: my - 8, s: t, txt: 'DEFESA!' }); } }
     faiscas = faiscas.filter(f => (f.v -= 0.035) > 0);
-    for (const f of faiscas) { f.x += f.vx; f.y += f.vy; if (Math.abs(f.x - W / 2) > 30) continue; // faíscas só no centro, longe dos corpos
+    for (const f of faiscas) { f.x += f.vx; f.y += f.vy; if (Math.abs(f.x - f.c) > 30) continue;
       cx.fillStyle = f.v > 0.6 ? '#ffffff' : f.v > 0.3 ? '#ffe28a' : '#f59e0b'; cx.fillRect(Math.round(f.x), Math.round(f.y), 2, 2); }
     if (golpe && golpe.f && t - golpe.s < 1250) bola(W / 2, my, 10 - (t - golpe.s - 1000) / 40, 1);
+    textos = textos.filter(o => t - o.s < 700);
+    cx.font = 'bold 9px monospace'; cx.textAlign = 'center';
+    for (const o of textos) { const yy = Math.round(o.y - (t - o.s) / 50); cx.fillStyle = '#000'; cx.fillText(o.txt, o.x + 1, yy + 1); cx.fillStyle = '#fff7d6'; cx.fillText(o.txt, o.x, yy); }
+    if (demo) { const tx = 'SIMULAÇÃO · DEMONSTRAÇÃO, SEM RELAÇÃO COM VOTOS'; cx.font = 'bold 8px monospace'; const w = cx.measureText(tx).width + 10;
+      cx.fillStyle = 'rgba(250,204,21,.92)'; cx.fillRect(W / 2 - w / 2, 24, w, 11); cx.fillStyle = '#000'; cx.fillText(tx, W / 2, 32.5); }
   }
+  let acoes = { l: null, f: null }, textos = [], demo = false;
+  function explode(x0, y0, n) { for (let i = 0; i < n; i++) { const a = i / n * 6.283; faiscas.push({ c: x0, x: x0, y: y0, vx: Math.cos(a) * (0.5 + 0.35 * (i % 3)), vy: Math.sin(a) * (0.5 + 0.35 * (i % 3)), v: 1 }); } }
   let golpeY = 120;
   function bola(x0, y0, r, a) { // energia neutra (branco/amarelo), pixelada
     const c = ['#fff7d6', '#ffe28a', '#ffffff'];
@@ -177,7 +197,11 @@
     iniciar(canvas) { cv = canvas; cv.width = W; cv.height = H; cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false; fundo = fundo || montaFundo(); if (!publico.length) montaPublico();
       cancelAnimationFrame(raf); if (reduz()) desenha(0); else raf = requestAnimationFrame(quadro); },
     parar() { cancelAnimationFrame(raf); raf = 0; },
-    especial() { if (!cx || reduz() || golpe) return false; golpe = { s: performance.now() }; faiscas = []; return true; },
+    especial() { if (!cx || reduz() || golpe || acoes.l || acoes.f) return false; golpe = { s: performance.now() }; faiscas = []; return true; },
+    // golpe de UM lutador ('l' | 'f'), tipo 'soco' | 'especial'. Recusa se o próprio lutador já está golpeando.
+    golpe(lado, tipo) { if (!cx || golpe || acoes[lado] || !(lado in acoes)) return false; acoes[lado] = { s: performance.now(), tipo: tipo === 'especial' ? 'especial' : 'soco' }; if (reduz()) { acoes[lado] = null; } return true; },
+    ocupado: lado => !!(golpe || acoes[lado]),
+    set demo(v) { demo = !!v; if (reduz() && cx) desenha(performance.now()); }, get demo() { return demo; },
     ativo: () => !!golpe,
   };
 })();

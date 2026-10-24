@@ -57,5 +57,18 @@
 #arcade .ar-timer{min-width:74px;text-align:center;padding:4px 6px;background:linear-gradient(#e2e8f0,#64748b 45%,#334155 55%,#94a3b8);border:2px solid #000;box-shadow:3px 3px 0 #000}
 #arcade .ar-timer b{display:block;font-size:22px;color:#facc15;text-shadow:2px 2px 0 #000,-1px -1px 0 #000}
 #arcade .ar-timer small{display:block;font-size:8px;letter-spacing:1px;color:#fff;text-shadow:1px 1px 0 #000;font-weight:700}
+#arcade .ar-palco{display:grid;grid-template-columns:1fr minmax(0,calc(62vh*16/9)) 1fr;align-items:center;gap:8px;padding:0 8px}
+#arcade .ar-palco .ar-arena{margin:6px 0;width:100%}
+#arcade .ar-pad{display:flex;flex-direction:column;gap:10px}#arcade .ar-pad.e{align-items:flex-end}#arcade .ar-pad.d{align-items:flex-start}
+#arcade .ar-gb{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:84px;height:72px;font-size:24px!important;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#arcade .ar-gb span{font-size:11px;letter-spacing:1px}
+#arcade .ar-pad.e .ar-gb{background:#3a0d10;border-color:#f0646a}#arcade .ar-pad.d .ar-gb{background:#0d1d3a;border-color:#5b8fe6}
+#arcade .ar-gb.trav{opacity:.45}#arcade .ar-gb.hit{animation:ar-tap .2s steps(2)}
+@keyframes ar-tap{50%{transform:translate(2px,2px);box-shadow:1px 1px 0 #000}}
+#arcade .ar-demo{text-align:center;margin:8px 12px 0}#arcade .ar-demo small{display:block;margin-top:6px;color:#cbd5e1;font-size:12px}
+#arcade #ar-demo{background:#facc15;color:#000;border-color:#000}
+#arcade .ar-golpe button{font-size:11px;opacity:.85}
+@media (max-width:700px){#arcade .ar-palco{grid-template-columns:1fr 1fr;grid-template-areas:"a a" "e d"}#arcade .ar-palco .ar-arena{grid-area:a}#arcade .ar-pad.e{grid-area:e}#arcade .ar-pad.d{grid-area:d}
+#arcade .ar-pad{flex-direction:row;gap:8px;align-items:stretch!important}#arcade .ar-pad.d{justify-content:flex-end}#arcade .ar-gb{flex:1;max-width:96px;height:68px}}
 @media (max-width:480px){#arcade .ar-placa{font-size:10px;top:4px;padding:3px 6px}#arcade .ar-timer{min-width:64px}#arcade .ar-timer b{font-size:18px}#arcade .ar-pct{font-size:18px}#arcade .ar-nome{font-size:12px}}
 @media (prefers-reduced-motion:reduce){#arcade *{animation:none!important;transition:none!important}}

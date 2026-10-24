@@ -23,13 +23,19 @@
     if (!mudo && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Round 2... Vote!'); u.lang = 'en-US'; u.rate = 0.9; u.pitch = 0.6; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (_) {} }
   }
   // Golpe especial simétrico: dois projéteis neutros idênticos saem juntos e se anulam no centro. Ninguém é atingido.
-  let golpeAtivo = false;
   function especial() {
-    const el = document.getElementById('arcade'); if (!el || el.hidden || golpeAtivo) return;
-    golpeAtivo = true; el.classList.remove('golpe'); void el.offsetWidth; el.classList.add('golpe');
-    som([220, 330, 440, 660], 0.05, 'sawtooth'); setTimeout(() => som([880, 440, 220, 110], 0.05, 'square'), 600);
-    setTimeout(() => { el.classList.remove('golpe'); golpeAtivo = false; }, 1300);
+    const el = document.getElementById('arcade'); if (!el || el.hidden || !window.CMVCena) return;
+    if (!CMVCena.especial()) return;
+    som([110, 147, 196, 262, 330], 0.11, 'triangle'); setTimeout(() => som([660, 523], 0.06, 'sawtooth'), 600); setTimeout(() => som([1200, 900, 600, 300, 150], 0.05, 'square'), 1000);
   }
+  // Timer central: NUNCA conta para um "fim de luta". Aguardando: 17:00 e contagem até o início; depois: % de urnas apuradas.
+  const INICIO = Date.parse('2026-10-25T17:00:00-03:00');
+  function relogio() {
+    const q = id => document.getElementById(id); if (!q('ar-tm') || (ultimo && ultimo.comecou)) return;
+    const f = Math.max(0, INICIO - Date.now()), h = Math.floor(f / 36e5), m = Math.floor(f % 36e5 / 6e4), s = Math.floor(f % 6e4 / 1e3), z = v => String(v).padStart(2, '0');
+    q('ar-tm').textContent = '17:00'; q('ar-tm2').textContent = f ? `INÍCIO EM ${z(h)}:${z(m)}:${z(s)}` : 'INÍCIO';
+  }
+  setInterval(relogio, 1000);
   function montar() {
     const el = document.createElement('div'); el.id = 'arcade'; el.hidden = true; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Modo arcade da apuração');
     el.innerHTML = `
@@ -43,10 +49,10 @@
       <div class="ar-top"><button type="button" id="ar-voltar">← VERSÃO NORMAL</button><button type="button" id="ar-mudo" aria-pressed="false">🔊 SOM</button></div>
       <div class="ar-hud">
         <div class="e"><div class="ar-nome">LULA · 13</div><div class="vida"><i id="ar-v-l"></i></div><div class="ar-pct" id="ar-p-l">—</div><div id="ar-s-l"></div></div>
-        <div class="ar-vs">VS</div>
+        <div class="ar-timer" id="ar-timer" aria-label="Urnas apuradas"><b id="ar-tm">17:00</b><small id="ar-tm2">INÍCIO</small></div>
         <div class="d"><div class="ar-nome">FLÁVIO · 22</div><div class="vida"><i id="ar-v-f"></i></div><div class="ar-pct" id="ar-p-f">—</div><div id="ar-s-f"></div></div>
       </div>
-      <div class="ar-arena"><div class="ar-placa" id="ar-man">—</div><div class="luta" id="ar-lu-l">${lutador(PT)}</div><i class="proj e" id="ar-pj-l"></i><i class="proj d" id="ar-pj-f"></i><i class="choque" id="ar-choque"></i><div class="luta dir" id="ar-lu-f">${lutador(PL)}</div></div>
+      <div class="ar-arena"><div class="ar-placa" id="ar-man">—</div><canvas id="ar-cv" width="320" height="180" aria-label="Cena arcade: dois lutadores idênticos numa praça com uma urna eletrônica ao centro"></canvas></div>
       <div class="ar-golpe"><button type="button" id="ar-especial">⚡ GOLPE ESPECIAL</button></div>
       <div class="ar-apur"><i id="ar-apur"></i></div>
       <div class="ar-info"><span id="ar-pst">—</span> · <span id="ar-hora"></span><br>Barras = % dos votos válidos apurados (TSE). Atualiza a cada 5 s.</div>`;
@@ -59,8 +65,8 @@
     q('ar-voltar').onclick = () => fechar();
     return el;
   }
-  function abrir() { const el = document.getElementById('arcade') || montar(); el.hidden = false; aberto = true; document.getElementById('ar-intro').hidden = false; document.getElementById('ar-sel').hidden = true; if (ultimo) pintar(ultimo); history.replaceState(null, '', paramArcade(true)); }
-  function fechar() { if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
+  function abrir() { const el = document.getElementById('arcade') || montar(); el.hidden = false; aberto = true; document.getElementById('ar-intro').hidden = false; document.getElementById('ar-sel').hidden = true; if (window.CMVCena) CMVCena.iniciar(document.getElementById('ar-cv')); relogio(); if (ultimo) pintar(ultimo); history.replaceState(null, '', paramArcade(true)); }
+  function fechar() { if (window.CMVCena) CMVCena.parar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
   function paramArcade(on) { const u = new URL(location.href); on ? u.searchParams.set('arcade', '1') : u.searchParams.delete('arcade'); return u.pathname + u.search; }
   function pintar(d) {
     const q = id => document.getElementById(id); if (!q('arcade')) return;
@@ -71,6 +77,7 @@
     const selo = (id, eleito, lid) => { q(id).textContent = !d.comecou ? '' : eleito ? '★ ELEITO (TSE)' : lid ? 'LIDERA' : ''; };
     selo('ar-s-l', d.eleitoL, d.lider === 'l'); selo('ar-s-f', d.eleitoF, d.lider === 'f');
     q('ar-man').textContent = d.comecou ? d.man.toUpperCase() : 'AGUARDANDO INÍCIO (17H)';
+    if (d.comecou) { q('ar-tm').textContent = fmt(d.pst).replace(',00', ''); q('ar-tm2').textContent = 'URNAS APURADAS'; } else relogio();
     q('ar-apur').style.width = Math.min(100, d.pst) + '%';
     q('ar-pst').textContent = 'Urnas apuradas: ' + fmt(d.pst); q('ar-hora').textContent = d.hora;
   }

@@ -17,16 +17,48 @@
     freqs.forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = tipo; o.frequency.value = f; g.gain.value = 0.06;
       const t = ctx.currentTime + i * dur; o.connect(g).connect(ctx.destination); o.start(t); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.stop(t + dur); });
   }
+  // iOS/Safari: destrava o áudio SINCRONAMENTE dentro do gesto (sem await/setTimeout antes).
+  let silAudio = null;
+  function destravar() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
+    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc6'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
+    try { const AC = window.AudioContext || window.webkitAudioContext; if (!ctx && AC) ctx = new AC(); if (ctx) { if (ctx.state !== 'running') { const pr = ctx.resume(); if (pr && pr.catch) pr.catch(() => {}); }
+      const buf = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(0); } } catch (_) {}
+  }
+  function pararSilencio() { try { if (silAudio) silAudio.pause(); } catch (_) {} }
   // "ROUND 2... VOTE!": melodia 8-bit sintetizada + voz opcional do próprio navegador (speechSynthesis), só após o clique.
   function narrar() {
     som([392, 392, 523, 0, 659, 784, 1047], 0.13);
     if (!mudo && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Round 2... Vote!'); u.lang = 'en-US'; u.rate = 0.9; u.pitch = 0.6; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (_) {} }
   }
   // Golpe especial simétrico: dois projéteis neutros idênticos saem juntos e se anulam no centro. Ninguém é atingido.
-  function especial() {
+  function especial(gesto) {
     const el = document.getElementById('arcade'); if (!el || el.hidden || !window.CMVCena) return;
     if (!CMVCena.especial()) return;
-    som([110, 147, 196, 262, 330], 0.11, 'triangle'); setTimeout(() => som([660, 523], 0.06, 'sawtooth'), 600); setTimeout(() => som([1200, 900, 600, 300, 150], 0.05, 'square'), 1000);
+    somEspecial(gesto);
+  }
+  // Som original do golpe (tudo agendado no relógio do AudioContext no próprio clique — sem setTimeout — p/ iOS).
+  function somEspecial(gesto) {
+    if (mudo) return;
+    if (gesto && 'speechSynthesis' in window) { try { const u = new SpeechSynthesisUtterance('Vota-kên!'); u.lang = 'pt-BR'; u.rate = 1.25; u.pitch = 0.4; u.volume = 1; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (_) {} }
+    if (!ctx) return;
+    try {
+      const t0 = ctx.currentTime + 0.02, out = ctx.destination;
+      // 1) carga: varredura ascendente 0–600 ms
+      const o1 = ctx.createOscillator(), g1 = ctx.createGain(); o1.type = 'square'; o1.frequency.setValueAtTime(90, t0); o1.frequency.exponentialRampToValueAtTime(880, t0 + 0.58);
+      g1.gain.setValueAtTime(0.0001, t0); g1.gain.exponentialRampToValueAtTime(0.05, t0 + 0.1); g1.gain.setValueAtTime(0.05, t0 + 0.55); g1.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.6);
+      o1.connect(g1).connect(out); o1.start(t0); o1.stop(t0 + 0.61);
+      // 2) disparo (600 ms): "VO-TA-KEN!" em chiptune (3 sílabas) por cima/fallback da voz
+      [[523, 0.08], [659, 0.08], [988, 0.22]].reduce((t, [f, d]) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.7, t + d);
+        g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(out); o.start(t); o.stop(t + d + 0.01); return t + d + 0.02; }, t0 + 0.6);
+      // 3) choque central (1000 ms): explosão 8-bit (ruído filtrado + grave)
+      const n = Math.floor(ctx.sampleRate * 0.6), buf = ctx.createBuffer(1, n, ctx.sampleRate), dd = buf.getChannelData(0);
+      for (let i = 0, v = 0; i < n; i++) { if (i % 6 === 0) v = Math.random() * 2 - 1; dd[i] = v * (1 - i / n); }
+      const ns = ctx.createBufferSource(), lp = ctx.createBiquadFilter(), g3 = ctx.createGain(); ns.buffer = buf; lp.type = 'lowpass'; lp.frequency.setValueAtTime(3000, t0 + 1); lp.frequency.exponentialRampToValueAtTime(200, t0 + 1.6);
+      g3.gain.setValueAtTime(0.12, t0 + 1); g3.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.6); ns.connect(lp).connect(g3).connect(out); ns.start(t0 + 1);
+      const o4 = ctx.createOscillator(), g4 = ctx.createGain(); o4.type = 'triangle'; o4.frequency.setValueAtTime(140, t0 + 1); o4.frequency.exponentialRampToValueAtTime(40, t0 + 1.5);
+      g4.gain.setValueAtTime(0.15, t0 + 1); g4.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.5); o4.connect(g4).connect(out); o4.start(t0 + 1); o4.stop(t0 + 1.52);
+    } catch (_) {}
   }
   // Timer central: NUNCA conta para um "fim de luta". Aguardando: 17:00 e contagem até o início; depois: % de urnas apuradas.
   const INICIO = Date.parse('2026-10-25T17:00:00-03:00');
@@ -57,16 +89,17 @@
       <div class="ar-apur"><i id="ar-apur"></i></div>
       <div class="ar-info"><span id="ar-pst">—</span> · <span id="ar-hora"></span><br>Barras = % dos votos válidos apurados (TSE). Atualiza a cada 5 s.</div>`;
     document.body.appendChild(el);
+    ['touchend', 'click'].forEach(t => el.addEventListener(t, () => { if (!mudo) destravar(); }, { capture: true, passive: true }));
     const q = id => document.getElementById(id);
-    q('ar-start').onclick = () => { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); ctx.resume(); } catch (_) {} narrar(); q('ar-intro').hidden = true; q('ar-sel').hidden = false; };
+    q('ar-start').onclick = () => { destravar(); narrar(); q('ar-intro').hidden = true; q('ar-sel').hidden = false; };
     q('ar-luta').onclick = () => { q('ar-sel').hidden = true; som([392, 523, 659], 0.1); setTimeout(especial, 400); };
-    q('ar-especial').onclick = () => especial();
-    q('ar-mudo').onclick = e => { mudo = !mudo; if (mudo && 'speechSynthesis' in window) speechSynthesis.cancel(); e.currentTarget.textContent = mudo ? '🔇 MUDO' : '🔊 SOM'; e.currentTarget.setAttribute('aria-pressed', String(mudo)); };
+    q('ar-especial').onclick = () => { destravar(); especial(true); };
+    q('ar-mudo').onclick = e => { mudo = !mudo; if (mudo && 'speechSynthesis' in window) speechSynthesis.cancel(); if (mudo) pararSilencio(); else { destravar(); som([523, 784], 0.07); } e.currentTarget.textContent = mudo ? '🔇 MUDO' : '🔊 SOM'; e.currentTarget.setAttribute('aria-pressed', String(mudo)); };
     q('ar-voltar').onclick = () => fechar();
     return el;
   }
   function abrir() { const el = document.getElementById('arcade') || montar(); el.hidden = false; aberto = true; document.getElementById('ar-intro').hidden = false; document.getElementById('ar-sel').hidden = true; if (window.CMVCena) CMVCena.iniciar(document.getElementById('ar-cv')); relogio(); if (ultimo) pintar(ultimo); history.replaceState(null, '', paramArcade(true)); }
-  function fechar() { if (window.CMVCena) CMVCena.parar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
+  function fechar() { pararSilencio(); if (window.CMVCena) CMVCena.parar(); if ('speechSynthesis' in window) speechSynthesis.cancel(); document.getElementById('arcade').hidden = true; aberto = false; history.replaceState(null, '', paramArcade(false)); }
   function paramArcade(on) { const u = new URL(location.href); on ? u.searchParams.set('arcade', '1') : u.searchParams.delete('arcade'); return u.pathname + u.search; }
   function pintar(d) {
     const q = id => document.getElementById(id); if (!q('arcade')) return;

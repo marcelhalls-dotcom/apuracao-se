@@ -21,50 +21,29 @@
   let silAudio = null;
   function destravar() {
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) {}
-    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc7'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
+    try { if (!silAudio) { silAudio = new Audio('/2turno/silencio.wav?v=20261024arc8'); silAudio.loop = true; silAudio.setAttribute('playsinline', ''); silAudio.volume = 0.01; } const pr = silAudio.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (_) {}
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!ctx && AC) ctx = new AC(); if (ctx) { if (ctx.state !== 'running') { const pr = ctx.resume(); if (pr && pr.catch) pr.catch(() => {}); }
       const buf = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(0); } } catch (_) {}
   }
   function pararSilencio() { try { if (silAudio) silAudio.pause(); } catch (_) {} }
-  // Trilha de fase — chiptune ORIGINAL (Lá menor, 150 BPM, 8 compassos, i–VI–III–VII), scheduler com lookahead.
+  // Trilha de fase — composição original em arcade-trilha.js (CMVTrilha); aqui só o scheduler com lookahead.
   const MUS = (() => {
-    const BPM = 150, PASSO = 60 / BPM / 4, LOOK = 0.12, N = 128;
-    const ACORDES = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]]; // Am F C G (MIDI)
-    // lead: 1 nota por colcheia (2 passos); 0 = pausa. 8 compassos = 64 colcheias
-    const LEAD = [69,0,72,74,76,0,74,72, 71,72,74,0,72,71,69,0, 65,0,69,72,77,76,74,72, 74,0,72,0,69,0,0,0,
-                  72,0,76,79,81,0,79,76, 74,76,79,0,76,74,72,0, 74,0,71,74,79,0,78,79, 81,0,79,76,74,0,71,0];
-    const hz = m => 440 * Math.pow(2, (m - 69) / 12);
-    let bus = null, ruido = null, tm = null, passo = 0, prox = 0, tocando = false, querida = false;
-    function nota(f, t, d, tipo, vol) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = tipo; o.frequency.setValueAtTime(f, t);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(bus); o.start(t); o.stop(t + d + 0.01); }
-    function bateria(t, tipo) {
-      if (tipo === 'k') { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.1);
-        g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12); o.connect(g).connect(bus); o.start(t); o.stop(t + 0.13); return; }
-      const sr = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), d = tipo === 's' ? 0.12 : 0.03;
-      sr.buffer = ruido; f.type = 'highpass'; f.frequency.value = tipo === 's' ? 1200 : 7000; g.gain.setValueAtTime(tipo === 's' ? 0.28 : 0.1, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-      sr.connect(f).connect(g).connect(bus); sr.start(t, Math.random() * 0.5, d + 0.01); }
-    function agenda(i, t) {
-      const ac = ACORDES[Math.floor(i / 32)], b = i % 16;
-      if (i % 2 === 0) nota(hz(ac[0] - 24 + (i % 4 === 2 ? 12 : 0)), t, PASSO * 1.6, 'triangle', 0.32); // baixo pulsante
-      nota(hz(ac[i % 3] + 12), t, PASSO * 0.8, 'square', 0.035);                                       // arpejo
-      if (i % 2 === 0 && LEAD[i / 2]) nota(hz(LEAD[i / 2]), t, PASSO * 1.8, 'square', 0.07);             // lead
-      if (b === 0 || b === 8 || b === 10) bateria(t, 'k'); if (b === 4 || b === 12) bateria(t, 's'); if (i % 2 === 1) bateria(t, 'h');
-    }
-    function tick() { if (!ctx || ctx.state !== 'running') return; while (prox < ctx.currentTime + LOOK) { agenda(passo, prox); prox += PASSO; passo = (passo + 1) % N; } }
+    const LOOK = 0.15, VOL = 0.2;
+    let bus = null, tr = null, tm = null, passo = 0, prox = 0, tocando = false, querida = false;
+    function tick() { if (!ctx || ctx.state !== 'running') return; while (prox < ctx.currentTime + LOOK) { tr.agenda(passo, prox); prox += tr.PASSO; passo = (passo + 1) % tr.N; } }
     function iniciar(atraso = 0) {
-      querida = true; if (mudo || tocando || !ctx || document.hidden) return;
-      if (!bus) { bus = ctx.createGain(); bus.gain.value = 0.22; bus.connect(ctx.destination);
-        const n = ctx.sampleRate, bf = ctx.createBuffer(1, n, n), d = bf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; ruido = bf; }
-      bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setValueAtTime(0.22, ctx.currentTime);
-      tocando = true; passo = 0; prox = ctx.currentTime + 0.05 + atraso; tick(); tm = setInterval(tick, 25);
+      querida = true; if (mudo || tocando || !ctx || document.hidden || !window.CMVTrilha) return;
+      if (!bus) { bus = ctx.createGain(); bus.connect(ctx.destination); tr = CMVTrilha(ctx, bus); }
+      bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setValueAtTime(VOL, ctx.currentTime);
+      tocando = true; passo = 0; prox = ctx.currentTime + 0.05 + atraso; tick(); tm = setInterval(tick, 30);
     }
     function parar(esquecer) { if (esquecer) querida = false; if (!tocando) return; tocando = false; clearInterval(tm); tm = null;
       try { bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setTargetAtTime(0, ctx.currentTime, 0.03); } catch (_) {} }
     function retomar() { if (querida && !tocando) iniciar(); }
     function abaixar() { if (!tocando) return; const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t);
-      bus.gain.linearRampToValueAtTime(0.09, t + 0.08); bus.gain.setValueAtTime(0.09, t + 1.5); bus.gain.linearRampToValueAtTime(0.22, t + 2.1); }
+      bus.gain.linearRampToValueAtTime(VOL * 0.4, t + 0.08); bus.gain.setValueAtTime(VOL * 0.4, t + 1.5); bus.gain.linearRampToValueAtTime(VOL, t + 2.1); }
     document.addEventListener('visibilitychange', () => { if (document.hidden) parar(false); });
-    return { iniciar, parar, retomar, abaixar, get tocando() { return tocando; } };
+    return { iniciar, parar, retomar, abaixar };
   })();
   // "ROUND 2... VOTE!": melodia 8-bit sintetizada + voz opcional do próprio navegador (speechSynthesis), só após o clique.
   function narrar() {

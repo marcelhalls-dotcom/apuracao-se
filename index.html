@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://dados.cademeuvoto.com.br https://resultados.tse.jus.br; font-src 'self' data:; connect-src 'self' https://api.cademeuvoto.com.br https://dados.cademeuvoto.com.br https://resultados.tse.jus.br https://abacus.jasoncameron.dev https://cloudflareinsights.com https://static.cloudflareinsights.com http://localhost:8787 http://127.0.0.1:8766; frame-src 'self' blob: https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<script>/* 2º turno 25/10: a home abre a apuração do Presidente. Painel completo: /?painel=1 (ou qualquer link com #/?). Desfazer: reverter este commit. */
+(function(){try{var q=location.search,h=location.hash;if(location.pathname==='/'&&!/[?&]painel=/.test(q)&&!h&&!q){location.replace('/2turno/');}}catch(e){}})();</script>
 <meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em todo o Brasil">
 <meta property="og:description" content="Saiba onde estão os votos, até a seção eleitoral, nos 26 estados e no Distrito Federal. Dados oficiais do TSE: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto-brasil.jpg">

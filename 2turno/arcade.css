@@ -19,9 +19,10 @@
 #arcade .ar-pct{font-size:24px;font-weight:700;margin-top:4px}
 #arcade .ar-vs{font-size:22px;color:#facc15;font-weight:700}
 #arcade .ar-arena{display:flex;justify-content:space-around;align-items:flex-end;height:min(42vh,320px);margin:6px 12px;background:linear-gradient(#1e1b4b,#312e81 70%,#4c1d95 70%,#2e1065);border:3px solid #fff;position:relative}
-#arcade .luta{width:96px;height:128px;margin-bottom:28px;animation:ar-idle .8s steps(2) infinite}
+#arcade .luta{width:112px;height:119px;filter:drop-shadow(3px 3px 0 #000);margin-bottom:28px;animation:ar-idle .8s steps(2) infinite}
 #arcade .luta.dir{transform:scaleX(-1)}
-@keyframes ar-idle{50%{translate:0 -4px}}
+@keyframes ar-idle{0%,100%{translate:0 0}50%{translate:0 -6px}}
+#arcade .luta{animation-duration:.5s}
 #arcade .ar-placa{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#000;border:2px solid #facc15;padding:6px 10px;font-weight:700;white-space:nowrap;font-size:14px}
 #arcade .ar-info{text-align:center;padding:10px;font-size:13px;color:#cbd5e1}
 #arcade .ar-apur{margin:0 12px;height:12px;border:2px solid #fff}#arcade .ar-apur i{display:block;height:100%;background:#facc15;width:0;transition:width .8s}
@@ -29,12 +30,14 @@
 #arcade .ar-sel h3{margin:0;color:#facc15;font-size:22px;letter-spacing:3px}
 #arcade .sel-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;width:min(100%,640px)}
 #arcade .sel-c{border:3px solid #fff;background:#1e1b4b;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px}
-#arcade .sel-c small{color:#cbd5e1}
+#arcade .sel-c{margin:0;position:relative}#arcade .sel-c small{color:#cbd5e1;font-size:12px}
+#arcade .sel-c img{display:block;width:100%;max-width:161px;aspect-ratio:161/225;image-rendering:auto;margin:0 auto;object-fit:cover;object-position:center top;border:3px solid #facc15;background:#000}
+#arcade .sel-tag{font-size:11px;letter-spacing:2px;color:#facc15}
 #arcade .sel-vs{font-size:34px;font-weight:700;color:#facc15;text-shadow:3px 3px 0 #000;animation:ar-blink .7s steps(2) infinite}
 #arcade .ar-golpe{text-align:center;margin:8px}
-#arcade .proj{position:absolute;bottom:86px;width:22px;height:22px;opacity:0;background:radial-gradient(#fff 30%,#fde68a 55%,transparent 72%);box-shadow:0 0 12px #fde68a}
+#arcade .proj{position:absolute;bottom:92px;width:22px;height:22px;opacity:0;background:radial-gradient(#fff 30%,#fde68a 55%,transparent 72%);box-shadow:0 0 12px #fde68a}
 #arcade .proj.e{left:calc(25% + 30px)}#arcade .proj.d{right:calc(25% + 30px)}
-#arcade .choque{position:absolute;left:50%;bottom:75px;width:44px;height:44px;margin-left:-22px;opacity:0;background:radial-gradient(#fff 20%,#fde68a 45%,transparent 70%)}
+#arcade .choque{position:absolute;left:50%;bottom:81px;width:44px;height:44px;margin-left:-22px;opacity:0;background:radial-gradient(#fff 20%,#fde68a 45%,transparent 70%)}
 #arcade.golpe .luta:not(.sel-c .luta){animation:ar-soco .4s steps(2) 1}
 #arcade.golpe .proj.e{animation:ar-pe .6s .2s steps(6) both}
 #arcade.golpe .proj.d{animation:ar-pd .6s .2s steps(6) both}

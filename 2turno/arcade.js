@@ -2,13 +2,13 @@
 (function () {
   'use strict';
   const fmt = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
-  // Lutador de artes marciais original (12x16): cabelo curto escuro, kimono cinza-claro, pés descalços, sem bandana nem luvas.
-  // Idêntico nos dois lados; a ÚNICA diferença é a faixa (F). O direito é espelhado.
-  const PIX = ['....XXXX....','...XXXXXX...','...XHHHHX...','...HHHHHH...','....HHHH....','..KKKVVKKK..','.KKKKVVKKKK.','KKH.KKKK.HKK','KH..KKKK..HK','H...FFFF...H','....KKKK....','...KKK.KKK..','...KK...KK..','..KK.....KK.','..KK.....KK.','.HHH.....HHH'];
+  // Lutador original (16x17), guarda alta: cabelo escuro, bandana e luvas cinza-escuro, kimono grafite, braços musculosos, rosto genérico.
+  // Idêntico nos dois lados (o direito é espelhado); a ÚNICA diferença é a faixa (F). Nenhum rosto real.
+  const PIX = [".....AAAAA......", "....AAAAAAA.....", ".BB.BBBBBBBB....", "..B.ASSSSES.....", "....SSSSSS......", ".....SSS.....GG.", "..SKKKVKKKSSSGGG", ".SSKKKVKKK...GG.", ".SS.KKKKKK......", ".GG.KKKKKK......", ".GG.FFFFFF......", "....KKKKKKK.....", "...KKK..KKK.....", "..KKK....KKK....", "..KK......KK....", ".KK........KK...", ".SSS.......SSS.."];
   function lutador(faixa) {
     let r = '';
-    PIX.forEach((l, y) => [...l].forEach((ch, x) => { const c = { X: '#1f1f1f', H: '#d9b48f', K: '#e5e7eb', V: '#9ca3af', F: faixa }[ch]; if (c) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`; }));
-    return `<svg viewBox="0 0 12 16" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+    PIX.forEach((l, y) => [...l].forEach((ch, x) => { const c = { A: '#0f0f0f', B: '#2d3340', S: '#c98f62', E: '#000', K: '#4b5563', V: '#2b313b', G: '#1f2430', F: faixa }[ch]; if (c) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>`; }));
+    return `<svg viewBox="0 0 16 17" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
   }
   const PT = '#c4161c', PL = '#1f5fc8';
   let ctx = null, mudo = false, ultimo = null, aberto = false;
@@ -35,10 +35,10 @@
     el.innerHTML = `
       <div class="ar-sim" id="ar-sim" hidden>SIMULAÇÃO · dados fictícios</div>
       <div class="ar-intro" id="ar-intro"><h2>ROUND 2</h2><h2 class="l2">TURNO</h2><h2 class="l3">VOTE!</h2><button type="button" id="ar-start">▶ APERTE PARA COMEÇAR</button></div>
-      <div class="ar-sel" id="ar-sel" hidden><h3>ESCOLHA SEU VOTO</h3><div class="sel-grid">
-        <div class="sel-c"><div class="luta">${lutador(PT)}</div><b>LULA · 13</b><small>faixa PT</small></div>
+      <div class="ar-sel" id="ar-sel" hidden><h3>SELECT YOUR FIGHTER</h3><div class="sel-grid">
+        <figure class="sel-c pt"><span class="sel-tag">PLAYER 1</span><img src="/2turno/lula.jpeg" alt="Foto oficial de Lula (TSE)" width="161" height="225"><b>LULA · 13</b><small>faixa PT · Foto: TSE</small></figure>
         <div class="sel-vs">VS</div>
-        <div class="sel-c"><div class="luta dir">${lutador(PL)}</div><b>FLÁVIO · 22</b><small>faixa PL</small></div></div>
+        <figure class="sel-c pl"><span class="sel-tag">PLAYER 2</span><img src="/2turno/flavio.jpeg" alt="Foto oficial de Flávio Bolsonaro (TSE)" width="161" height="225"><b>FLÁVIO · 22</b><small>faixa PL · Foto: TSE</small></figure></div>
         <p>Mesma altura, mesma força. Quem decide é a urna.</p><button type="button" id="ar-luta">▶ LUTAR!</button></div>
       <div class="ar-top"><button type="button" id="ar-voltar">← VERSÃO NORMAL</button><button type="button" id="ar-mudo" aria-pressed="false">🔊 SOM</button></div>
       <div class="ar-hud">

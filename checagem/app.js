@@ -20,7 +20,7 @@ function lista(){const v=$('#f-ver').value,t=$('#f-tema').value,c=aba==='geral'?
 function render(){document.querySelectorAll('.abas button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.aba===aba)));
  const met=aba==='metodologia';$('#conteudo').hidden=met;$('#metodologia').hidden=!met;$('#lb-cand').hidden=aba!=='geral';
  if(met)return;kpis(aba==='geral'?D.falas:D.falas.filter(x=>x.candidato===aba));barras();lista();}
-fetch('/checagem/falas.json?v=20261024chk1',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{D=d;
+fetch('/checagem/falas.json?v=20261024arc5',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{D=d;
  $('#titulo').firstChild.textContent=d.titulo+' ';$('#sub').textContent=d.subtitulo;$('#aviso').textContent=d.aviso+' Atualizado em '+d.atualizado_em.split('-').reverse().join('/')+'.';
  [...new Set(d.falas.map(x=>x.tema))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(t=>$('#f-tema').append(new Option(t,t)));
  const m=$('#met');d.metodologia.split('\n').forEach(l=>m.append(el('p',null,l)));

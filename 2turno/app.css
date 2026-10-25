@@ -84,3 +84,12 @@ code{background:#0b1224;padding:1px 6px;border-radius:6px;font-size:13px;white-s
 .ext2-sec,.ext2-hora{font-size:12px;color:var(--sub)}
 .ext2-lin{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
 .ext2-lin b{font-variant-numeric:tabular-nums;font-weight:600}
+
+.placar-votos{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}.pv-l{color:#FF5A6E}.pv-f{color:#7FA6FF}
+.dif-dest{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 10px;margin-top:10px;text-align:center}
+.dd-badge{display:inline-block;background:#FBBF24;color:#1A1300;font-weight:800;font-size:16px;padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums;animation:ddpulsa 1.6s ease-in-out infinite}
+.dd-lider{font-weight:800;font-size:15px}.dd-lider.l{color:#FF5A6E}.dd-lider.f{color:#7FA6FF}.dd-lider.e{color:#E2E8F0}
+@keyframes ddpulsa{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(251,191,36,.7)}50%{opacity:.6;box-shadow:0 0 0 8px rgba(251,191,36,0)}}
+.dif-dest.flash .dd-badge{transform:scale(1.06);transition:transform .3s}
+@media (max-width:420px){.dd-badge{font-size:14px}.dd-lider{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.dd-badge{animation:none}}

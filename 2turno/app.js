@@ -92,6 +92,8 @@
     else if (comecou) man = lider === 'l' ? 'Lula lidera' : lider === 'f' ? 'Flávio Bolsonaro lidera' : 'Empate';
     txt('manchete', man);
     window.dispatchEvent(new CustomEvent('cmv:dados', { detail: { comecou, concluido, pl, pf, pst, man, eleitoL, eleitoF, lider, sim: SIM !== null, hora: d.hg ? `TSE ${d.dg || ''} ${d.hg}` : '' } }));
+    difDest(comecou, L.vap, F.vap);
+    txt('pv-l', comecou ? int.format(L.vap) + ' votos' : '—'); txt('pv-f', comecou ? int.format(F.vap) + ' votos' : '—');
     txt('dif', comecou ? `Diferença: ${int.format(Math.abs(L.vap - F.vap))} votos · válidos apurados: ${int.format(vv)}` : 'Os percentuais aparecem quando o TSE divulgar os primeiros boletins.');
 
     // Abstenção ao vivo: abstenções ÷ eleitores das seções já apuradas (TSE).
@@ -145,6 +147,23 @@
       i.style.width = c.pvap + '%'; i.style.background = cor[c.sg] || '#64748B'; b.appendChild(i);
       div.append(nm, pv, b); lista.appendChild(div);
     }
+  }
+
+  // Destaque da diferença em votos (neutro: só "à frente no momento"; empate → "Empate"), com contagem animada.
+  const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let ddAtual = 0, ddRaf = 0;
+  function difDest(comecou, l, f) {
+    const box = $('dif-dest'); if (!box) return;
+    box.hidden = !comecou; if (!comecou) return;
+    const alvo = Math.abs(l - f), lid = $('dd-lider');
+    lid.className = 'dd-lider ' + (l > f ? 'l' : f > l ? 'f' : 'e');
+    lid.textContent = l > f ? 'Lula à frente no momento' : f > l ? 'Flávio à frente no momento' : 'Empate';
+    if (alvo === ddAtual) { txt('dd-n', int.format(alvo)); return; }
+    const de = ddAtual; ddAtual = alvo; cancelAnimationFrame(ddRaf);
+    if (RM) { txt('dd-n', int.format(alvo)); return; }
+    box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+    const t0 = performance.now();
+    (function st(t) { const k = Math.min(1, (t - t0) / 900), e = 1 - Math.pow(1 - k, 3); txt('dd-n', int.format(Math.round(de + (alvo - de) * e))); if (k < 1) ddRaf = requestAnimationFrame(st); })(t0);
   }
 
   // Exterior: cartão próprio; falha aqui nunca derruba o placar principal.

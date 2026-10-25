@@ -96,16 +96,16 @@ function ondasMudou(a){var b=fotos();
 /* ---------- placar no canto do mapa (contagem animada) ---------- */
 var ovV={L:0,F:0,S:0},ovAlvo={L:0,F:0,S:0},ovT0=0,ovRaf=0;
 function ovDados(){var r;if(modo===2){r=ufF?ufR[ufF]:brR}else{var s={L:0,F:0,vv:0,st:0,ts:0};M.forEach(function(m){if(ufF&&m.uf!==ufF)return;s.L+=m.r1.L;s.F+=m.r1.F;s.st+=m.r1.st;s.ts+=m.r1.ts});r=s}
-  if(!r)return null;var t=r.L+r.F;return {L:t?100*r.L/t:0,F:t?100*r.F/t:0,S:r.ts?100*r.st/r.ts:0}}
+  if(!r)return null;var t=r.L+r.F;return {L:t?100*r.L/t:0,F:t?100*r.F/t:0,S:r.ts?100*r.st/r.ts:0,D:Math.abs(r.L-r.F),lid:r.L>r.F?'l':r.F>r.L?'f':'e'}}
 function f2c(v){return v.toFixed(2).replace('.',',')+'%'}
-function ovPinta(){$('ov-l').textContent=f2c(ovV.L);$('ov-f').textContent=f2c(ovV.F);$('ov-s').textContent=f2c(ovV.S)+' das seções'}
+function ovPinta(){$('ov-l').textContent=f2c(ovV.L);$('ov-f').textContent=f2c(ovV.F);$('ov-s').textContent=f2c(ovV.S)+' das seções';var d=$('ov-d');if(d){var n=Math.round(ovV.D||0);d.textContent=ovAlvo.D===undefined?'':(ovAlvo.lid==='e'?'Empate':'Diferença: '+fmt.format(n)+' votos · '+(ovAlvo.lid==='l'?'Lula':'Flávio')+' à frente');d.className='ov-d '+(ovAlvo.lid||'')}}
 function overlay(){var d=ovDados();var o=$('ov');if(!o)return;
   $('ov-t').textContent=(modo===2?'2º turno':'1º turno')+' · '+(ufF?UFN[ufF]:'Brasil + exterior');if(!d)return;
-  if(Math.abs(d.L-ovAlvo.L)<1e-6&&Math.abs(d.S-ovAlvo.S)<1e-6&&ovT0)return;
-  var de={L:ovV.L,F:ovV.F,S:ovV.S};ovAlvo=d;ovT0=performance.now();
+  if(Math.abs(d.L-ovAlvo.L)<1e-6&&Math.abs(d.S-ovAlvo.S)<1e-6&&d.D===ovAlvo.D&&ovT0)return;
+  var de={L:ovV.L,F:ovV.F,S:ovV.S,D:ovV.D||0};ovAlvo=d;ovT0=performance.now();
   if(RM){ovV=d;ovPinta();return}
   o.classList.remove('flash');void o.offsetWidth;o.classList.add('flash');
-  cancelAnimationFrame(ovRaf);(function st(t){var k=Math.min(1,(t-ovT0)/700),e=1-Math.pow(1-k,3);ovV={L:de.L+(d.L-de.L)*e,F:de.F+(d.F-de.F)*e,S:de.S+(d.S-de.S)*e};ovPinta();if(k<1)ovRaf=requestAnimationFrame(st)})(ovT0)}
+  cancelAnimationFrame(ovRaf);(function st(t){var k=Math.min(1,(t-ovT0)/700),e=1-Math.pow(1-k,3);ovV={L:de.L+(d.L-de.L)*e,F:de.F+(d.F-de.F)*e,S:de.S+(d.S-de.S)*e,D:de.D+(d.D-de.D)*e};ovPinta();if(k<1)ovRaf=requestAnimationFrame(st)})(ovT0)}
 cv.addEventListener('click',function(e){var b=cv.getBoundingClientRect(),x=(e.clientX-b.left-ZT.tx)/ZT.s,y=(e.clientY-b.top-ZT.ty)/ZT.s,best=null,bd=1e9;
   P.forEach(function(p){if(ufF&&ufF!==p.m.uf)return;var d=Math.hypot(p.x-x,p.y-y)-p.r;if(d<bd){bd=d;best=p}});
   if(best&&bd<10)ficha(best.m);else fechar()});

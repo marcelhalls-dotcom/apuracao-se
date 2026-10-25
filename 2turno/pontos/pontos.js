@@ -96,7 +96,7 @@ document.querySelectorAll('.aba').forEach(function(b){b.onclick=function(){docum
   document.querySelectorAll('.vista').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.dataset.aba)});fechar()}});
 function soma(f){var s={L:0,F:0,vv:0,st:0,ts:0,te:0,n:0,lL:0,lF:0};M.forEach(function(m){if(!f(m))return;var r=res(m);s.te+=m.te;s.n++;if(!r)return;
   s.L+=r.L;s.F+=r.F;s.vv+=r.vv;s.st+=r.st;s.ts+=r.ts;if(r.st&&r.L>r.F)s.lL++;else if(r.st&&r.F>r.L)s.lF++});return s}
-function bloco(t,s){return '<div class="cartao"><h3>'+t+'</h3><div class="mut">'+fmt.format(s.n)+' locais · '+fmt.format(s.te)+' eleitores · '+pc(s.st,s.ts)+'% das seções</div>'+
+function bloco(t,s){return '<div class="cartao"><h3>'+t+'</h3><div class="mut">'+fmt.format(s.n)+' locais · '+fmt.format(s.te)+' eleitores · <span class="secp">'+pc(s.st,s.ts)+'% das seções</span></div>'+
   '<div class="bar"><b class="l" style="width:'+(s.L+s.F?100*s.L/(s.L+s.F):0)+'%"></b><b class="f" style="width:'+(s.L+s.F?100*s.F/(s.L+s.F):0)+'%"></b></div>'+
   '<div class="lin"><span>Lula (PT)</span><span class="n">'+fmt.format(s.L)+' · '+pc(s.L,s.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+fmt.format(s.F)+' · '+pc(s.F,s.vv)+'%</span></div>'+
   '<div class="mut">Municípios com mais votos: Lula '+fmt.format(s.lL)+' · Flávio '+fmt.format(s.lF)+'</div></div>'}

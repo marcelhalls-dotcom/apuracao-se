@@ -26,7 +26,8 @@
     for (const u of urls) {
       try {
         const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
-        const r = await fetch(u, { credentials: 'omit', cache: 'no-cache', signal: ctl.signal });
+        // Mesmo caminho no automático e no botão: ?t= fura o cache da CDN/navegador e no-store não guarda nada.
+        const r = await fetch(u + (u.includes('?') ? '&' : '?') + 't=' + Date.now(), { credentials: 'omit', cache: 'no-store', signal: ctl.signal });
         clearTimeout(t);
         if (r.ok) return await r.json();
         erro = new Error('HTTP ' + r.status);
@@ -146,7 +147,8 @@
   }
 
   // Ciclo com contador regressivo visível e botão "Atualizar agora" (trava 2 s, sem buscas sobrepostas).
-  let buscando = false, proxEm = 0, tmr = null, travaAte = 0;
+  let buscando = false, buscaDesde = 0, proxEm = 0, tmr = null, travaAte = 0, carimbo2 = '';
+  function avisarMapa() { try { const f = $('pontos-frame'); if (f && f.contentWindow) f.contentWindow.postMessage({ cmvAtualizarAgora: 1 }, location.origin); } catch (_) {} }
   function agendar() { clearTimeout(tmr); const ms = document.hidden ? INTERVALO * 3 : INTERVALO; proxEm = Date.now() + ms; tmr = setTimeout(ciclo, ms); }
   function tique() {
     try {
@@ -161,25 +163,31 @@
   }
   async function ciclo() {
     if (buscando) return;
-    clearTimeout(tmr); buscando = true; tique();
+    clearTimeout(tmr); buscando = true; buscaDesde = Date.now(); tique();
     try {
       const d = SIM !== null ? simular(SIM) : await getJSON(FONTES_2T);
       render(d); falhas = 0;
+      const c = [d.dg, d.hg, d.s && d.s.st].join(' ');
+      if (carimbo2 && c !== carimbo2) avisarMapa();
+      carimbo2 = c;
       const el = $('status'); el.className = 'status vivo'; el.textContent = SIM !== null ? 'SIMULAÇÃO (dados fictícios)' : (d.tf === 's' ? 'Totalização concluída' : 'Ao vivo · TSE');
     } catch (e) {
       falhas++;
-      const el = $('status'); el.className = 'status erro'; el.textContent = 'Sem conexão com o TSE, tentando de novo…';
-    }
-    buscando = false; agendar(); tique();
+      try { const el = $('status'); el.className = 'status erro'; el.textContent = 'Sem conexão com o TSE, tentando de novo…'; } catch (_) {}
+    } finally { buscando = false; agendar(); tique(); }
   }
   function atualizarAgora() {
     if (Date.now() < travaAte || buscando) return;
     travaAte = Date.now() + 2000;
-    try { const f = $('pontos-frame'); if (f && f.contentWindow) f.contentWindow.postMessage({ cmvAtualizarAgora: 1 }, location.origin); } catch (_) {}
+    avisarMapa();
     ciclo();
   }
   try { const b = $('btn-agora'); if (b) b.addEventListener('click', atualizarAgora); } catch (_) {}
   setInterval(tique, 250);
+  // Vigia: se o ciclo parar (timer perdido ou busca travada), religa sozinho.
+  setInterval(() => { const ag = Date.now();
+    if (buscando && ag - buscaDesde > 15000) { buscando = false; agendar(); }
+    else if (!buscando && proxEm && ag - proxEm > 3000) ciclo(); }, 2000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && !buscando && proxEm - Date.now() > INTERVALO) agendar(); });
 
   (async function iniciar() {

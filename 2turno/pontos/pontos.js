@@ -133,7 +133,7 @@ function blocoInt(){var us=UFS.filter(function(u){return u!=='zz'&&(!ufF||u===uf
 var capFeito=false;
 /* ---------- dados ao vivo (2º turno) ---------- */
 function ext(j){var o={L:0,F:0,vv:+j.v.vv,st:+j.s.st,ts:+j.s.ts};j.carg[0].agr.forEach(function(a){a.par.forEach(function(p){p.cand.forEach(function(c){if(c.n==='13')o.L=+c.vap;if(c.n==='22')o.F=+c.vap})})});return o}
-function gj(u){window.__pts&&window.__pts.req++;return fetch(TSE+u,{cache:'no-cache'}).then(function(r){if(!r.ok)throw r.status;return r.json()})}
+function gj(u){window.__pts&&window.__pts.req++;return fetch(TSE+u+(u.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store',credentials:'omit'}).then(function(r){if(!r.ok)throw r.status;return r.json()})}
 function fila(list,n,fn){var i=0;function w(){if(i>=list.length)return Promise.resolve();var x=list[i++];return fn(x).catch(function(){}).then(w)}var ps=[];for(var k=0;k<n;k++)ps.push(w());return Promise.all(ps)}
 var ocupado=false,carimbo='',ultCheio=0;window.__pts={req:0,ciclos:0,cheios:0,sobrepostos:0,redesenho:0};
 function hhmmss(hg){return 'Atualizado às '+hg+' (horário do TSE)'}

@@ -34,3 +34,14 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 #t-regioes .secp{display:inline-block;background:#FBBF24;color:#1A1300;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 0 0 0 rgba(251,191,36,.7);animation:secpulsa 1.6s ease-in-out infinite}
 @keyframes secpulsa{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(251,191,36,.6)}50%{opacity:.55;box-shadow:0 0 0 5px rgba(251,191,36,0)}}
 @media (prefers-reduced-motion:reduce){#t-regioes .secp{animation:none}}
+
+.ov{position:absolute;top:8px;left:8px;background:rgba(10,20,40,.82);border:1px solid rgba(148,163,184,.35);border-radius:10px;padding:6px 9px;font-size:12px;line-height:1.35;color:#E2E8F0;pointer-events:none;max-width:62%;backdrop-filter:blur(3px)}
+.ov-t{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-r{display:flex;gap:6px;align-items:baseline;white-space:nowrap}.ov-n b{font-size:15px;font-variant-numeric:tabular-nums}
+.ov-n.l b{color:#F87171}.ov-n.f b{color:#93C5FD}.ov-x{color:#64748B}
+.ov-s span{display:inline-block;background:#FBBF24;color:#1A1300;font-weight:700;border-radius:999px;padding:0 6px;font-size:11px;font-variant-numeric:tabular-nums}
+.ov-c{font-size:10px;color:#94A3B8;display:flex;align-items:center;gap:5px}.ov-c i{width:7px;height:7px;border-radius:50%;background:#22C55E;animation:ovdot 1.2s ease-in-out infinite}
+@keyframes ovdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+.ov.flash{animation:ovflash .9s ease-out}@keyframes ovflash{0%{box-shadow:0 0 0 0 rgba(251,191,36,.8)}100%{box-shadow:0 0 0 10px rgba(251,191,36,0)}}
+@media (max-width:480px){.ov{font-size:11px;padding:5px 7px}.ov-n b{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.ov-c i,.ov.flash{animation:none}}

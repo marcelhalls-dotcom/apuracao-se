@@ -26,3 +26,4 @@ h3{margin:0 0 4px;font-size:16px}.chips{display:flex;flex-wrap:wrap;gap:6px;marg
 .ficha .x{position:absolute;right:10px;top:8px;background:none;border:0;color:var(--sub);font-size:24px}
 .ficha h2{margin:0;font-size:19px}.rod{color:var(--sub);font-size:12px;margin-top:16px;line-height:1.5}
 @media(min-width:900px){.ficha{left:auto;right:24px;bottom:24px;border-radius:16px;border:1px solid #60A5FA;width:380px}}
+.aviso{background:#14532d;color:#dcfce7;border-radius:10px;padding:8px 10px;font-size:13px;margin:0 0 6px}

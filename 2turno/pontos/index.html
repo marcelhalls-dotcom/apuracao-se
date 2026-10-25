@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pontos por município · Cadê Meu Voto</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="pontos.css">
+</head><body>
+<header class="top">
+  <a class="marca" href="/2turno/">Cadê Meu Voto</a>
+  <h1>Brasil em pontos</h1>
+  <p class="sub">Cada ponto é um município. Tamanho = eleitorado. Cor = quem tem mais votos ali.</p>
+  <div class="selos"><span id="selo" class="selo">carregando…</span><span id="hora" class="hora"></span></div>
+</header>
+<nav class="abas" role="tablist">
+  <button class="aba on" data-aba="mapa">Mapa</button>
+  <button class="aba" data-aba="regioes">Regiões</button>
+  <button class="aba" data-aba="capital">Capital × interior</button>
+</nav>
+<section class="ctrl">
+  <div class="busca"><input id="q" type="search" placeholder="Buscar cidade…" autocomplete="off"><ul id="sug"></ul></div>
+  <select id="uf"><option value="">Brasil todo</option></select>
+</section>
+<section id="v-mapa" class="vista on">
+  <div class="legenda"><span><i class="pt"></i>Lula (PT) à frente</span><span><i class="pl"></i>Flávio (PL) à frente</span><span><i class="em"></i>empate</span><span><i class="ag"></i>aguardando</span><span class="obs">cor mais forte = vantagem maior</span></div>
+  <div class="palco"><canvas id="cv"></canvas></div>
+  <div id="resumo" class="resumo"></div>
+  <div id="ext" class="cartao"></div>
+</section>
+<section id="v-regioes" class="vista"><div id="t-regioes"></div></section>
+<section id="v-capital" class="vista"><div id="t-capital"></div></section>
+<div id="ficha" class="ficha" hidden></div>
+<footer class="rod">
+  <p id="nota"></p>
+  <p>Fonte: <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE, resultados.tse.jus.br</a> (eleição 6258, 2º turno; 6257, 1º turno). Coordenadas dos municípios: IBGE (base pública <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a>). A página não faz projeção e só mostra “eleito” se o TSE publicar esse status.</p>
+</footer>
+<script src="pontos.js"></script>
+</body></html>

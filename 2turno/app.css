@@ -68,3 +68,14 @@ code{background:#0b1224;padding:1px 6px;border-radius:6px;font-size:13px;white-s
 @media (max-width:380px){.kpis{grid-template-columns:1fr}.pct{font-size:24px}}
 
 .faixa-checagem{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;margin:0 0 4px;background:var(--card-2);border:1px solid var(--line);border-radius:12px;color:var(--text);text-decoration:none;font-size:14px;line-height:1.35}.faixa-checagem span{flex:1;min-width:0}.faixa-checagem b{color:var(--accent)}.faixa-checagem i{font-style:normal;color:var(--sub);font-size:20px}
+
+.atualiz{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:4px}
+.timer{display:inline-flex;align-items:center;gap:7px;background:var(--card-2);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.timer b{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;min-width:9.5em}
+.timer .pulso{width:9px;height:9px;border-radius:50%;background:#22C55E;animation:cmvPulso 1s ease-in-out infinite}
+.timer.busca .pulso{background:#FBBF24}
+@keyframes cmvPulso{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+.btn-agora{background:#1D4ED8;color:#fff;border:0;border-radius:999px;padding:8px 14px;font:700 14px Inter,system-ui,sans-serif;cursor:pointer}
+.btn-agora:disabled{opacity:.5;cursor:default}
+.hora-tse{width:100%;font-size:12px;color:var(--sub)}
+@media (prefers-reduced-motion: reduce){.timer .pulso{animation:none}}

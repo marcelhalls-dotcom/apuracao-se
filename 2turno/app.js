@@ -69,7 +69,7 @@
 
     txt('pst', pct(pst));
     $('pst-bar').style.width = Math.min(100, pst) + '%';
-    txt('hora', d.hg ? `TSE ${d.dg || ''} ${d.hg}` : '—');
+    txt('hora', d.hg ? `Dados do TSE de ${d.hg}` : '—');
     $('aguardando').hidden = comecou;
 
     const pl = vv ? 100 * L.vap / vv : 50, pf = vv ? 100 * F.vap / vv : 50;
@@ -145,7 +145,23 @@
     }
   }
 
+  // Ciclo com contador regressivo visível e botão "Atualizar agora" (trava 2 s, sem buscas sobrepostas).
+  let buscando = false, proxEm = 0, tmr = null, travaAte = 0;
+  function agendar() { clearTimeout(tmr); const ms = document.hidden ? INTERVALO * 3 : INTERVALO; proxEm = Date.now() + ms; tmr = setTimeout(ciclo, ms); }
+  function tique() {
+    try {
+      const el = $('prox'); if (!el) return;
+      const box = $('timer');
+      if (buscando) { el.textContent = 'Atualizando…'; if (box) box.classList.add('busca'); return; }
+      if (box) box.classList.remove('busca');
+      const s = Math.max(1, Math.ceil((proxEm - Date.now()) / 1000));
+      el.textContent = 'Atualizando em ' + s + 's';
+      const b = $('btn-agora'); if (b) b.disabled = Date.now() < travaAte;
+    } catch (_) {}
+  }
   async function ciclo() {
+    if (buscando) return;
+    clearTimeout(tmr); buscando = true; tique();
     try {
       const d = SIM !== null ? simular(SIM) : await getJSON(FONTES_2T);
       render(d); falhas = 0;
@@ -154,8 +170,17 @@
       falhas++;
       const el = $('status'); el.className = 'status erro'; el.textContent = 'Sem conexão com o TSE, tentando de novo…';
     }
-    setTimeout(ciclo, document.hidden ? INTERVALO * 3 : INTERVALO);
+    buscando = false; agendar(); tique();
   }
+  function atualizarAgora() {
+    if (Date.now() < travaAte || buscando) return;
+    travaAte = Date.now() + 2000;
+    try { const f = $('pontos-frame'); if (f && f.contentWindow) f.contentWindow.postMessage({ cmvAtualizarAgora: 1 }, location.origin); } catch (_) {}
+    ciclo();
+  }
+  try { const b = $('btn-agora'); if (b) b.addEventListener('click', atualizarAgora); } catch (_) {}
+  setInterval(tique, 250);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !buscando && proxEm - Date.now() > INTERVALO) agendar(); });
 
   (async function iniciar() {
     if (SIM !== null) { const b = document.createElement('div'); b.className = 'sim'; b.textContent = `SIMULAÇÃO com ${SIM}% das urnas: números fictícios, só para teste`; document.body.prepend(b); }

@@ -137,6 +137,8 @@ function gj(u){window.__pts&&window.__pts.req++;return fetch(TSE+u,{cache:'no-ca
 function fila(list,n,fn){var i=0;function w(){if(i>=list.length)return Promise.resolve();var x=list[i++];return fn(x).catch(function(){}).then(w)}var ps=[];for(var k=0;k<n;k++)ps.push(w());return Promise.all(ps)}
 var ocupado=false,carimbo='',ultCheio=0;window.__pts={req:0,ciclos:0,cheios:0,sobrepostos:0,redesenho:0};
 function hhmmss(hg){return 'Atualizado às '+hg+' (horário do TSE)'}
+window.addEventListener('message',function(e){try{if(e.origin!==location.origin||e.source!==parent||!e.data||!e.data.cmvAtualizarAgora)return;if(!ocupado){clearTimeout(tCiclo);ciclo()}}catch(_){}});
+var tCiclo=null;
 function ciclo(){if(ocupado){window.__pts.sobrepostos++;return}ocupado=true;window.__pts.ciclos++;
   gj('br/br-c0001-e006258-u.json').then(function(br){hora=hhmmss(br.hg);
     var c=br.dg+' '+br.hg+' '+br.idg,mudou=c!==carimbo;
@@ -156,6 +158,6 @@ function ciclo(){if(ocupado){window.__pts.sobrepostos++;return}ocupado=true;wind
         return fila(caps,8,function(m){cache[m.uf+m.cd]=Date.now();return gj(m.uf+'/'+m.uf+m.cd+'-c0001-e006258-u.json').then(function(j){m.r2=ext(j)})}).then(function(){capFeito=caps.every(function(m){return m.r2})});
       });
     }).then(function(){painel();draw();window.__pts.redesenho=Date.now();if(sel)ficha(sel)});
-  }).catch(function(){}).then(function(){ocupado=false;setTimeout(ciclo,document.hidden?15000:5000)});
+  }).catch(function(){}).then(function(){ocupado=false;clearTimeout(tCiclo);tCiclo=setTimeout(ciclo,document.hidden?15000:5000)});
 }
 })();

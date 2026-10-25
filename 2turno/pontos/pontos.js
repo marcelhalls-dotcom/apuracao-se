@@ -27,7 +27,7 @@ fetch('base-t1.json').then(function(r){return r.json()}).then(function(d){
 
 /* ---------- layout: coordenadas reais + separação de pontos ---------- */
 var P=[],proxEm=0,ZT={s:1,tx:0,ty:0};
-function layout(){
+function layout(){if(cv.clientWidth===0)return;
   DPR=Math.min(window.devicePixelRatio||1,2);W=cv.clientWidth;
   var lo0=-74.2,lo1=-34.6,la0=-33.9,la1=5.4,kx=Math.cos(-14*Math.PI/180);
   var asp=((la1-la0))/((lo1-lo0)*kx);H=Math.round(W*asp);
@@ -64,10 +64,10 @@ function zoom(){ZT={s:1,tx:0,ty:0};
 function pintaBase(cvx){cvx.width=W*DPR;cvx.height=H*DPR;var g=cvx.getContext('2d');g.setTransform(DPR*ZT.s,0,0,DPR*ZT.s,DPR*ZT.tx,DPR*ZT.ty);
   for(var i=0;i<P.length;i++){var p=P[i];if(ufF&&ufF!==p.m.uf)continue;g.fillStyle=cor(resCor(p.m));g.beginPath();g.arc(p.x,p.y,p.r,0,6.2832);g.fill()}}
 /* draw(suave): refaz a base; com suave=true faz transição de cor (dissolve da base anterior) */
-function draw(suave){
+function draw(suave){try{if(cv.clientWidth===0)return;if(Math.abs(cv.clientWidth-W)>2)layout();
   if(suave&&!RM&&base.width){var g=velha.getContext('2d');velha.width=base.width;velha.height=base.height;g.drawImage(base,0,0);fadeIni=performance.now()}else fadeIni=0;
-  zoom();pintaBase(base);quadro(performance.now());if(!RM)anima()}
-function quadro(t){
+  zoom();pintaBase(base);quadro(performance.now());if(!RM)anima()}catch(_){}}
+function quadro(t){if(!W||!base.width||!base.height)return;
   cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);
   var br=RM?1:0.9+0.1*Math.sin(t/700);                       /* respiração "ao vivo" */
   var f=fadeIni?Math.min(1,(t-fadeIni)/FADE):1;if(f>=1)fadeIni=0;
@@ -109,7 +109,7 @@ function overlay(){var d=ovDados();var o=$('ov');if(!o)return;
 cv.addEventListener('click',function(e){var b=cv.getBoundingClientRect(),x=(e.clientX-b.left-ZT.tx)/ZT.s,y=(e.clientY-b.top-ZT.ty)/ZT.s,best=null,bd=1e9;
   P.forEach(function(p){if(ufF&&ufF!==p.m.uf)return;var d=Math.hypot(p.x-x,p.y-y)-p.r;if(d<bd){bd=d;best=p}});
   if(best&&bd<10)ficha(best.m);else fechar()});
-var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(Math.abs(cv.clientWidth-W)>2){layout();draw()}},200)});
+var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(cv.clientWidth>0&&Math.abs(cv.clientWidth-W)>2){layout();draw()}},200)});
 
 /* ---------- ficha ---------- */
 function ficha(m){if(modo===2&&!temAgg){var c=cache[m.uf+m.cd];if(!c||Date.now()-c>60000){cache[m.uf+m.cd]=Date.now();gj(m.uf+'/'+m.uf+m.cd+'-c0001-e006258-u.json').then(function(j){m.r2=ext(j);if(sel===m)ficha(m);draw()}).catch(function(){})}}
@@ -131,11 +131,12 @@ $('q').addEventListener('input',function(){var q=norm(this.value.trim()),u=$('su
   M.filter(function(m){return norm(m.nm).indexOf(q)>=0&&(!ufF||m.uf===ufF)}).sort(function(a,b){return b.te-a.te}).slice(0,12).forEach(function(m){
     var li=document.createElement('li');li.innerHTML=esc(m.nm)+' <small>'+(m.uf==='zz'?'Exterior':m.uf.toUpperCase())+'</small>';
     li.onclick=function(){u.innerHTML='';$('q').value=m.nm;ficha(m)};u.appendChild(li)})});
-$('uf').addEventListener('change',function(){ufF=this.value;draw();painel();overlay()});
+$('uf').addEventListener('change',function(){ufF=this.value;try{painel()}catch(_){}try{overlay()}catch(_){}draw()});
 
 /* ---------- abas e somas ---------- */
 document.querySelectorAll('.aba').forEach(function(b){b.onclick=function(){document.querySelectorAll('.aba').forEach(function(x){x.classList.toggle('on',x===b)});
-  document.querySelectorAll('.vista').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.dataset.aba)});fechar()}});
+  document.querySelectorAll('.vista').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.dataset.aba)});
+  if(b.dataset.aba==='mapa'&&cv.clientWidth>0&&Math.abs(cv.clientWidth-W)>2)layout();try{painel()}catch(_){}fechar()}});
 function soma(f){var s={L:0,F:0,vv:0,st:0,ts:0,te:0,n:0,lL:0,lF:0};M.forEach(function(m){if(!f(m))return;var r=res(m);s.te+=m.te;s.n++;if(!r)return;
   s.L+=r.L;s.F+=r.F;s.vv+=r.vv;s.st+=r.st;s.ts+=r.ts;if(r.st&&r.L>r.F)s.lL++;else if(r.st&&r.F>r.L)s.lF++});return s}
 function bloco(t,s){return '<div class="cartao"><h3>'+t+'</h3><div class="mut">'+fmt.format(s.n)+' locais · '+fmt.format(s.te)+' eleitores · <span class="secp">'+pc(s.st,s.ts)+'% das seções</span></div>'+

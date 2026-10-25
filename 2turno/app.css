@@ -79,3 +79,8 @@ code{background:#0b1224;padding:1px 6px;border-radius:6px;font-size:13px;white-s
 .btn-agora:disabled{opacity:.5;cursor:default}
 .hora-tse{width:100%;font-size:12px;color:var(--sub)}
 @media (prefers-reduced-motion: reduce){.timer .pulso{animation:none}}
+
+.ext2-t{font-size:14px;margin:0 0 6px;font-weight:600}
+.ext2-sec,.ext2-hora{font-size:12px;color:var(--sub)}
+.ext2-lin{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+.ext2-lin b{font-variant-numeric:tabular-nums;font-weight:600}

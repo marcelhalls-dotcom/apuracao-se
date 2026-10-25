@@ -7,7 +7,7 @@ var UFS='ac al ap am ba ce df es go ma mt ms mg pr pb pa pe pi rj rn rs ro rr sc
 var REG={N:'ac am ap pa ro rr to',NE:'al ba ce ma pb pe pi rn se',CO:'df go ms mt',SE:'es mg rj sp',S:'pr rs sc'};
 var REGN={N:'Norte',NE:'Nordeste',CO:'Centro-Oeste',SE:'Sudeste',S:'Sul'};
 var ufReg={};Object.keys(REG).forEach(function(r){REG[r].split(' ').forEach(function(u){ufReg[u]=r})});
-var M=[],byKey={},modo=1,ufIdg={},ufSt={},hora='';
+var t1ok=false,M=[],byKey={},modo=1,ufIdg={},ufSt={},hora='';
 var cv=document.getElementById('cv'),cx=cv.getContext('2d'),W=0,H=0,DPR=1,sel=null,ufF='';
 var fmt=new Intl.NumberFormat('pt-BR');function pc(a,b){return b?(100*a/b).toFixed(2).replace('.',','):'0,00'}
 function $(i){return document.getElementById(i)}
@@ -102,10 +102,11 @@ function painel(){
   var f=function(m){return !ufF||m.uf===ufF};
   if(modo===2&&!temAgg){painel2();return}
   $('resumo').innerHTML=bloco(ufF?(ufF==='zz'?'Exterior':ufF.toUpperCase()):'Brasil + exterior',soma(f)).replace('<div class="cartao">','<div>');
+  if(!t1ok){$('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">Carregando 2º turno…</div>'}else{
   var ex=M.filter(function(m){return m.uf==='zz'}),se=soma(function(m){return m.uf==='zz'});
   $('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">'+fmt.format(se.n)+' cidades · '+fmt.format(se.te)+' eleitores</div>'+
    '<div class="lin"><span>Lula (PT)</span><span class="n">'+pc(se.L,se.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+pc(se.F,se.vv)+'%</span></div><div class="chips">'+
-   ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'" style="border-left:4px solid '+cor(resCor(m))+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';
+   ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'" style="border-left:4px solid '+cor(resCor(m))+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';}
   $('ext').querySelectorAll('.chip').forEach(function(c){c.onclick=function(){ficha(byKey[c.dataset.k])}});
   $('t-regioes').innerHTML='<div class="grade">'+Object.keys(REG).map(function(r){return bloco(REGN[r],soma(function(m){return ufReg[m.uf]===r&&f(m)}))}).join('')+bloco('Exterior',soma(function(m){return m.uf==='zz'}))+'</div>';
   $('t-capital').innerHTML='<div class="grade">'+bloco('27 capitais',soma(function(m){return m.cap&&f(m)}))+bloco('Interior',soma(function(m){return !m.cap&&m.uf!=='zz'&&f(m)}))+'</div><p class="mut">Capitais = as 26 capitais estaduais e Brasília. Exterior fica fora das duas somas.</p>';
@@ -118,7 +119,8 @@ function painel2(){
   var todas=UFS.slice(),sb=ufF?somaUF([ufF]):(brR?Object.assign(somaUF(todas),brR):somaUF(todas));
   $('resumo').innerHTML=bloco(ufF?(ufF==='zz'?'Exterior':ufF.toUpperCase()):'Brasil + exterior',sb).replace('<div class="cartao">','<div>').replace(/<div class="mut">Municípios com mais votos[^<]*<\/div>/,'');
   var se=somaUF(['zz']),ex=M.filter(function(m){return m.uf==='zz'});
-  $('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">'+fmt.format(se.n)+' cidades · '+pc(se.st,se.ts)+'% das seções</div><div class="lin"><span>Lula (PT)</span><span class="n">'+pc(se.L,se.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+pc(se.F,se.vv)+'%</span></div><div class="chips">'+ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';
+  if(!ufR.zz){$('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">Carregando 2º turno…</div>'}else{
+  $('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">'+fmt.format(se.n)+' cidades · '+pc(se.st,se.ts)+'% das seções</div><div class="lin"><span>Lula (PT)</span><span class="n">'+pc(se.L,se.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+pc(se.F,se.vv)+'%</span></div><div class="chips">'+ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';}
   $('ext').querySelectorAll('.chip').forEach(function(c){c.onclick=function(){ficha(byKey[c.dataset.k])}});
   var tira=function(h){return h.replace(/<div class="mut">Municípios com mais votos[^<]*<\/div>/g,'')};
   $('t-regioes').innerHTML='<p class="mut">2º turno ao vivo, somando os arquivos de cada estado do TSE.</p><div class="grade">'+tira(Object.keys(REG).map(function(r){return bloco(REGN[r],somaUF(REG[r].split(' ').filter(function(u){return !ufF||u===ufF})))}).join('')+bloco('Exterior',somaUF(['zz'])))+'</div>';
@@ -142,7 +144,7 @@ var tCiclo=null;
 function ciclo(){if(ocupado){window.__pts.sobrepostos++;return}ocupado=true;window.__pts.ciclos++;
   gj('br/br-c0001-e006258-u.json').then(function(br){hora=hhmmss(br.hg);
     var c=br.dg+' '+br.hg+' '+br.idg,mudou=c!==carimbo;
-    if(+br.s.st===0){carimbo=c;modo=1;$('hora').textContent=hora;if(mudou)painel();return}
+    if(+br.s.st===0){t1ok=true;carimbo=c;modo=1;$('hora').textContent=hora;if(mudou)painel();return}
     var cheio=mudou||modo!==2||Date.now()-ultCheio>60000;
     if(modo!==2){modo=2;M.forEach(function(m){m.r2=null})}
     brR=ext(br);$('hora').textContent=hora;

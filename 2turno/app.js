@@ -8,6 +8,7 @@
   // O TSE libera CORS para cademeuvoto.com.br e responde por CDN (max-age ~55 s). Um proxy no Worker foi testado,
   // mas o TSE devolve 403 para a saída da Cloudflare; por isso a leitura é direta.
   const FONTES_2T = [TSE + '/6258/dados/br/br-c0001-e006258-u.json'];
+  const FONTES_EXT = [TSE + '/6258/dados/zz/zz-c0001-e006258-u.json'];
   const FONTES_1T = ['https://dados.cademeuvoto.com.br/tse/ele2026/6257/dados/br/br-c0001-e006257-u.json', TSE + '/6257/dados/br/br-c0001-e006257-u.json'];
   const SIM = (() => { const v = new URLSearchParams(location.search).get('sim'); return v === null ? null : Math.max(0, Math.min(100, Number(v) || 0)); })();
 
@@ -146,6 +147,21 @@
     }
   }
 
+  // Exterior: cartão próprio; falha aqui nunca derruba o placar principal.
+  function renderExt(d) {
+    const s = d.s || {}, v = d.v || {}, ts = n(s.ts), st = n(s.st), vv = n(v.vv);
+    const cs = candidatos(d);
+    const L = cs.find(x => x.sq === SQ_LULA) || { vap: 0 }, F = cs.find(x => x.sq === SQ_FLAVIO) || { vap: 0 };
+    txt('ext-sec', `${pct(ts ? 100 * st / ts : 0)} das seções totalizadas (${int.format(st)} de ${int.format(ts)})`);
+    txt('ext-l', `${int.format(L.vap)} votos · ${pct(vv ? 100 * L.vap / vv : 0)}`);
+    txt('ext-f', `${int.format(F.vap)} votos · ${pct(vv ? 100 * F.vap / vv : 0)}`);
+    txt('ext-hora', d.hg ? `Dados do TSE de ${d.hg}` : '—');
+  }
+  async function cicloExt() {
+    if (SIM !== null) { txt('ext-sec', 'Simulação: exterior não simulado'); return; }
+    try { renderExt(await getJSON(FONTES_EXT)); } catch (_) { const el = $('ext-hora'); if (el) el.textContent = 'Sem conexão com o TSE, tentando de novo…'; }
+  }
+
   // Ciclo com contador regressivo visível e botão "Atualizar agora" (trava 2 s, sem buscas sobrepostas).
   let buscando = false, buscaDesde = 0, proxEm = 0, tmr = null, travaAte = 0, carimbo2 = '';
   function avisarMapa() { try { const f = $('pontos-frame'); if (f && f.contentWindow) f.contentWindow.postMessage({ cmvAtualizarAgora: 1 }, location.origin); } catch (_) {} }
@@ -164,6 +180,7 @@
   async function ciclo() {
     if (buscando) return;
     clearTimeout(tmr); buscando = true; buscaDesde = Date.now(); tique();
+    const pe = cicloExt();
     try {
       const d = SIM !== null ? simular(SIM) : await getJSON(FONTES_2T);
       render(d); falhas = 0;
@@ -174,7 +191,7 @@
     } catch (e) {
       falhas++;
       try { const el = $('status'); el.className = 'status erro'; el.textContent = 'Sem conexão com o TSE, tentando de novo…'; } catch (_) {}
-    } finally { buscando = false; agendar(); tique(); }
+    } finally { try { await pe; } catch (_) {} buscando = false; agendar(); tique(); }
   }
   function atualizarAgora() {
     if (Date.now() < travaAte || buscando) return;

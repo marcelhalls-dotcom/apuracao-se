@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pontos por município · Cadê Meu Voto</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="pontos.css?v=pts5">
+<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="pontos.css?v=ext1">
 </head><body>
 <header class="top">
   <a class="marca" href="/2turno/">Cadê Meu Voto</a>
@@ -23,9 +23,9 @@
 <section id="v-mapa" class="vista on">
   <div class="legenda"><span><i class="pt"></i>Lula (PT) à frente</span><span><i class="pl"></i>Flávio (PL) à frente</span><span><i class="em"></i>empate</span><span><i class="ag"></i>aguardando</span><span class="obs">cor mais forte = vantagem maior</span></div>
   <p id="aviso" class="aviso" hidden>Cores ao vivo por estado; toque na cidade para ver o resultado dela.</p>
+  <div id="ext" class="cartao"></div>
   <div class="palco"><canvas id="cv"></canvas></div>
   <div id="resumo" class="resumo"></div>
-  <div id="ext" class="cartao"></div>
 </section>
 <section id="v-regioes" class="vista"><div id="t-regioes"></div></section>
 <section id="v-capital" class="vista"><div id="t-capital"></div></section>
@@ -34,5 +34,5 @@
   <p id="nota"></p>
   <p>Fonte: <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE, resultados.tse.jus.br</a> (eleição 6258, 2º turno; 6257, 1º turno). Coordenadas dos municípios: IBGE (base pública <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a>). A página não faz projeção e só mostra “eleito” se o TSE publicar esse status.</p>
 </footer>
-<script src="pontos.js?v=pts5"></script>
+<script src="pontos.js?v=ext1"></script>
 </body></html>

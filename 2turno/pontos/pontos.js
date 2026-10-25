@@ -6,6 +6,7 @@ var TSE='https://resultados.tse.jus.br/oficial/ele2026/6258/dados/';
 var UFS='ac al ap am ba ce df es go ma mt ms mg pr pb pa pe pi rj rn rs ro rr sc se sp to zz'.split(' ');
 var REG={N:'ac am ap pa ro rr to',NE:'al ba ce ma pb pe pi rn se',CO:'df go ms mt',SE:'es mg rj sp',S:'pr rs sc'};
 var REGN={N:'Norte',NE:'Nordeste',CO:'Centro-Oeste',SE:'Sudeste',S:'Sul'};
+var UFN={ac:'Acre',al:'Alagoas',ap:'Amapá',am:'Amazonas',ba:'Bahia',ce:'Ceará',df:'Distrito Federal',es:'Espírito Santo',go:'Goiás',ma:'Maranhão',mt:'Mato Grosso',ms:'Mato Grosso do Sul',mg:'Minas Gerais',pa:'Pará',pb:'Paraíba',pr:'Paraná',pe:'Pernambuco',pi:'Piauí',rj:'Rio de Janeiro',rn:'Rio Grande do Norte',rs:'Rio Grande do Sul',ro:'Rondônia',rr:'Roraima',sc:'Santa Catarina',sp:'São Paulo',se:'Sergipe',to:'Tocantins',zz:'Exterior'};
 var ufReg={};Object.keys(REG).forEach(function(r){REG[r].split(' ').forEach(function(u){ufReg[u]=r})});
 var t1ok=false,M=[],byKey={},modo=1,ufIdg={},ufSt={},hora='';
 var cv=document.getElementById('cv'),cx=cv.getContext('2d'),W=0,H=0,DPR=1,sel=null,ufF='';
@@ -25,7 +26,7 @@ fetch('base-t1.json').then(function(r){return r.json()}).then(function(d){
 });
 
 /* ---------- layout: coordenadas reais + separação de pontos ---------- */
-var P=[];
+var P=[],ZT={s:1,tx:0,ty:0};
 function layout(){
   DPR=Math.min(window.devicePixelRatio||1,2);W=cv.clientWidth;
   var lo0=-74.2,lo1=-34.6,la0=-33.9,la1=5.4,kx=Math.cos(-14*Math.PI/180);
@@ -55,13 +56,15 @@ function cor(r){
   return 'rgb('+c.map(function(v,i){return Math.round(b[i]+(v-b[i])*a)}).join(',')+')';
 }
 function draw(){
-  cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);
-  for(var i=0;i<P.length;i++){var p=P[i];var dim=ufF&&ufF!==p.m.uf;
-    cx.globalAlpha=dim?0.12:1;cx.fillStyle=cor(resCor(p.m));cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.2832);cx.fill()}
+  cx.setTransform(DPR,0,0,DPR,0,0);cx.clearRect(0,0,W,H);ZT={s:1,tx:0,ty:0};
+  if(ufF&&ufF!=='zz'){var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;P.forEach(function(p){if(p.m.uf!==ufF)return;x0=Math.min(x0,p.x-p.r);y0=Math.min(y0,p.y-p.r);x1=Math.max(x1,p.x+p.r);y1=Math.max(y1,p.y+p.r)});
+    if(x1>x0){var pd=12,zs=Math.min((W-2*pd)/(x1-x0),(H-2*pd)/(y1-y0),8);ZT={s:zs,tx:(W-(x1-x0)*zs)/2-x0*zs,ty:(H-(y1-y0)*zs)/2-y0*zs};cx.setTransform(DPR*zs,0,0,DPR*zs,DPR*ZT.tx,DPR*ZT.ty)}}
+  for(var i=0;i<P.length;i++){var p=P[i];if(ufF&&ufF!==p.m.uf)continue;
+    cx.globalAlpha=1;cx.fillStyle=cor(resCor(p.m));cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.2832);cx.fill()}
   cx.globalAlpha=1;
   if(sel){var s=P.find(function(p){return p.m===sel});if(s){cx.lineWidth=2.5;cx.strokeStyle='#FDE047';cx.beginPath();cx.arc(s.x,s.y,s.r+3,0,6.2832);cx.stroke()}}
 }
-cv.addEventListener('click',function(e){var b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top,best=null,bd=1e9;
+cv.addEventListener('click',function(e){var b=cv.getBoundingClientRect(),x=(e.clientX-b.left-ZT.tx)/ZT.s,y=(e.clientY-b.top-ZT.ty)/ZT.s,best=null,bd=1e9;
   P.forEach(function(p){if(ufF&&ufF!==p.m.uf)return;var d=Math.hypot(p.x-x,p.y-y)-p.r;if(d<bd){bd=d;best=p}});
   if(best&&bd<10)ficha(best.m);else fechar()});
 var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(Math.abs(cv.clientWidth-W)>2){layout();draw()}},200)});
@@ -101,14 +104,14 @@ function somaUF(us){var s={L:0,F:0,vv:0,st:0,ts:0,te:0,n:0,lL:0,lF:0};us.forEach
 function painel(){
   var f=function(m){return !ufF||m.uf===ufF};
   if(modo===2&&!temAgg){painel2();return}
-  $('resumo').innerHTML=bloco(ufF?(ufF==='zz'?'Exterior':ufF.toUpperCase()):'Brasil + exterior',soma(f)).replace('<div class="cartao">','<div>');
+  $('resumo').innerHTML=bloco(ufF?UFN[ufF]:'Brasil + exterior',soma(f)).replace('<div class="cartao">','<div>');
   if(!t1ok){$('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">Carregando 2º turno…</div>'}else{
   var ex=M.filter(function(m){return m.uf==='zz'}),se=soma(function(m){return m.uf==='zz'});
   $('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">'+fmt.format(se.n)+' cidades · '+fmt.format(se.te)+' eleitores</div>'+
    '<div class="lin"><span>Lula (PT)</span><span class="n">'+pc(se.L,se.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+pc(se.F,se.vv)+'%</span></div><div class="chips">'+
    ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'" style="border-left:4px solid '+cor(resCor(m))+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';}
   $('ext').querySelectorAll('.chip').forEach(function(c){c.onclick=function(){ficha(byKey[c.dataset.k])}});
-  $('t-regioes').innerHTML='<div class="grade">'+Object.keys(REG).map(function(r){return bloco(REGN[r],soma(function(m){return ufReg[m.uf]===r&&f(m)}))}).join('')+bloco('Exterior',soma(function(m){return m.uf==='zz'}))+'</div>';
+  $('t-regioes').innerHTML=ufF?'<div class="grade">'+bloco(UFN[ufF]+(ufReg[ufF]?' <small class="mut">('+REGN[ufReg[ufF]]+')</small>':''),soma(f))+'</div>':'<div class="grade">'+Object.keys(REG).map(function(r){return bloco(REGN[r],soma(function(m){return ufReg[m.uf]===r&&f(m)}))}).join('')+bloco('Exterior',soma(function(m){return m.uf==='zz'}))+'</div>';
   $('t-capital').innerHTML='<div class="grade">'+bloco('27 capitais',soma(function(m){return m.cap&&f(m)}))+bloco('Interior',soma(function(m){return !m.cap&&m.uf!=='zz'&&f(m)}))+'</div><p class="mut">Capitais = as 26 capitais estaduais e Brasília. Exterior fica fora das duas somas.</p>';
   $('selo').textContent=modo===1?'DADOS DO 1º TURNO':'2º TURNO · APURAÇÃO';$('selo').className='selo'+(modo===2?' t2':'');
   $('hora').textContent=hora;
@@ -117,13 +120,13 @@ function painel(){
 
 function painel2(){
   var todas=UFS.slice(),sb=ufF?somaUF([ufF]):(brR?Object.assign(somaUF(todas),brR):somaUF(todas));
-  $('resumo').innerHTML=bloco(ufF?(ufF==='zz'?'Exterior':ufF.toUpperCase()):'Brasil + exterior',sb).replace('<div class="cartao">','<div>').replace(/<div class="mut">Municípios com mais votos[^<]*<\/div>/,'');
+  $('resumo').innerHTML=bloco(ufF?UFN[ufF]:'Brasil + exterior',sb).replace('<div class="cartao">','<div>').replace(/<div class="mut">Municípios com mais votos[^<]*<\/div>/,'');
   var se=somaUF(['zz']),ex=M.filter(function(m){return m.uf==='zz'});
   if(!ufR.zz){$('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">Carregando 2º turno…</div>'}else{
   $('ext').innerHTML='<h3>Exterior (fora do mapa)</h3><div class="mut">'+fmt.format(se.n)+' cidades · '+pc(se.st,se.ts)+'% das seções</div><div class="lin"><span>Lula (PT)</span><span class="n">'+pc(se.L,se.vv)+'%</span></div><div class="lin"><span>Flávio (PL)</span><span class="n">'+pc(se.F,se.vv)+'%</span></div><div class="chips">'+ex.sort(function(a,b){return b.te-a.te}).slice(0,12).map(function(m){return '<span class="chip" data-k="'+m.uf+m.cd+'">'+esc(m.nm)+'</span>'}).join('')+'</div>';}
   $('ext').querySelectorAll('.chip').forEach(function(c){c.onclick=function(){ficha(byKey[c.dataset.k])}});
   var tira=function(h){return h.replace(/<div class="mut">Municípios com mais votos[^<]*<\/div>/g,'')};
-  $('t-regioes').innerHTML='<p class="mut">2º turno ao vivo, somando os arquivos de cada estado do TSE.</p><div class="grade">'+tira(Object.keys(REG).map(function(r){return bloco(REGN[r],somaUF(REG[r].split(' ').filter(function(u){return !ufF||u===ufF})))}).join('')+bloco('Exterior',somaUF(['zz'])))+'</div>';
+  $('t-regioes').innerHTML='<p class="mut">2º turno ao vivo, somando os arquivos de cada estado do TSE.</p><div class="grade">'+tira(ufF?bloco(UFN[ufF]+(ufReg[ufF]?' <small class="mut">('+REGN[ufReg[ufF]]+')</small>':''),somaUF([ufF])):Object.keys(REG).map(function(r){return bloco(REGN[r],somaUF(REG[r].split(' ').filter(function(u){return !ufF||u===ufF})))}).join('')+bloco('Exterior',somaUF(['zz'])))+'</div>';
   var capOk=capFeito;
   $('t-capital').innerHTML=capOk?'<p class="mut">2º turno ao vivo. Capitais: arquivos das 27 capitais; interior = estado menos capital.</p><div class="grade">'+tira(bloco('27 capitais',soma(function(m){return m.cap&&f2(m)}))+blocoInt())+'</div>':'<p class="mut"><span class="selo">DADOS DO 1º TURNO</span> Dados das capitais do 2º turno indisponíveis no momento.</p>';
   $('selo').textContent='2º TURNO · APURAÇÃO';$('selo').className='selo t2';$('hora').textContent=hora;

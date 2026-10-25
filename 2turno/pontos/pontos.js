@@ -1,4 +1,7 @@
 (function(){'use strict';
+var EMBED=/[?&]embed=1/.test(location.search);if(EMBED)document.documentElement.classList.add('embed');
+function altura(){if(EMBED&&parent!==window)try{parent.postMessage({cmvPontosAltura:document.documentElement.scrollHeight},location.origin)}catch(e){}}
+if(EMBED){if(window.ResizeObserver)new ResizeObserver(altura).observe(document.body);window.addEventListener('load',altura);setInterval(altura,2000)}
 var TSE='https://resultados.tse.jus.br/oficial/ele2026/6258/dados/';
 var UFS='ac al ap am ba ce df es go ma mt ms mg pr pb pa pe pi rj rn rs ro rr sc se sp to zz'.split(' ');
 var REG={N:'ac am ap pa ro rr to',NE:'al ba ce ma pb pe pi rn se',CO:'df go ms mt',SE:'es mg rj sp',S:'pr rs sc'};

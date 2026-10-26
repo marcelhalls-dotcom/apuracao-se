@@ -53,3 +53,22 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 .acr-t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}.acr-t th,.acr-t td{padding:5px 4px;text-align:right;border-bottom:1px solid var(--line)}.acr-t th:first-child,.acr-t td:first-child{text-align:left;font-weight:700}.acr-t th{color:var(--sub);font-weight:600;font-size:12px}.acr-t tfoot td{font-weight:800;border-bottom:0}.acr-t td.pos,.acr-t td.neg{font-weight:700}
 .acr-f{margin-top:10px;line-height:1.5}
 .acr-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 8px}.acr-hd img{height:28px;width:auto}.acr-hd span{color:var(--sub);font-size:13px;font-weight:600}
+/* Auditoria das Urnas */
+.aud-sub{margin:-4px 0 12px;font-weight:600;opacity:.8}
+.aud-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px}
+.aud-kpi .cartao{display:flex;flex-direction:column;gap:4px}.aud-kpi b{font-size:1.9rem;line-height:1.1}.aud-kpi span{font-size:.85rem;opacity:.75}
+.aud-g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px}
+.aud-map{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-width:420px;margin:8px auto}
+.aud-map button{aspect-ratio:1;border:0;border-radius:6px;color:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0;font:inherit}
+.aud-map button small{font-size:.62rem}.aud-map button:hover{outline:2px solid #333}
+.aud-esc{display:flex;align-items:center;gap:6px;justify-content:center;font-size:.75rem}.aud-esc i{width:140px;height:8px;border-radius:4px;background:linear-gradient(90deg,hsl(38,55%,88%),hsl(38,90%,40%))}
+.aud-tw{overflow-x:auto;max-height:560px;overflow-y:auto}.aud-tw table{width:100%}
+.aud-hist>div{display:grid;grid-template-columns:110px 1fr 64px;align-items:center;gap:8px;margin:8px 0;font-size:.9rem}
+.aud-hist i{display:block;height:18px;border-radius:4px;background:hsl(38,85%,50%)}.aud-hist b{text-align:right}
+.aud-regra{border-left:4px solid hsl(38,85%,50%)}.aud-regra ul{padding-left:18px;margin:6px 0}.aud-regra li{margin:6px 0;line-height:1.4}
+.aud-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.aud-f input:not([type=checkbox]),.aud-f select{padding:8px;border-radius:8px;border:1px solid #ccc;font:inherit;min-width:0;flex:1 1 110px}
+.aud-f label{font-size:.85rem;flex:1 1 100%}.aud-bt{padding:8px 14px;border-radius:8px;border:0;background:#222;color:#fff;font:inherit;cursor:pointer}.aud-bt:disabled{opacity:.4}
+.aud-res td small{font-size:.75rem}
+.aud-lock{border:1px dashed hsl(38,85%,50%);border-radius:12px;padding:16px;margin:8px 0;text-align:center}.aud-lock p{opacity:.8;margin:8px 0 12px}
+.aud-lock .aud-bt{display:inline-block;text-decoration:none;margin:4px;background:hsl(38,85%,50%);color:#111;font-weight:700}.aud-lock .aud-bt.sec{background:transparent;color:inherit;border:1px solid currentColor;font-weight:400}
+.aud-f[hidden],.aud-res[hidden]{display:none!important}

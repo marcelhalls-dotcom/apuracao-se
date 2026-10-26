@@ -617,6 +617,146 @@ html.tema-claro .dd-lider.e{color:#223042}
 }
 @media (prefers-reduced-motion:reduce){
 }
+html.tema-claro .bx-card{background:var(--card);border:1px solid var(--line);border-radius:16px}
+html.tema-claro .bx-consent ul{color:var(--muted)}
+html.tema-claro .bx-note{color:var(--subtext)}
+html.tema-claro .bx-msg{background:rgba(245,158,11,0.108);border:1px solid rgba(147,95,8,0.56);color:var(--text);border-radius:10px}
+html.tema-claro .bx-picker label{color:var(--subtext)}
+html.tema-claro .bx-picker select{border-radius:10px;border:1px solid var(--line-2);background:var(--bg-2);color:var(--text)}
+html.tema-claro .bx-sw{border-radius:999px;background:rgba(148,163,184,.3)}
+html.tema-claro .bx-sw::after{border-radius:50%;background:#fff}
+html.tema-claro .bx-switch input:checked + .bx-sw{background:var(--brand)}
+html.tema-claro .bx-switch input:focus-visible + .bx-sw{outline:2px solid var(--accent);outline-offset:2px}
+html.tema-claro .bx-switch small{color:var(--subtext)}
+html.tema-claro .bx-loc{color:var(--muted)}
+html.tema-claro .bx-loc svg{color:var(--accent)}
+html.tema-claro .bx-link{background:none;border:0;color:var(--accent)}
+html.tema-claro .bx-sec{background:var(--card);border:1px solid var(--line);border-radius:16px}
+html.tema-claro .bx-sec h2 span{color:var(--subtext)}
+html.tema-claro .bx-sec h3{color:var(--subtext)}
+html.tema-claro .bx-lista li{border-radius:12px;background:rgba(148,163,184,.06)}
+html.tema-claro .bx-pos{color:var(--subtext)}
+html.tema-claro .bx-foto{border-radius:8px;background:rgba(148,163,184,.18)}
+html.tema-claro .bx-ini{color:var(--muted)}
+html.tema-claro .bx-nome small{color:var(--subtext)}
+html.tema-claro .bx-votos small{color:var(--subtext)}
+html.tema-claro .bx-trava{border-radius:999px;border:1px solid rgba(58,99,188,0.8);background:rgba(37,99,235,0.144);color:var(--accent)}
+html.tema-claro .bx-trava:hover{background:rgba(37,99,235,0.252)}
+html.tema-claro .bx-trava:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+html.tema-claro .bx-badge.t2{color:#b45309;border-color:#f59e0b;background:rgba(245,158,11,0.108)}
+html.tema-claro .bx-badge{border-radius:999px;border:1px solid var(--line-2);color:var(--subtext)}
+html.tema-claro .bx-badge.ok{color:var(--text);border-color:rgba(89,98,138,0.88);background:rgba(148,163,184,.16)}
+html.tema-claro .bx-aviso{color:var(--muted);border-left:3px solid var(--line-2)}
+html.tema-claro .bx-aviso.supl,html.tema-claro .bx-aviso.rel{border-left-color:var(--corrige)}
+html.tema-claro .bx-vazio{color:var(--subtext)}
+html.tema-claro .bx-mais summary{color:var(--accent)}
+html.tema-claro .bx-cta{border:1px dashed var(--line-2);border-radius:12px;color:var(--accent)}
+html.tema-claro .bx-fonte{color:var(--subtext)}
+html.tema-claro .bx-tab{border-collapse:collapse}
+html.tema-claro .bx-tab th,html.tema-claro .bx-tab td{border-bottom:1px solid var(--line)}
+html.tema-claro .bx-tab small{color:var(--subtext)}
+html.tema-claro .bx-local{border-top:1px solid var(--line)}
+html.tema-claro .bx-local small{color:var(--subtext)}
+@media (max-width: 520px){
+html.tema-claro .bx-badge.t2{color:#b45309;border-color:#f59e0b;background:rgba(245,158,11,0.108)}
+}
+@media (max-width: 440px){
+}
+html.tema-claro .bx-toast{background:var(--card-2, #eff2f7);color:var(--text);border:1px solid var(--line-2);border-radius:16px;box-shadow:0 12px 40px rgba(15,23,42,0.135)}
+html.tema-claro .bx-toast-ic svg{color:var(--accent)}
+html.tema-claro .cmv-entrar{border-radius:999px;border:1px solid rgba(58,99,188,0.72);background:transparent;color:#0b4184}
+html.tema-claro .cmv-entrar:hover{background:rgba(96,165,250,0.108)}
+html.tema-claro .cmv-entrar .cmv-badge{border-radius:999px;background:rgba(34,197,94,0.162);color:#117e38}
+html.tema-claro .cmv-modal .cmv-back{background:rgba(251,251,253,0.72)}
+html.tema-claro .cmv-modal .cmv-box{background:#f0f3f8;border:1px solid rgba(89,98,138,0.4);border-radius:16px;box-shadow:0 20px 60px rgba(15,23,42,0.15);color:#2b4764}
+html.tema-claro .cmv-box h2{color:#2b4764}
+html.tema-claro .cmv-box p{color:#314256}
+html.tema-claro .cmv-x{background:none;border:0;color:#556781}
+html.tema-claro .cmv-tabs button{border-radius:10px;border:1px solid rgba(89,98,138,0.48);background:transparent;color:#314256}
+html.tema-claro .cmv-tabs button[aria-selected=true]{background:rgba(56,189,248,0.135);border-color:#38bdf8;color:#2b4764}
+html.tema-claro .cmv-f label{color:#314256}
+html.tema-claro .cmv-f input,html.tema-claro .cmv-f select{border-radius:10px;border:1px solid rgba(89,98,138,0.56);background:#f5f7fa;color:#2b4764}
+html.tema-claro .cmv-btn{border-radius:10px;border:0;background:#22c55e;color:#052e16}
+html.tema-claro .cmv-btn.sec{background:transparent;border:1px solid rgba(89,98,138,0.64);color:#223042}
+html.tema-claro .cmv-btn.perigo{background:#ef4444;color:#1f1f1f}
+html.tema-claro .cmv-msg.erro{color:#840b0b}
+html.tema-claro .cmv-msg.ok{color:#117e38}
+html.tema-claro .cmv-link{background:none;border:0;color:#0b5d84}
+html.tema-claro .cmv-paywall{border:1px dashed rgba(150,122,16,0.72);background:rgba(250,204,21,0.054);border-radius:12px;color:#846c0b}
+html.tema-claro .cmv-uso{border-radius:999px;background:rgba(148,163,184,.2)}
+html.tema-claro .cmv-uso>div{background:#38bdf8}
+html.tema-claro .cmv-kv dt{color:#556781}
+html.tema-claro .cmv-estat-kpis .k{color:#556781}
+html.tema-claro .cmv-estat-kpis .x{color:#2b4764}
+html.tema-claro .cmv-estat-kpis .s{color:#556781}
+html.tema-claro .cmv-barras li.cab{color:#556781}
+html.tema-claro .cmv-barras .b{border-radius:999px;background:rgba(148,163,184,.15)}
+html.tema-claro .cmv-barras .b i{background:linear-gradient(90deg,#2563eb,#38bdf8);border-radius:999px}
+html.tema-claro .cmv-barras .a{color:#556781}
+html.tema-claro .cmv-barras li.cab .b{background:none}
+html.tema-claro .cmv-serie div{background:rgba(148,163,184,.08);border-radius:3px}
+html.tema-claro .cmv-serie i{background:#38bdf8;border-radius:3px}
+html.tema-claro .cmv-serie-leg{color:#556781}
+html.tema-claro .cmv-estat-nota{color:#556781}
+html.tema-claro .cmv-admin-card{border-color:rgba(34,113,186,0.72)!important}
+@media (max-width:640px){
+}
+@media (max-width:480px){
+}
+html.tema-claro .cmv-pwa{background:#f2f4f9;border:1px solid rgba(89,98,138,0.448);border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,0.135);color:#2b4764}
+html.tema-claro .cmv-pwa img{border-radius:9px}
+html.tema-claro .cmv-pwa .t span{color:#556781}
+html.tema-claro .cmv-pwa button{border-radius:10px}
+html.tema-claro .cmv-pwa .ok{background:#22C55E;color:#052E16;border:0}
+html.tema-claro .cmv-pwa .x{background:none;border:0;color:#556781}
+html.tema-claro .cmv-pwa.ios ol{color:#314256}
+html.tema-claro .cmv-upd{background:#1E3A8A;border:1px solid rgba(88,118,190,0.64);border-radius:999px;color:#0b4084;box-shadow:0 10px 28px rgba(15,23,42,0.135)}
+html.tema-claro .cmv-upd button{border:0;border-radius:999px;background:#F8FAFC;color:#1E3A8A}
+html.tema-claro .cmv-dl{background:rgba(251,251,253,0.6)}
+html.tema-claro .cmv-dl>div{background:#f0f3f8;border:1px solid rgba(89,98,138,0.4);border-radius:16px;color:#2b4764}
+html.tema-claro .cmv-dl p{color:#314256}
+html.tema-claro .cmv-dl button{border-radius:12px}
+html.tema-claro .cmv-dl .ok{background:#22C55E;color:#052E16;border:0}
+html.tema-claro .cmv-dl .sec{background:transparent;color:#223042;border:1px solid rgba(89,98,138,0.64)}
+@media (max-width:860px){
+}
+html.tema-claro .fc-ov{background:rgba(251,251,253,0.62)}
+html.tema-claro .fc-pn{background:var(--bg-2,#f4f6fa);border-left:1px solid var(--line-2,rgba(89,98,138,0.448));box-shadow:-18px 0 50px rgba(15,23,42,0.15);color:var(--text,#2b4764)}
+html.tema-claro .fc-top .fc-k{color:var(--subtext,#556781)}
+html.tema-claro .fc-x{border:0;background:transparent;color:var(--muted,#314256);border-radius:10px}
+html.tema-claro .fc-x:hover{background:rgba(148,163,184,.12)}
+html.tema-claro .fc-hd .avatar{border-radius:14px}
+html.tema-claro .fc-sub{color:var(--subtext,#556781)}
+html.tema-claro .fc-pat{border-radius:14px;background:linear-gradient(135deg,rgba(37,99,235,0.162),rgba(37,99,235,0.045));border:1px solid rgba(58,99,188,0.48)}
+html.tema-claro .fc-pat .fc-l{color:#0b4184}
+html.tema-claro .fc-pat .fc-m{color:var(--muted,#314256)}
+html.tema-claro .fc-chip{border-radius:12px;background:rgba(148,163,184,.12);color:var(--muted,#314256)}
+html.tema-claro .fc-chip.up{background:rgba(245,158,11,0.126);color:#84680b}
+html.tema-claro .fc-chip.down{background:rgba(96,165,250,0.126);color:#0b4184}
+html.tema-claro .fc-h{color:var(--subtext,#556781)}
+html.tema-claro .fc-bar{border-radius:99px;background:rgba(148,163,184,.14)}
+html.tema-claro .fc-bar i{background:var(--accent,#60A5FA);border-radius:99px}
+html.tema-claro .fc-bens{border-collapse:collapse}
+html.tema-claro .fc-bens td{border-top:1px solid var(--line,rgba(89,98,138,0.256))}
+html.tema-claro .fc-seg{border:1px solid var(--line-2,rgba(89,98,138,0.448));border-radius:999px}
+html.tema-claro .fc-seg button{border:0;background:transparent;color:var(--muted,#314256)}
+html.tema-claro .fc-seg button[aria-pressed="true"]{background:var(--brand,#2563EB);color:#1f1f1f}
+html.tema-claro .fc-pos{color:var(--muted,#314256)}
+html.tema-claro .fc-atip{border-radius:10px;background:rgba(251,191,36,0.072);border:1px solid rgba(151,115,27,0.448);color:var(--muted,#314256)}
+html.tema-claro .fc-atip b{color:#84680b}
+html.tema-claro .fc-atip a{color:#0b4484}
+html.tema-claro .fc-rk .at{color:#84680b}
+html.tema-claro .fc-rk li{border-top:1px solid var(--line,rgba(89,98,138,0.256));border-radius:8px}
+html.tema-claro .fc-rk li:hover{background:rgba(148,163,184,.08)}
+html.tema-claro .fc-rk li.eu{background:rgba(96,165,250,0.126)}
+html.tema-claro .fc-rk .i{color:var(--subtext,#556781)}
+html.tema-claro .fc-rk .n small{color:var(--subtext,#556781)}
+html.tema-claro .fc-fonte{color:var(--subtext,#556781);border-top:1px solid var(--line,rgba(89,98,138,0.256))}
+html.tema-claro .fc-wait{color:var(--subtext,#556781)}
+html.tema-claro .fc-btn{border-radius:999px;border:1px solid rgba(58,99,188,0.72);background:transparent;color:#0b4184}
+@media (max-width:640px){
+html.tema-claro .fc-pn{border-left:0;border-top:1px solid var(--line-2,rgba(89,98,138,0.448));border-radius:18px 18px 0 0}
+}
 /* ---- ajustes manuais do tema claro ---- */
 html.tema-claro .hero h1 em{background:linear-gradient(90deg,#1D4ED8,#047857);-webkit-background-clip:text;background-clip:text;color:transparent}
 html.tema-claro img[src$="logo-cmv.svg"]{content:url(/2turno/pontos/logo-cmv-claro.svg)}

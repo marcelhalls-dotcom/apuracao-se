@@ -1,0 +1,2 @@
+/* Tema (teste tema-claro): claro por padrão; ?tema=escuro ou ?tema=claro troca e grava. Para voltar ao escuro como padrão, troque PADRAO. */
+(function(){var PADRAO='claro';try{var m=location.search.match(/[?&]tema=(claro|escuro)/);if(m)localStorage.setItem('tema',m[1]);if((localStorage.getItem('tema')||PADRAO)==='claro')document.documentElement.classList.add('tema-claro')}catch(e){if(PADRAO==='claro')document.documentElement.classList.add('tema-claro')}})();

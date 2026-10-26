@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pontos por município · Cadê Meu Voto</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="pontos.css?v=home1">
+<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="pontos.css?v=aud1a">
 </head><body>
 <header class="top">
   <a class="marca" href="/">Cadê Meu Voto</a>
@@ -12,17 +12,17 @@
   <div class="selos"><span id="selo" class="selo">carregando…</span><span id="hora" class="hora"></span></div>
 </header>
 <nav class="abas" role="tablist">
-  <button class="aba on" data-aba="mapa">Mapa</button>
+  <button class="aba on" data-aba="auditoria">Auditoria das Urnas</button>
+  <button class="aba" data-aba="mapa">Mapa</button>
   <button class="aba" data-aba="regioes">Regiões</button>
   <button class="aba" data-aba="capital">Capital × interior</button>
   <button class="aba" data-aba="acrescimo">Acréscimo 1º × 2º</button>
-  <button class="aba" data-aba="auditoria">Auditoria das Urnas</button>
 </nav>
 <section class="ctrl">
   <div class="busca"><input id="q" type="search" placeholder="Buscar cidade…" autocomplete="off"><ul id="sug"></ul></div>
   <select id="uf"><option value="">Brasil todo</option></select>
 </section>
-<section id="v-mapa" class="vista on">
+<section id="v-mapa" class="vista">
   <div class="legenda"><span><i class="pt"></i>Lula (PT) à frente</span><span><i class="pl"></i>Flávio (PL) à frente</span><span><i class="em"></i>empate</span><span><i class="ag"></i>aguardando</span><span class="obs">cor mais forte = vantagem maior</span></div>
   <p id="aviso" class="aviso" hidden>Cores ao vivo por estado; toque na cidade para ver o resultado dela.</p>
   <div id="ext" class="cartao"></div>
@@ -32,13 +32,13 @@
 <section id="v-regioes" class="vista"><div id="t-regioes"></div></section>
 <section id="v-capital" class="vista"><div id="t-capital"></div></section>
 <section id="v-acrescimo" class="vista"><div id="t-acr"></div></section>
-<section id="v-auditoria" class="vista"><div id="t-aud"></div></section>
+<section id="v-auditoria" class="vista on"><div id="t-aud"></div></section>
 <div id="ficha" class="ficha" hidden></div>
 <footer class="rod">
   <p id="nota"></p>
   <p>Fonte: <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">TSE, resultados.tse.jus.br</a> (eleição 6258, 2º turno; 6257, 1º turno). Coordenadas dos municípios: IBGE (base pública <a href="https://github.com/kelvins/municipios-brasileiros" target="_blank" rel="noopener">municipios-brasileiros</a>). A página não faz projeção e só mostra “eleito” se o TSE publicar esse status.</p>
 </footer>
-<script src="pontos.js?v=home1"></script>
-<script src="acrescimo.js?v=home1"></script>
-<script src="auditoria.js?v=home1"></script>
+<script src="pontos.js?v=aud1a"></script>
+<script src="acrescimo.js?v=aud1a"></script>
+<script src="auditoria.js?v=aud1a"></script>
 </body></html>

@@ -134,9 +134,14 @@ $('q').addEventListener('input',function(){var q=norm(this.value.trim()),u=$('su
 $('uf').addEventListener('change',function(){ufF=this.value;try{painel()}catch(_){}try{overlay()}catch(_){}draw()});
 
 /* ---------- abas e somas ---------- */
-document.querySelectorAll('.aba').forEach(function(b){b.onclick=function(){document.querySelectorAll('.aba').forEach(function(x){x.classList.toggle('on',x===b)});
+function abrirAba(b,doHash){document.querySelectorAll('.aba').forEach(function(x){x.classList.toggle('on',x===b)});
   document.querySelectorAll('.vista').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.dataset.aba)});
-  if(b.dataset.aba==='mapa'&&cv.clientWidth>0&&Math.abs(cv.clientWidth-W)>2)layout();try{painel()}catch(_){}fechar()}});
+  if(doHash)try{history.replaceState(null,'',location.pathname+location.search+'#'+b.dataset.aba)}catch(_){}
+  if(b.dataset.aba==='mapa'&&cv.clientWidth>0&&Math.abs(cv.clientWidth-W)>2)layout();try{painel()}catch(_){}fechar();
+  if(b.dataset.aba==='mapa')try{draw()}catch(_){}}
+document.querySelectorAll('.aba').forEach(function(b){b.onclick=function(){abrirAba(b,true)}});
+function abaDoHash(){var h=(location.hash||'').replace('#','').toLowerCase(),b=h&&document.querySelector('.aba[data-aba="'+h+'"]');if(b)abrirAba(b,false)}
+abaDoHash();window.addEventListener('hashchange',abaDoHash);
 function soma(f){var s={L:0,F:0,vv:0,st:0,ts:0,te:0,n:0,lL:0,lF:0};M.forEach(function(m){if(!f(m))return;var r=res(m);s.te+=m.te;s.n++;if(!r)return;
   s.L+=r.L;s.F+=r.F;s.vv+=r.vv;s.st+=r.st;s.ts+=r.ts;if(r.st&&r.L>r.F)s.lL++;else if(r.st&&r.F>r.L)s.lF++});return s}
 function bloco(t,s){return '<div class="cartao"><h3>'+t+'</h3><div class="mut">'+fmt.format(s.n)+' locais · '+fmt.format(s.te)+' eleitores</div>'+(s.ab?abst(s.ab):'')+

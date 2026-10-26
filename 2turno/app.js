@@ -184,15 +184,15 @@
   // Ciclo com contador regressivo visível e botão "Atualizar agora" (trava 2 s, sem buscas sobrepostas).
   let buscando = false, buscaDesde = 0, proxEm = 0, tmr = null, travaAte = 0, carimbo2 = '';
   function avisarMapa() { try { const f = $('pontos-frame'); if (f && f.contentWindow) f.contentWindow.postMessage({ cmvAtualizarAgora: 1 }, location.origin); } catch (_) {} }
-  function agendar() { clearTimeout(tmr); const ms = document.hidden ? INTERVALO * 3 : INTERVALO; proxEm = Date.now() + ms; tmr = setTimeout(ciclo, ms); }
+  // Apuração encerrada: sem atualização automática; carrega uma vez e só busca de novo pelo botão.
+  function agendar() { clearTimeout(tmr); proxEm = 0; }
   function tique() {
     try {
       const el = $('prox'); if (!el) return;
       const box = $('timer');
       if (buscando) { el.textContent = 'Atualizando…'; if (box) box.classList.add('busca'); return; }
       if (box) box.classList.remove('busca');
-      const s = Math.max(1, Math.ceil((proxEm - Date.now()) / 1000));
-      el.textContent = 'Atualizando em ' + s + 's';
+      el.textContent = 'Dados finais do TSE';
       const b = $('btn-agora'); if (b) b.disabled = Date.now() < travaAte;
     } catch (_) {}
   }
@@ -216,15 +216,10 @@
     if (Date.now() < travaAte || buscando) return;
     travaAte = Date.now() + 2000;
     avisarMapa();
-    ciclo();
+    ciclo().then(liberaBotao);
   }
   try { const b = $('btn-agora'); if (b) b.addEventListener('click', atualizarAgora); } catch (_) {}
-  setInterval(tique, 250);
-  // Vigia: se o ciclo parar (timer perdido ou busca travada), religa sozinho.
-  setInterval(() => { const ag = Date.now();
-    if (buscando && ag - buscaDesde > 15000) { buscando = false; agendar(); }
-    else if (!buscando && proxEm && ag - proxEm > 3000) ciclo(); }, 2000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && !buscando && proxEm - Date.now() > INTERVALO) agendar(); });
+  function liberaBotao() { tique(); if (Date.now() < travaAte) setTimeout(liberaBotao, travaAte - Date.now() + 50); }
 
   (async function iniciar() {
     if (SIM !== null) { const b = document.createElement('div'); b.className = 'sim'; b.textContent = `SIMULAÇÃO com ${SIM}% das urnas: números fictícios, só para teste`; document.body.prepend(b); }

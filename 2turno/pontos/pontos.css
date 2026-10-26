@@ -31,9 +31,6 @@ html.embed body{padding:0 0 8px;max-width:none}
 html.embed .marca,html.embed .top .sub{display:none}html.embed .top h1{font-size:18px;margin-top:0}
 html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px solid #60A5FA;width:auto;max-width:none;box-shadow:none;padding-bottom:14px}
 
-#t-regioes .secp{display:inline-block;background:#FBBF24;color:#1A1300;font-weight:700;padding:1px 7px;border-radius:999px;white-space:nowrap;box-shadow:0 0 0 0 rgba(251,191,36,.7);animation:secpulsa 1.6s ease-in-out infinite}
-@keyframes secpulsa{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(251,191,36,.6)}50%{opacity:.55;box-shadow:0 0 0 5px rgba(251,191,36,0)}}
-@media (prefers-reduced-motion:reduce){#t-regioes .secp{animation:none}}
 
 .ov{position:absolute;top:8px;left:8px;background:rgba(10,20,40,.82);border:1px solid rgba(148,163,184,.35);border-radius:10px;padding:6px 9px;font-size:12px;line-height:1.35;color:#E2E8F0;pointer-events:none;max-width:62%;backdrop-filter:blur(3px)}
 .ov-t{font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -46,3 +43,5 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 @media (max-width:480px){.ov{font-size:11px;padding:5px 7px}.ov-n b{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.ov-c i,.ov.flash{animation:none}}
 .ov-d{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}.ov-d.l{color:#F87171}.ov-d.f{color:#93C5FD}
+
+.abst{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(148,163,184,.3)}.abst .lin span:first-child{color:#CBD5E1}

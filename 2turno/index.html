@@ -6,7 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Apuração 2º turno — Presidente 2026 | Cadê Meu Voto</title>
-<meta name="description" content="Apuração ao vivo do 2º turno para Presidente (25/10/2026), dados oficiais do TSE, atualizada a cada 5 segundos. Lula × Flávio Bolsonaro e o fator abstenção.">
+<meta name="description" content="Resultado do 2º turno para Presidente (25/10/2026), dados oficiais do TSE. Lula × Flávio Bolsonaro e o fator abstenção.">
 <meta property="og:title" content="Apuração ao vivo — 2º turno Presidente 2026">
 <meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto-brasil.jpg">
 <meta property="og:url" content="https://cademeuvoto.com.br/2turno/">
@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261007pwa4">
 <link rel="manifest" href="/site.webmanifest?v=20261007pwa4">
 <meta name="theme-color" content="#0A1428">
-<link rel="stylesheet" href="/2turno/app.css?v=20261025dif1">
+<link rel="stylesheet" href="/2turno/app.css?v=20261026fim1">
 </head>
 <body>
 <header class="topo">
@@ -32,7 +32,7 @@
     <div class="apur">
       <div><span class="rot">Urnas apuradas</span><b id="pst">—</b></div>
       <div class="barra-apur"><i id="pst-bar"></i></div>
-      <div class="atualiz"><div id="timer" class="timer"><i class="pulso" aria-hidden="true"></i><b id="prox" aria-live="off">Atualizando em 5s</b></div><button type="button" id="btn-agora" class="btn-agora">↻ Atualizar agora</button><span id="hora" class="hora-tse">—</span></div>
+      <div class="atualiz"><div id="timer" class="timer"><b id="prox" aria-live="off">Carregando…</b></div><button type="button" id="btn-agora" class="btn-agora">↻ Atualizar agora</button><span id="hora" class="hora-tse">—</span></div>
     </div>
     <div id="aguardando" class="aguardando" hidden>
       <b>Aguardando início da apuração</b>
@@ -75,14 +75,14 @@
   </section>
 
   <section class="pontos-home" aria-label="Mapa por município">
-    <iframe id="pontos-frame" src="/2turno/pontos/?embed=1&amp;v=dif1" title="Brasil em pontos: resultado por município (TSE)" loading="lazy" style="display:block;width:100%;height:1150px;border:0;margin:12px 0;background:#0A1428;border-radius:14px"></iframe>
+    <iframe id="pontos-frame" src="/2turno/pontos/?embed=1&amp;v=fim1" title="Brasil em pontos: resultado por município (TSE)" loading="lazy" style="display:block;width:100%;height:1150px;border:0;margin:12px 0;background:#0A1428;border-radius:14px"></iframe>
   </section>
 
   <section class="card abst" id="abstencao">
     <h2>O fator abstenção: o que Lula precisa para virar</h2>
     <div class="kpis">
       <div><span class="rot">Abstenção 1º turno</span><b id="a1">—</b><small id="a1n"></small></div>
-      <div><span class="rot">Abstenção 2º turno (ao vivo)</span><b id="a2">—</b><small id="a2n"></small></div>
+      <div><span class="rot">Abstenção 2º turno</span><b id="a2">—</b><small id="a2n"></small></div>
       <div><span class="rot">Variação</span><b id="da">—</b><small>pontos percentuais</small></div>
     </div>
 
@@ -113,7 +113,7 @@
         <li>Para zerar a vantagem do cenário central do BTG (~3,2 milhões): <code>3,2 mi ÷ 0,40 ≈ 8 milhões de entradas</code>, cerca de <b id="c-pp8">5 p.p.</b> do eleitorado.</li>
         <li>Como parte de quem votou no 1º turno deixa de votar no 2º (as saídas), a conta sobe para algo como <b>12,5 milhões de entradas</b>. Na faixa do BTG, de <b>10 a 25 milhões</b>, isso equivale a uma queda de <b>3 a 13 p.p.</b> na abstenção.</li>
       </ol>
-      <p class="nota">Itens 4 a 6 são uma conta ilustrativa feita sobre as premissas do BTG Pactual; não é projeção do Cadê Meu Voto. Dados ao vivo: TSE.</p>
+      <p class="nota">Itens 4 a 6 são uma conta ilustrativa feita sobre as premissas do BTG Pactual; não é projeção do Cadê Meu Voto. Dados: TSE.</p>
     </details>
 
     <div class="btg">
@@ -137,11 +137,11 @@
 
   <p class="fonte">Fonte: TSE, <a href="https://resultados.tse.jus.br/" target="_blank" rel="noopener">resultados.tse.jus.br</a> (eleição 6258, 2º turno, e 6257, 1º turno). Percentuais sobre votos válidos. A página só diz “eleito” quando o TSE conclui a totalização. <a href="/?painel=1">Painel completo do Cadê Meu Voto →</a></p>
 </main>
-<link rel="stylesheet" href="/2turno/arcade.css?v=20261025dif1">
-<script src="/2turno/arcade-cena.js?v=20261025dif1"></script>
-<script src="/2turno/arcade-trilha.js?v=20261025dif1"></script>
-<script src="/2turno/arcade.js?v=20261025dif1"></script>
-<script src="/2turno/app.js?v=20261025dif1"></script>
-<script src="/2turno/pontos/embed.js?v=20261025dif1" defer></script>
+<link rel="stylesheet" href="/2turno/arcade.css?v=20261026fim1">
+<script src="/2turno/arcade-cena.js?v=20261026fim1"></script>
+<script src="/2turno/arcade-trilha.js?v=20261026fim1"></script>
+<script src="/2turno/arcade.js?v=20261026fim1"></script>
+<script src="/2turno/app.js?v=20261026fim1"></script>
+<script src="/2turno/pontos/embed.js?v=20261026fim1" defer></script>
 </body>
 </html>

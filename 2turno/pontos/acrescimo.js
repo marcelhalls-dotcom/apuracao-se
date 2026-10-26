@@ -1,0 +1,15 @@
+/* Acréscimo de votos 1º × 2º turno — dados estáticos finais (acrescimo.json, gerado dos arquivos oficiais do TSE). */
+(function(){var el=document.getElementById('t-acr');if(!el)return;var D,c='13';
+var NM={'13':'Lula','22':'Flávio Bolsonaro'},CL={'13':'var(--pt)','22':'var(--pl)'};
+function n(x){return x.toLocaleString('pt-BR')}function s(x){return (x>0?'+':x<0?'−':'')+n(Math.abs(x))}
+function p(x){return (x>0?'+':x<0?'−':'')+Math.abs(x).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'}
+function cls(x){return x<0?'neg':'pos'}
+function r(){var h='<div class="acr-hd"><img src="/brand/logo.svg" alt="Cadê Meu Voto" width="150" height="28"><span>Acréscimo de votos · 1º × 2º turno</span></div><div class="acr-tg" role="tablist">'+['13','22'].map(function(k){return '<button data-c="'+k+'" class="'+(k===c?'on':'')+'" style="--c:'+CL[k]+'">'+NM[k]+'</button>'}).join('')+'</div>';
+var b=D.brasil[c];h+='<div class="cartao acr-br" style="--c:'+CL[c]+'"><h3>Brasil — '+NM[c]+'</h3><div class="acr-n"><div><small>1º turno</small><b>'+n(b.com_exterior.t1)+'</b></div><div><small>2º turno</small><b>'+n(b.com_exterior.t2)+'</b></div><div><small>Acréscimo</small><b class="'+cls(b.com_exterior.ac)+'">'+s(b.com_exterior.ac)+' ('+p(b.com_exterior.pct)+')</b></div></div><p class="mut">Com o exterior. Só no Brasil (sem exterior): '+s(b.sem_exterior.ac)+' ('+p(b.sem_exterior.pct)+').</p></div>';
+var all=[];D.regioes.forEach(function(R){R.ufs.forEach(function(u){if(u.uf!=='EXT')all.push(u)})});
+all.sort(function(a,b){return b[c].ac-a[c].ac});
+h+='<div class="cartao"><h3>Maiores acréscimos</h3><ol class="acr-rk">'+all.slice(0,10).map(function(u){return '<li><b>'+u.uf+'</b><span class="'+cls(u[c].ac)+'">'+s(u[c].ac)+'</span><small>'+p(u[c].pct)+'</small></li>'}).join('')+'</ol></div>';
+h+='<div class="grade">'+D.regioes.map(function(R){var t=R.total[c];return '<div class="cartao"><h3>'+R.nome+'</h3><table class="acr-t"><thead><tr><th>UF</th><th>1º turno</th><th>2º turno</th><th>Acréscimo</th></tr></thead><tbody>'+R.ufs.map(function(u){var v=u[c];return '<tr><td>'+u.uf+'</td><td>'+n(v.t1)+'</td><td>'+n(v.t2)+'</td><td class="'+cls(v.ac)+'">'+s(v.ac)+'</td></tr>'}).join('')+'</tbody><tfoot><tr><td>Total</td><td>'+n(t.t1)+'</td><td>'+n(t.t2)+'</td><td class="'+cls(t.ac)+'">'+s(t.ac)+'<br><small>('+p(t.pct)+')</small></td></tr></tfoot></table></div>'}).join('')+'</div>';
+h+='<p class="mut acr-f">Fonte: TSE — resultados oficiais finais (1º turno: eleição 6257; 2º turno: eleição 6258). Acréscimo = votos no 2º turno − votos no 1º turno, no mesmo estado. A conta não mostra de onde vieram os votos nem para onde foram os votos de candidatos eliminados. EXT = brasileiros no exterior.</p>';
+el.innerHTML=h;el.querySelectorAll('.acr-tg button').forEach(function(x){x.onclick=function(){c=x.dataset.c;r()}})}
+fetch('acrescimo.json?v=acr2').then(function(x){return x.json()}).then(function(j){D=j;r()}).catch(function(){el.innerHTML='<p class="mut">Não foi possível carregar o comparativo.</p>'})})();

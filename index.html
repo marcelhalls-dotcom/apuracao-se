@@ -854,6 +854,17 @@
   .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 14px; }
   .hero-status { color: var(--subtext); font-size: .84rem; display: flex; align-items: center; gap: 8px; }
   .hero-status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--confirma); flex: none; }
+  .hero-side { display: flex; flex-direction: column; gap: 16px; align-self: start; min-width: 0; }
+  .hm-card { display: block; text-decoration: none; color: #fff; border: 1px solid rgba(96,165,250,.28); border-radius: 18px; padding: 14px 16px 12px; background: linear-gradient(160deg, rgba(37,99,235,.14), rgba(10,20,40,.92) 60%); box-shadow: 0 20px 50px rgba(2,6,23,.45); transition: transform .15s, border-color .15s; }
+  .hm-card:hover { transform: translateY(-2px); border-color: rgba(96,165,250,.6); }
+  .hm-tit { display: block; font-weight: 800; font-size: 1rem; letter-spacing: -.01em; }
+  .hm-pct { display: block; margin-top: 4px; font-size: .9rem; color: var(--muted); }
+  .hm-pct b { font-weight: 700; } .hm-l { color: #F87171; } .hm-f { color: #7AA2F7; } .hm-pct small { color: var(--subtext); font-size: .75rem; }
+  .hm-mapa { display: block; position: relative; margin: 8px auto 4px; max-width: 360px; min-height: 120px; }
+  .hm-mapa canvas { display: block; width: 100%; height: auto; opacity: 0; transition: opacity .6s; }
+  .hm-mapa.ok canvas { opacity: 1; }
+  .hm-cap { display: block; font-size: .85rem; color: #93C5FD; text-align: right; }
+  @media (max-width: 900px) { .hm-mapa { max-width: 300px; } }
   .hero-panel { background: linear-gradient(160deg, rgba(37,99,235,.18), rgba(17,30,58,.9) 55%); border: 1px solid rgba(96,165,250,.28); border-radius: 18px; padding: 20px; box-shadow: 0 20px 50px rgba(2,6,23,.45); }
   .hp-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 700; margin-bottom: 14px; }
   .hp-title span { font-size: .72rem; color: var(--subtext); font-weight: 500; text-transform: uppercase; letter-spacing: .08em; }
@@ -1235,7 +1246,6 @@
           <a class="btn-ghost" href="#planos">Planos para campanhas</a>
           <a class="btn-ghost btn-wa" href="https://wa.me/" target="_blank" rel="noopener" data-wa-share="inicio">Compartilhar no WhatsApp</a>
         </div>
-        <p style="margin:12px 0 0;font-size:.9rem"><a href="/2turno/pontos/" id="t2-home-link" style="color:var(--muted);text-decoration:underline;text-underline-offset:3px">2º turno 2026: mapa, regiões, acréscimo e Auditoria das Urnas →</a></p>
         <a class="bx-destaque" href="#bairro" data-view="bairro" id="bx-home-card">
           <span class="bx-d-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
           <span class="bx-d-tx"><strong>Mais votados no seu bairro <span class="bx-novo">Novo</span></strong><small>Veja quem foram os mais votados onde você está: Vereador, Prefeito, Presidente, Governador e mais.</small></span>
@@ -1243,6 +1253,13 @@
         </a>
         <div class="hero-status" id="inicio-status">Carregando dados do TSE…</div>
       </div>
+      <div class="hero-side">
+      <a class="hm-card" href="/2turno/pontos/" id="t2-home-mapa" aria-label="2º turno 2026 — resultado final (TSE): abrir mapa, regiões, acréscimo e Auditoria das Urnas">
+        <span class="hm-tit">2º turno 2026 — resultado final (TSE)</span>
+        <span class="hm-pct"><b class="hm-l">Lula 51,79%</b> × <b class="hm-f">Flávio 48,21%</b> <small>votos válidos · TSE</small></span>
+        <span class="hm-mapa"><canvas id="hm-cv" aria-hidden="true"></canvas></span>
+        <span class="hm-cap">Mapa, regiões, acréscimo e Auditoria das Urnas →</span>
+      </a>
       <div class="hero-panel" id="hero-panel" aria-label="Números do estado">
         <div class="hp-title" id="hero-panel-title">Sergipe 2026 em números <span>fonte: TSE</span></div>
         <div class="hp-grid">
@@ -1254,6 +1271,7 @@
           <div><strong>408</strong><span>candidatos e legendas com mapa</span></div>
         </div>
         <div class="hp-foot">Votação por seção e detalhe da apuração por seção — TSE, 1º turno (04/10/2026).</div>
+      </div>
       </div>
     </div>
 
@@ -5095,5 +5113,6 @@ setInterval(() => {
   document.body.appendChild(s);
 })();
 </script>
+<script src="/home-mapa.js?v=home2" defer></script>
 </body>
 </html>

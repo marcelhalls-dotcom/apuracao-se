@@ -74,3 +74,4 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 .aud-f[hidden],.aud-res[hidden]{display:none!important}
 
 .hora{display:none}
+.aud-cmp{margin-bottom:12px;position:relative}.aud-cmp-prev{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;filter:blur(6px);opacity:.55;user-select:none;pointer-events:none;margin:8px 0 -6px}.aud-cmp-prev div{border:1px solid currentColor;border-radius:10px;padding:10px;opacity:.6}.aud-cmp-prev b{display:block;font-size:1.6rem}.aud-esc i.cmp{background:none!important;background-image:linear-gradient(90deg,hsl(160,55%,52%),hsl(0,0%,92%),hsl(215,70%,52%))!important}

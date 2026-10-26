@@ -52,7 +52,7 @@ function layout(){if(cv.clientWidth===0)return;
 function cor(r){
   if(!r||!r.st||(r.L+r.F)===0)return '#3A4763';
   var t=r.L+r.F,mg=Math.abs(r.L-r.F)/t;if(r.L===r.F)return '#E2E8F0';
-  var a=(document.documentElement.classList.contains('tema-claro')?0.55:0.35)+Math.min(mg/0.4,1)*(document.documentElement.classList.contains('tema-claro')?0.45:0.65),c=r.L>r.F?[228,20,44]:[47,95,208],b=(document.documentElement.classList.contains('tema-claro')?[226,232,240]:[22,36,71]);
+  var a=(document.documentElement.classList.contains('tema-claro')?0.55:0.35)+Math.min(mg/0.4,1)*(document.documentElement.classList.contains('tema-claro')?0.45:0.65),c=r.L>r.F?[228,20,44]:(document.documentElement.classList.contains('tema-claro')?[29,64,200]:[47,95,208]),b=(document.documentElement.classList.contains('tema-claro')?[226,232,240]:[22,36,71]);
   return 'rgb('+c.map(function(v,i){return Math.round(b[i]+(v-b[i])*a)}).join(',')+')';
 }
 /* ---------- desenho: camada base em cache + quadro animado (respira, varredura, ondas, troca de cor suave) ---------- */

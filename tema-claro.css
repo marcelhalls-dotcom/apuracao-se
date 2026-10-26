@@ -624,3 +624,9 @@ html.tema-claro body{background:var(--bg);color:var(--text)}
 html.tema-claro .uf-chip .st, html.tema-claro [class*="disp"]{color:#15803D}
 html.tema-claro .chat-fab{background:linear-gradient(135deg,var(--brand),#7C3AED);color:#fff;border-color:transparent}
 html.tema-claro .chat-fab:hover{background:linear-gradient(135deg,var(--brand-2),#6D28D9)}
+html.tema-claro{--pl:#1D40C8}
+html.tema-claro .abst{border:0;box-shadow:none;border-top:1px dashed rgba(15,23,42,.18)}
+html.tema-claro .abst .lin span:first-child{color:#334155}
+html.tema-claro [style*="color:#7dd3fc"]{color:#0369A1!important}
+html.tema-claro body[style*="#0A1428"]{background:#F5F7FB!important;color:#0F172A!important}
+html.tema-claro a[style*="#60A5FA"]{color:#1D4ED8!important}

@@ -92,7 +92,7 @@
     else if (comecou) man = lider === 'l' ? 'Lula lidera' : lider === 'f' ? 'Flávio Bolsonaro lidera' : 'Empate';
     txt('manchete', man);
     window.dispatchEvent(new CustomEvent('cmv:dados', { detail: { comecou, concluido, pl, pf, pst, man, eleitoL, eleitoF, lider, sim: SIM !== null, hora: d.hg ? `TSE ${d.dg || ''} ${d.hg}` : '' } }));
-    difDest(comecou, L.vap, F.vap);
+    difDest(comecou, L.vap, F.vap, d.tf === 's');
     txt('pv-l', comecou ? int.format(L.vap) + ' votos' : '—'); txt('pv-f', comecou ? int.format(F.vap) + ' votos' : '—');
     txt('dif', comecou ? `Diferença: ${int.format(Math.abs(L.vap - F.vap))} votos · válidos apurados: ${int.format(vv)}` : 'Os percentuais aparecem quando o TSE divulgar os primeiros boletins.');
 
@@ -152,11 +152,12 @@
   // Destaque da diferença em votos (neutro: só "à frente no momento"; empate → "Empate"), com contagem animada.
   const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   let ddAtual = 0, ddRaf = 0;
-  function difDest(comecou, l, f) {
+  function difDest(comecou, l, f, fim) {
     const box = $('dif-dest'); if (!box) return;
     box.hidden = !comecou; if (!comecou) return;
     const alvo = Math.abs(l - f), lid = $('dd-lider');
     lid.className = 'dd-lider ' + (l > f ? 'l' : f > l ? 'f' : 'e');
+    $('dd-pre').textContent = fim ? 'Diferença final: ' : 'Diferença: '; $('dd-suf').textContent = fim ? ' votos (TSE)' : ' votos'; lid.hidden = fim;
     lid.textContent = l > f ? 'Lula à frente no momento' : f > l ? 'Flávio à frente no momento' : 'Empate';
     if (alvo === ddAtual) { txt('dd-n', int.format(alvo)); return; }
     const de = ddAtual; ddAtual = alvo; cancelAnimationFrame(ddRaf);

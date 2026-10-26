@@ -96,9 +96,9 @@ function ondasMudou(a){var b=fotos();
 /* ---------- placar no canto do mapa (contagem animada) ---------- */
 var ovV={L:0,F:0,S:0},ovAlvo={L:0,F:0,S:0},ovT0=0,ovRaf=0;
 function ovDados(){var r;if(modo===2){r=ufF?ufR[ufF]:brR}else{var s={L:0,F:0,vv:0,st:0,ts:0};M.forEach(function(m){if(ufF&&m.uf!==ufF)return;s.L+=m.r1.L;s.F+=m.r1.F;s.st+=m.r1.st;s.ts+=m.r1.ts});r=s}
-  if(!r)return null;var t=r.L+r.F;return {L:t?100*r.L/t:0,F:t?100*r.F/t:0,S:r.ts?100*r.st/r.ts:0,D:Math.abs(r.L-r.F),lid:r.L>r.F?'l':r.F>r.L?'f':'e'}}
+  if(!r)return null;var t=r.L+r.F;return {L:t?100*r.L/t:0,F:t?100*r.F/t:0,S:r.ts?100*r.st/r.ts:0,D:Math.abs(r.L-r.F),fim:modo===2&&r.tf==='s'?(ufF?2:1):0,lid:r.L>r.F?'l':r.F>r.L?'f':'e'}}
 function f2c(v){return v.toFixed(2).replace('.',',')+'%'}
-function ovPinta(){$('ov-l').textContent=f2c(ovV.L);$('ov-f').textContent=f2c(ovV.F);$('ov-s').textContent=f2c(ovV.S)+' das seções';var d=$('ov-d');if(d){var n=Math.round(ovV.D||0);d.textContent=ovAlvo.D===undefined?'':(ovAlvo.lid==='e'?'Empate':'Diferença: '+fmt.format(n)+' votos · '+(ovAlvo.lid==='l'?'Lula':'Flávio')+' à frente');d.className='ov-d '+(ovAlvo.lid||'')}}
+function ovPinta(){$('ov-l').textContent=f2c(ovV.L);$('ov-f').textContent=f2c(ovV.F);$('ov-s').textContent=f2c(ovV.S)+' das seções';var d=$('ov-d');if(d){var n=Math.round(ovV.D||0);d.textContent=ovAlvo.D===undefined?'':ovAlvo.fim?(ovAlvo.fim===2?'Diferença final no estado: ':'Diferença final: ')+fmt.format(n)+' votos (TSE)':(ovAlvo.lid==='e'?'Empate':'Diferença: '+fmt.format(n)+' votos · '+(ovAlvo.lid==='l'?'Lula':'Flávio')+' à frente');d.className='ov-d '+(ovAlvo.lid||'')}}
 function overlay(){var d=ovDados();var o=$('ov');if(!o)return;
   $('ov-t').textContent=(modo===2?'2º turno':'1º turno')+' · '+(ufF?UFN[ufF]:'Brasil + exterior');if(!d)return;
   if(Math.abs(d.L-ovAlvo.L)<1e-6&&Math.abs(d.S-ovAlvo.S)<1e-6&&d.D===ovAlvo.D&&ovT0)return;
@@ -180,7 +180,7 @@ function f2(m){return !ufF||m.uf===ufF}
 function blocoInt(){var us=UFS.filter(function(u){return u!=='zz'&&(!ufF||u===ufF)}),s=somaUF(us);M.forEach(function(m){if(m.cap&&us.indexOf(m.uf)>=0&&m.r2){s.L-=m.r2.L;s.F-=m.r2.F;s.vv-=m.r2.vv;s.st-=m.r2.st;s.ts-=m.r2.ts;s.te-=m.te;s.n--}});return bloco('Interior',s)}
 var capFeito=false;
 /* ---------- dados ao vivo (2º turno) ---------- */
-function ext(j){var o={L:0,F:0,vv:+j.v.vv,st:+j.s.st,ts:+j.s.ts};j.carg[0].agr.forEach(function(a){a.par.forEach(function(p){p.cand.forEach(function(c){if(c.n==='13')o.L=+c.vap;if(c.n==='22')o.F=+c.vap})})});return o}
+function ext(j){var o={L:0,F:0,vv:+j.v.vv,st:+j.s.st,ts:+j.s.ts,tf:j.tf};j.carg[0].agr.forEach(function(a){a.par.forEach(function(p){p.cand.forEach(function(c){if(c.n==='13')o.L=+c.vap;if(c.n==='22')o.F=+c.vap})})});return o}
 function gj(u){window.__pts&&window.__pts.req++;return fetch(TSE+u+(u.indexOf('?')<0?'?':'&')+'t='+Date.now(),{cache:'no-store',credentials:'omit'}).then(function(r){if(!r.ok)throw r.status;return r.json()})}
 function fila(list,n,fn){var i=0;function w(){if(i>=list.length)return Promise.resolve();var x=list[i++];return fn(x).catch(function(){}).then(w)}var ps=[];for(var k=0;k<n;k++)ps.push(w());return Promise.all(ps)}
 var ocupado=false,carimbo='',ultCheio=0;window.__pts={req:0,ciclos:0,cheios:0,sobrepostos:0,redesenho:0};

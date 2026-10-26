@@ -72,3 +72,5 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 .aud-lock{border:1px dashed hsl(38,85%,50%);border-radius:12px;padding:16px;margin:8px 0;text-align:center}.aud-lock p{opacity:.8;margin:8px 0 12px}
 .aud-lock .aud-bt{display:inline-block;text-decoration:none;margin:4px;background:hsl(38,85%,50%);color:#111;font-weight:700}.aud-lock .aud-bt.sec{background:transparent;color:inherit;border:1px solid currentColor;font-weight:400}
 .aud-f[hidden],.aud-res[hidden]{display:none!important}
+
+.hora{display:none}

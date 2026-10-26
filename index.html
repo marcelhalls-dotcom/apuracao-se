@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://dados.cademeuvoto.com.br https://resultados.tse.jus.br; font-src 'self' data:; connect-src 'self' https://api.cademeuvoto.com.br https://dados.cademeuvoto.com.br https://resultados.tse.jus.br https://abacus.jasoncameron.dev https://cloudflareinsights.com https://static.cloudflareinsights.com http://localhost:8787 http://127.0.0.1:8766; frame-src 'self' blob: https://challenges.cloudflare.com; worker-src 'self' blob:; manifest-src 'self'; media-src 'self' blob: data:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<script>/* 2º turno 25/10: a home abre a apuração do Presidente. Painel completo: /?painel=1 (ou qualquer link com #/?). Desfazer: reverter este commit. */
-(function(){try{var q=location.search,h=location.hash;if(location.pathname==='/'&&!/[?&]painel=/.test(q)&&!h&&!q){location.replace('/2turno/');}}catch(e){}})();</script>
 <meta property="og:title" content="Cadê Meu Voto — Eleições 2026 em todo o Brasil">
 <meta property="og:description" content="Saiba onde estão os votos, até a seção eleitoral, nos 26 estados e no Distrito Federal. Dados oficiais do TSE: mapa de votação, comparativos A × B e relatórios em PDF.">
 <meta property="og:image" content="https://cademeuvoto.com.br/og-cademeuvoto-brasil.jpg">
@@ -1237,6 +1235,7 @@
           <a class="btn-ghost" href="#planos">Planos para campanhas</a>
           <a class="btn-ghost btn-wa" href="https://wa.me/" target="_blank" rel="noopener" data-wa-share="inicio">Compartilhar no WhatsApp</a>
         </div>
+        <p style="margin:12px 0 0;font-size:.9rem"><a href="/2turno/pontos/" id="t2-home-link" style="color:var(--muted);text-decoration:underline;text-underline-offset:3px">2º turno 2026: mapa, regiões, acréscimo e Auditoria das Urnas →</a></p>
         <a class="bx-destaque" href="#bairro" data-view="bairro" id="bx-home-card">
           <span class="bx-d-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
           <span class="bx-d-tx"><strong>Mais votados no seu bairro <span class="bx-novo">Novo</span></strong><small>Veja quem foram os mais votados onde você está: Vereador, Prefeito, Presidente, Governador e mais.</small></span>

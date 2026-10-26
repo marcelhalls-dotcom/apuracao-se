@@ -156,7 +156,7 @@ function painel(){
   $('ext').querySelectorAll('.chip').forEach(function(c){c.onclick=function(){ficha(byKey[c.dataset.k])}});
   $('t-regioes').innerHTML=ufF?'<div class="grade">'+bloco(UFN[ufF]+(ufReg[ufF]?' <small class="mut">('+REGN[ufReg[ufF]]+')</small>':''),ab(soma(f),[ufF]))+'</div>':'<div class="grade">'+Object.keys(REG).map(function(r){return bloco(REGN[r],ab(soma(function(m){return ufReg[m.uf]===r&&f(m)}),REG[r].split(' ')))}).join('')+bloco('Exterior',ab(soma(function(m){return m.uf==='zz'}),['zz']))+'</div>';
   $('t-capital').innerHTML='<div class="grade">'+bloco('27 capitais',soma(function(m){return m.cap&&f(m)}))+bloco('Interior',soma(function(m){return !m.cap&&m.uf!=='zz'&&f(m)}))+'</div><p class="mut">Capitais = as 26 capitais estaduais e Brasília. Exterior fica fora das duas somas.</p>';
-  $('selo').textContent=modo===1?'DADOS DO 1º TURNO':'2º TURNO · APURAÇÃO';$('selo').className='selo'+(modo===2?' t2':'');
+  $('selo').textContent=modo===1?'DADOS DO 1º TURNO':'2º TURNO · RESULTADO FINAL (TSE)';$('selo').className='selo'+(modo===2?' t2':'');
   $('hora').textContent=hora;
   $('nota').textContent=modo===1?'O TSE ainda não totalizou seções do 2º turno. Enquanto isso, o mapa mostra o 1º turno (Lula × Flávio, % dos votos válidos do 1º turno; a cor indica quem teve mais votos entre os dois). A troca para o 2º turno é automática.':'2º turno: % dos votos válidos. Municípios em cinza ainda não têm seção totalizada.';
 }
@@ -172,7 +172,7 @@ function painel2(){
   $('t-regioes').innerHTML='<p class="mut">2º turno: soma dos arquivos de cada estado do TSE (totalização concluída). Abstenção oficial do TSE, 1º e 2º turno.</p><div class="grade">'+tira(ufF?bloco(UFN[ufF]+(ufReg[ufF]?' <small class="mut">('+REGN[ufReg[ufF]]+')</small>':''),ab(somaUF([ufF]),[ufF])):Object.keys(REG).map(function(r){return bloco(REGN[r],ab(somaUF(REG[r].split(' ')),REG[r].split(' ')))}).join('')+bloco('Exterior',ab(somaUF(['zz']),['zz'])))+'</div>';
   var capOk=capFeito;
   $('t-capital').innerHTML=capOk?'<p class="mut">2º turno. Capitais: arquivos das 27 capitais; interior = estado menos capital.</p><div class="grade">'+tira(bloco('27 capitais',soma(function(m){return m.cap&&f2(m)}))+blocoInt())+'</div>':'<p class="mut"><span class="selo">DADOS DO 1º TURNO</span> Dados das capitais do 2º turno indisponíveis no momento.</p>';
-  $('selo').textContent='2º TURNO · APURAÇÃO';$('selo').className='selo t2';$('hora').textContent=hora;
+  $('selo').textContent='2º TURNO · RESULTADO FINAL (TSE)';$('selo').className='selo t2';$('hora').textContent=hora;
   $('nota').textContent='Cores por estado; toque na cidade para ver o resultado dela. % dos votos válidos do 2º turno.';
   $('aviso').hidden=false;
 }

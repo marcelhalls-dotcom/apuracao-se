@@ -1648,15 +1648,15 @@
   <div class="chat-disclaimer">Respostas geradas por IA com base nos dados do TSE; podem conter erros. <span class="chat-quota" id="chat-quota" aria-live="polite"></span></div>
   <form class="chat-form" id="chat-form">
     <label class="sr-only" for="chat-input">Sua pergunta</label>
-    <textarea id="chat-input" maxlength="1000" rows="2" placeholder="Pergunte sobre as eleições 2026…" required></textarea>
-    <div class="chat-char" id="chat-char" aria-live="polite">0/1000</div>
+    <textarea id="chat-input" maxlength="500" rows="2" placeholder="Pergunte sobre as eleições 2026…" required></textarea>
+    <div class="chat-char" id="chat-char" aria-live="polite">0/500</div>
     <button type="submit" id="chat-send">Enviar</button>
   </form>
 </div>
 
 <script src="vendor/jspdf.umd.min.js?v=20261006e2"></script>
 <script src="vendor/jspdf.plugin.autotable.min.js?v=20261006e2"></script>
-<script src="pwa.js?v=20261012dadosv1"></script>
+<script src="pwa.js?v=20261027chat500"></script>
 <script src="assinatura.js?v=20261012dadosv1"></script>
 <script src="relatorios.js?v=claro2"></script>
 <script src="bairro.js?v=20261018pat1"></script>
@@ -4637,7 +4637,7 @@ function bootChat() {
   const quota = document.getElementById('chat-quota');
   const suggest = document.getElementById('chat-suggest');
   if (!fab || !panel || !form) return;
-  const CHAT_MAX = 1000;
+  const CHAT_MAX = 500;
   const syncChar = () => {
     const n = (input.value || '').length;
     if (!charEl) return;
@@ -4777,8 +4777,8 @@ function bootChat() {
     if (chatPlano() !== 'pro') { sync(true); return; } // assistente só na Assinatura (o servidor também recusa)
     const text = (input.value || '').trim();
     if (!text) return;
-    if (text.length > 1000) {
-      addBubble('bot', 'Cada pergunta pode ter no máximo 1000 caracteres.', 'err');
+    if (text.length > CHAT_MAX) {
+      addBubble('bot', 'Cada pergunta pode ter no máximo ' + CHAT_MAX + ' caracteres.', 'err');
       return;
     }
     input.value = '';

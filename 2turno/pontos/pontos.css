@@ -77,3 +77,12 @@ html.embed .ficha{position:static;margin:10px 0 0;border-radius:14px;border:1px 
 .aud-cmp{margin-bottom:12px;position:relative}.aud-cmp-prev{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;filter:blur(6px);opacity:.55;user-select:none;pointer-events:none;margin:8px 0 -6px}.aud-cmp-prev div{border:1px solid currentColor;border-radius:10px;padding:10px;opacity:.6}.aud-cmp-prev b{display:block;font-size:1.6rem}.aud-esc i.cmp{background:none!important;background-image:linear-gradient(90deg,hsl(160,55%,52%),hsl(0,0%,92%),hsl(215,70%,52%))!important}
 .aud-min{flex:0 1 auto!important;display:flex;align-items:center;gap:6px}.aud-min input{width:90px;min-width:0!important}
 .aud-res td:nth-child(2),.aud-res th:nth-child(2){text-align:left}
+/* Auditoria: trancado (valores falsos borrados) e filtro em cascata — 27/10 */
+.aud-blur{filter:blur(6px);opacity:.55;user-select:none;pointer-events:none}
+.aud-enc{position:relative}.aud-lk{display:block;margin-top:8px;font-style:normal;font-weight:600;font-size:.85rem}
+.aud-fc{margin-bottom:12px}.aud-fc-s{display:grid;grid-template-columns:1fr 1fr;gap:8px}.aud-fc-s select{width:100%;min-height:44px;font-size:16px;padding:8px;border-radius:10px;border:1px solid rgba(148,163,184,.45);background:inherit;color:inherit}.aud-fc-s select:first-child{grid-column:1/-1}.aud-fc-s select:disabled{opacity:.5}
+.aud-fc-lab{margin:12px 0 8px;font-size:.92rem}.aud-fc-g{display:grid;gap:10px}.aud-kpi4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}.aud-kpi4 .cartao{padding:10px}.aud-kpi4 b{font-size:1.35rem}
+.aud-fc-prev{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.aud-fc-prev div{border:1px solid currentColor;border-radius:10px;padding:10px;opacity:.6}.aud-fc-prev b{display:block;font-size:1.4rem}
+.aud-fc-c h4{margin:0 0 2px}.aud-cand{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:8px 0;border-top:1px solid rgba(148,163,184,.25)}.aud-cand span{flex:1 1 60%;font-weight:600}.aud-cand b{font-size:1.1rem}.aud-cand small{flex-basis:100%;opacity:.75}
+.aud-nota{font-size:.82rem;margin:8px 0 0;padding:8px;border-radius:8px;background:rgba(148,163,184,.14)}
+@media(min-width:760px){.aud-fc-s{grid-template-columns:repeat(5,1fr)}.aud-fc-s select:first-child{grid-column:auto}.aud-fc-g{grid-template-columns:2fr 1fr;align-items:start}.aud-kpi4{grid-template-columns:repeat(2,1fr)}.aud-fc-prev{grid-template-columns:repeat(4,1fr)}}
